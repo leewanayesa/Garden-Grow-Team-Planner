@@ -887,7 +887,7 @@ function migrate(o){
 /* ---------- state + local save ---------- */
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
-if(!S||!S.staff||!S.layouts)S=clone(DEFAULT);
+if(!S||!S.staff||!S.layouts){S=clone(DEFAULT);S.isSeed=true}
 migrate(S);
 function localSave(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function save(){S.updatedAt=Date.now();localSave();schedulePush()}
@@ -1332,14 +1332,19 @@ function takeRosterVillas(v){
   S.clientsInfo={source:'Linked to the roster app',loaded:TODAY,at:v.at,live:true};
   save(); toast(`Villas updated from the roster app (${S.clients.length})`); return true;
 }
+/* How much real data a plan holds: skills, supervisors, leave, jobs, edited days. Used to catch a near-empty
+   plan about to replace a full one (e.g. a new phone or browser that has not loaded the Sheet yet). */
+function richness(o){if(!o)return 0;const sum=m=>Object.values(m||{}).reduce((a,b)=>a+((b&&b.length)||0),0);return sum(o.skills)+sum(o.expert)+(o.supervisors||[]).length*3+(o.leaves||[]).length*2+(o.projects||[]).length*2+Object.keys(o.days||{}).length}
+let firstPullDone=false;
 async function push(){
   const url=syncUrl(); if(!url)return;
+  if(S.isSeed&&!firstPullDone){if(!pulling)pull();return} /* a new device never sends its starting data before it has loaded the Sheet */
   if(pushing){schedulePush();return}
   if(!navigator.onLine){setSync('offline');return}
   pushing=true; setSync('saving');
   const sent=S.updatedAt;
   try{
-    const st=clone(S); delete st.syncedAt;
+    const st=clone(S); delete st.syncedAt; delete st.isSeed;
     const res=await fetchT(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'save',baseUpdatedAt:S.syncedAt||0,state:st,readable:readableRows()})});
     const j=await readJson(res);
     if(j.ok){S.syncedAt=sent;localSave();lastSyncAt=new Date();setSync(S.updatedAt>sent?'pending':'ok');if(S.updatedAt>sent)schedulePush()}
@@ -1355,8 +1360,19 @@ async function pull(){
     const res=await fetchT(url+(url.includes('?')?'&':'?')+'action=load&t='+Date.now(),{},25000);
     const j=await readJson(res);
     if(!j.ok)throw new Error(j.error||'');
-    const remote=j.state;
-    if(remote&&(remote.updatedAt||0)>(S.updatedAt||0)){adoptRemote(remote)}
+    const remote=j.state; firstPullDone=true;
+    const rL=richness(S), rR=richness(remote), newer=remote&&(remote.updatedAt||0)>(S.updatedAt||0);
+    if(remote&&S.isSeed){adoptRemote(remote);toast('Your plan was loaded from the Google Sheet')}
+    else if(!remote&&S.isSeed){delete S.isSeed}
+    else if(newer&&rR<0.6*rL&&rL-rR>=5){
+      if(confirm(`The Google Sheet has much LESS data than this device (skills, leave, jobs).\n\nOK = keep THIS device's data and send it to the Sheet (recommended)\nCancel = replace this device with the Sheet's data`)){S.updatedAt=Math.max(Date.now(),(remote.updatedAt||0)+1);localSave();pulling=false;await push();return}
+      adoptRemote(remote);
+    }
+    else if(remote&&!newer&&rL<0.6*rR&&rR-rL>=5){
+      if(confirm(`This device has much LESS data than the Google Sheet (skills, leave, jobs).\n\nOK = load the Sheet's data onto this device (recommended)\nCancel = keep this device and send it to the Sheet`)){adoptRemote(remote)}
+      else{pulling=false;await push();return}
+    }
+    else if(newer){adoptRemote(remote)}
     if(takeRosterVillas(j.villas)){lastSyncAt=new Date();render();return}
     else if(!remote||(S.updatedAt||0)>(S.syncedAt||0)){pulling=false;await push();return}
     lastSyncAt=new Date(); setSync('ok');
@@ -1364,7 +1380,8 @@ async function pull(){
   finally{pulling=false}
 }
 function adoptRemote(st){
-  S=migrate(st); S.syncedAt=S.updatedAt; localSave(); lastSyncAt=new Date(); setSync('ok');
+  try{if(!S.isSeed&&richness(S)>0)localStorage.setItem(KEY+'_beforeSync',JSON.stringify({at:Date.now(),state:S}))}catch(e){}
+  S=migrate(st); delete S.isSeed; S.syncedAt=S.updatedAt; localSave(); lastSyncAt=new Date(); setSync('ok');
   if(!modal){sel=null;menuMode=null;render()}
 }
 setInterval(()=>{if(document.visibilityState==='visible'&&!modal)pull()},60000);
@@ -1804,6 +1821,8 @@ function renderSetup(){
       <div class="row"><button class="btn warn" data-resetlearn>${delArm==='learn'?'Tap again to forget everything learned':'Forget what it learned'}</button></div></div>
       <div class="card"><h2>Working week</h2><label class="field inline"><span class="lbl">Weekly day off</span><select class="textin" id="dayoff">${[[-1,'None'],[5,'Friday'],[6,'Saturday'],[0,'Sunday']].map(([v,l])=>`<option value="${v}" ${S.settings.dayOff===v?'selected':''}>${l}</option>`).join('')}</select></label>
       <p class="muted small">Greys out that day in the calendar and week.</p></div>
+      <div class="card"><h2>If your data looks wrong</h2><p class="muted small">Load the plan saved in your Google Sheet onto this device, or undo the last time this device took data from the Sheet.</p>
+      <div class="row"><button class="btn" data-loadsheet>Load from Google Sheet now</button>${(()=>{try{const b=JSON.parse(localStorage.getItem(KEY+'_beforeSync')||'null');return b?`<button class="btn" data-undosync>Undo last sync (${shortDate(iso(new Date(b.at)))} ${pad(new Date(b.at).getHours())}:${pad(new Date(b.at).getMinutes())} · ${b.state.staff.length} staff)</button>`:''}catch(e){return ''}})()}</div></div>
       <div class="card"><h2>Backup</h2><p class="muted small">Download a backup file now and then; load it to move your plan to another computer.</p>
       <div class="row"><button class="btn" data-downloadbackup>Download backup</button><label class="btn" for="loadfile">Load backup</label><input type="file" id="loadfile" accept=".json,application/json" hidden>
       <button class="btn warn" data-resetall>${delArm==='ALL'?'Tap again to restore original teams':'Restore original teams'}</button></div></div>`;
@@ -2128,6 +2147,8 @@ document.addEventListener('click',e=>{
     delArm=null;save();toast('Job type deleted');render();return}
   if('syncconnect' in d){const u=$('syncurl').value.trim();if(u&&!/^https:\/\/script\.google(usercontent)?\.com\//.test(u)){toast('That link should start with https://script.google.com/');return}setSyncUrl(u);if(u){setSync('loading');pull().then(()=>render())}else setSync('off');render();return}
   if('syncoff' in d){setSyncUrl('');setSync('off');toast('Disconnected from Google Sheet');render();return}
+  if('loadsheet' in d){(async()=>{try{const u=syncUrl();const r=await fetchT(u+(u.includes('?')?'&':'?')+'action=load&t='+Date.now(),{},25000);const j=await readJson(r);if(j.ok&&j.state){adoptRemote(j.state);toast('Loaded from the Google Sheet')}else toast('The Sheet has no plan saved')}catch(e){toast('Could not reach the Google Sheet')}})();return}
+  if('undosync' in d){try{const b=JSON.parse(localStorage.getItem(KEY+'_beforeSync'));if(b&&b.state&&confirm(`Put back this device's data from ${new Date(b.at).toLocaleString()}? It will also be sent to the Google Sheet.`)){S=migrate(b.state);delete S.isSeed;save();toast('Earlier data put back');render()}}catch(e){toast('Nothing to undo')}return}
   if('downloadbackup' in d){download(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),`GardenGrow_Teams_Backup_${TODAY}.json`);toast('Backup downloaded');return}
   if('resetlearn' in d){if(delArm!=='learn'){delArm='learn';render();return}S.learn={w:{},t:{},p:{},l:{},a:{}};Object.values(S.days).forEach(r=>{delete r.learned});delArm=null;save();toast('Learning cleared');render();return}
   if('resetall' in d){if(delArm!=='ALL'){delArm='ALL';render();return}S.layouts=clone(DEFAULT.layouts);delArm=null;save();toast('Original teams restored');render();return}
