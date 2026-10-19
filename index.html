@@ -1074,7 +1074,7 @@ function suggest(date){
     const covers=Object.keys(sh).filter(k=>k!==skill&&has(n,k)); if(covers.length){s+=2*covers.length;why.push('also '+covers.map(k=>SK[k]).join(', '))}
     const aff=affinity(t,n);
     if(aff){s+=Math.max(-4,Math.min(4,aff*0.5));if(aff>=2)why.push(isProj(t)?'often on this kind of work':'usually in this team');if(aff<=-1)why.push('was moved off this work before')}
-    if(mode==='lead'){const l=learnL(t,n);if(l){s+=Math.min(4,l*0.7);if(l>=2)why.push('often leads this work')}if(isSup(n))s+=1}
+    if(mode==='lead'){if(expert(n,'lead')){s+=2;why.push('expert leader')}if(isSup(n)&&expert(n,'sup')){s+=1.5;why.push('senior supervisor')}const l=learnL(t,n);if(l){s+=Math.min(4,l*0.7);if(l>=2)why.push('often leads this work')}if(isSup(n))s+=1}
     else if(has(n,'lead'))s-=0.7;
     const pr=people(t).reduce((a,m)=>a+learnP(n,m),0); if(pr>0){s+=Math.min(2,pr*0.2);if(pr>=2)why.push('works well with this team')}
     const dem=demandElsewhere(t), scarce=Object.keys(dem).filter(k=>has(n,k)&&!need[k]); if(scarce.length)s-=1.2*scarce.length;
@@ -1738,7 +1738,7 @@ function staffByPerson(){
   return `<div class="plist">${S.staff.map((n,i)=>{const mine=(sk[n]||[]), open=staffOpen===n;
     return `<div class="pcard ${open?'open':''}"><button class="phead" data-staffopen="${esc(n)}" aria-expanded="${open}"><span class="pname">${esc(n)}${sups.includes(n)?' <span class="sup">sup</span>':''}${personDirty(n)?' <span class="warntxt small">● not saved</span>':''}</span><span class="pskills">${mine.length?SKILLS.filter(s=>mine.includes(s.id)).map(s=>`<i class="${(draftExpert()[n]||[]).includes(s.id)?'x':''}">${(draftExpert()[n]||[]).includes(s.id)?'★ ':''}${s.short}</i>`).join(''):'<em>No skills yet — tap to add</em>'}</span>${ICON.chev}</button>
       ${open?`<div class="pbody">
-        <div class="tgroup"><span class="lbl">Position</span><div class="tchips"><button class="tchip ${sups.includes(n)?'on':''}" data-tsup="${esc(n)}">Supervisor<em>can lead any team</em></button></div></div>
+        <div class="tgroup"><span class="lbl">Position</span><div class="tchips">${(()=>{const xs=(draftExpert()[n]||[]).includes('sup')&&sups.includes(n);return `<button class="tchip ${sups.includes(n)?'on':''} ${xs?'exp':''}" data-tsup="${esc(n)}">${xs?'★ ':''}Supervisor<em>${xs?'expert — senior supervisor':sups.includes(n)?'can lead any team':'can lead any team'}</em></button>`})()}</div></div>
         ${SKILL_GROUPS.map(g=>`<div class="tgroup"><span class="lbl">${g.name}</span><div class="tchips">${g.ids.map(id=>{const ex=(draftExpert()[n]||[]).includes(id);return `<button class="tchip ${mine.includes(id)?'on':''} ${ex?'exp':''}" data-tskill="${id}" data-tperson="${esc(n)}">${ex?'★ ':''}${SK[id]}<em>${ex?'expert':mine.includes(id)?'can do':SKILL_HELP[id]}</em></button>`}).join('')}</div></div>`).join('')}
         ${learnedText(n)?`<p class="learned"><b>Learned from your plans:</b> ${esc(learnedText(n))}</p>`:''}
         <div class="row spread pfoot">${personDirty(n)?`<span class="row"><button class="btn primary" data-staffsave data-closeafter>✓ Save</button><button class="btn small" data-staffundo="${esc(n)}">Undo changes</button><span class="warntxt small">● Not saved yet</span></span>`:`<span class="row"><span class="oktxt small">✓ Saved</span><button class="btn small" data-staffopen="">Close</button></span>`}<button class="btn small warn" data-delstaff="${esc(n)}">${delArm==='ds:'+n?'Tap again to delete':'Delete member'}</button></div>
@@ -2044,9 +2044,9 @@ document.addEventListener('click',e=>{
   if(d.staffskill){staffSkill=d.staffskill;render();return}
   if(d.tskill&&d.tperson!=null){ensureDraft();const n=d.tperson,sk=d.tskill,a=staffDraft.skills[n]||(staffDraft.skills[n]=[]),e=staffDraft.expert[n]||(staffDraft.expert[n]=[]);
     const can=a.includes(sk),ex=e.includes(sk);
-    if(!can){a.push(sk)}else if(!ex&&!['lead','driver','general','heavy'].includes(sk)){e.push(sk)}else{a.splice(a.indexOf(sk),1);if(ex)e.splice(e.indexOf(sk),1)}
+    if(!can){a.push(sk)}else if(!ex){e.push(sk)}else{a.splice(a.indexOf(sk),1);if(ex)e.splice(e.indexOf(sk),1)}
     render();return}
-  if(d.tsup){ensureDraft();const a=staffDraft.supervisors,i=a.indexOf(d.tsup);if(i>=0)a.splice(i,1);else a.push(d.tsup);render();return}
+  if(d.tsup){ensureDraft();const n=d.tsup,a=staffDraft.supervisors,i=a.indexOf(n),e=staffDraft.expert[n]||(staffDraft.expert[n]=[]),x=e.indexOf('sup');if(i<0)a.push(n);else if(x<0)e.push('sup');else{a.splice(i,1);e.splice(x,1)}render();return}
   if(d.skillall!=null){ensureDraft();const on=d.skillall==='1';S.staff.forEach(n=>{const a=staffDraft.skills[n]||(staffDraft.skills[n]=[]);const i=a.indexOf(staffSkill);if(on&&i<0)a.push(staffSkill);if(!on&&i>=0){a.splice(i,1);const e=staffDraft.expert[n]||[];if(e.includes(staffSkill))e.splice(e.indexOf(staffSkill),1)}});toast(on?`${SK[staffSkill]} ticked for everyone — untick anyone who can't, then Save`:`${SK[staffSkill]} cleared for everyone`);render();return}
   if(d.staffundo!=null&&staffDraft){const n=d.staffundo;staffDraft.skills[n]=[...(S.skills[n]||[])];staffDraft.expert[n]=[...((S.expert||{})[n]||[])];const i=staffDraft.supervisors.indexOf(n);if(i>=0&&!(S.supervisors||[]).includes(n))staffDraft.supervisors.splice(i,1);if(i<0&&(S.supervisors||[]).includes(n))staffDraft.supervisors.push(n);render();return}
   if('staffsave' in d){if('closeafter' in d)staffOpen=null;if(staffDraft){S.skills=staffDraft.skills;S.supervisors=staffDraft.supervisors;if(staffDraft.expert)S.expert=staffDraft.expert;staffDraft=null;save()}staffSavedAt=new Date();toast(syncUrl()&&syncStatus!=='error'&&syncStatus!=='offline'?'Saved — remembered on this device and sent to your Google Sheet':'Saved on this device'+(syncUrl()?' — it will go to the Google Sheet once the sync works again':''));render();return}
