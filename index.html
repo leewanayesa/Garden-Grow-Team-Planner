@@ -357,6 +357,11 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 @media (max-width:420px){.two{grid-template-columns:1fr}.kpis.seven{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
 /* ---- Day screen v2 ---- */
+.vsz{font-style:normal;font-size:.68rem;font-weight:800;border-radius:4px;padding:0 4px;margin-right:4px;display:inline-block;line-height:1.45}
+.vsz.l{background:#e3d5f5;color:#4a2a7a}.vsz.m{background:#dbe9f6;color:#1f4f7a}.vsz.s{background:#eef1ec;color:#4e5c51}
+.vbtxt .vsz{margin:0 2px}
+.pt .tag.sz{background:#eef1ec;color:#1d2a20}
+
 .addp{border:1.5px dashed var(--line);background:transparent;color:var(--green);font-weight:700;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;font:inherit;font-weight:700}
 .addp:hover{border-color:var(--green);background:var(--green-soft)}
 .prow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;margin-bottom:6px;cursor:pointer;font:inherit;color:var(--ink)}
@@ -697,6 +702,11 @@ function jobNeeds(j){const n={...(j.need||{})};if(j.heavy&&n.heavy==null)n.heavy
 const isProj=t=>!!t.projectId||jobOf(t).group!=='maint';
 const has=(n,sk)=>(S.skills[n]||[]).includes(sk)||(sk==='lead'&&isSup(n));
 const isSup=n=>(S.supervisors||[]).includes(n);
+/* Supervisor level: 3 = Senior supervisor, 2 = Supervisor, 1 = Junior supervisor, 0 = not a supervisor */
+const supLevelIn=(sups,ex,n)=>!(sups||[]).includes(n)?0:((ex||{})[n]||[]).includes('sup3')?3:((ex||{})[n]||[]).includes('sup1')?1:2;
+const supLevel=n=>supLevelIn(S.supervisors,S.expert,n);
+const SUP_NAME=['','Junior supervisor','Supervisor','Senior supervisor'];
+const SIZE_NAME={L:'Large job',M:'Medium job',S:'Small job'}, SIZE_WANT={L:3,M:2,S:1};
 const dn=n=>n; /* one name everywhere: the full name */
 const dnl=a=>(a||[]).map(dn);
 const active=sk=>S.staff.some(n=>has(n,sk));
@@ -729,49 +739,142 @@ function clientsOn(date){
   return (S.clients||[]).filter(c=>extra.has(c.id)||(c.status!=='paused'&&(c.days||[]).includes(dn)&&weekOk(c.weeks,date)&&!(c.newFrom&&date<c.newFrom)))
     .sort((a,b)=>zoneOf(a)-zoneOf(b)||areaShort(a).localeCompare(areaShort(b))||((a.routeOrder??999)-(b.routeOrder??999))||villaName(a).localeCompare(villaName(b)));
 }
-/* Split villas (in drive order) across k teams AREA BY AREA: an area stays with one team even if that team gets
-   more villas; an area is only divided when it alone has more villas than one team can cover (the max per team). */
+/* ---------- Villa size, map position and the smart split ----------
+   Size: what the client pays per visit (monthly fee ÷ visits a month), so a villa visited twice a week is not
+   counted as "big" just because its monthly fee is high. Small = 1 point, Medium = 1.5, Large = 2.
+   Position: read from the Google Maps link (or a "lat, lng" in the location) when the link holds coordinates.
+   Split: areas stay together; areas are put in driving order (zone by zone, nearest area next); the route is cut
+   into one piece per team so every team gets about the same WORKLOAD (points), not just the same number of villas;
+   big pieces go to bigger teams; teams keep the areas they usually cover (learned). */
+const numVal=v=>{const s=String(v==null?'':v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/,/g,'').replace(/[^\d.]/g,'');const n=parseFloat(s);return isFinite(n)&&n>0?n:null};
+function parseLatLng(...vals){
+  for(const v of vals){ if(!v)continue; const s=decodeURIComponent(String(v));
+    const m=s.match(/@(-?\d{1,2}\.\d+),\s*(-?\d{1,3}\.\d+)/)||s.match(/!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/)||
+      s.match(/[?&](?:q|ll|query|destination|daddr|center|sll)=(?:loc:)?\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/i)||
+      s.match(/(?:^|[\s(])(-?2[2-6]\.\d{3,})\s*,\s*(-?5[1-6]\.\d{3,})/);
+    if(m){const a=+m[1],b=+m[2]; if(a>22&&a<27&&b>51&&b<57)return {lat:a,lng:b}} }
+  return null;
+}
+function visitsPerMonth(c){
+  const d=Math.max(1,(c.days||[]).length), f=c.frequency||'';
+  if(f==='monthly')return 1; if(f==='twice_month'||String(c.monthlyVisits)==='2')return 2;
+  if(f==='fortnightly')return d*2.17; if(f==='alternate')return 15;
+  if(c.weeks)return Math.max(1,String(c.weeks).split('-').filter(Boolean).length)*d;
+  return d*4.33;
+}
+const perVisit=c=>c.fee?c.fee/visitsPerMonth(c):null;
+function sizeLimits(){
+  const st=S.settings||{}, vals=(S.clients||[]).map(perVisit).filter(Boolean).sort((a,b)=>a-b);
+  const q=f=>vals.length?vals[Math.min(vals.length-1,Math.floor(vals.length*f))]:null;
+  const auto={s:q(0.34),l:q(0.67)};
+  return {s:st.sizeS||auto.s, l:st.sizeL||auto.l, auto, n:vals.length};
+}
+let _szCache=null,_szKey='';
+function sizeOf(c){
+  if(c.sizeSet)return c.sizeSet;
+  const key=(S.updatedAt||0)+'|'+(S.clients||[]).length+'|'+(S.settings.sizeS||'')+'|'+(S.settings.sizeL||'');
+  if(key!==_szKey){_szCache=sizeLimits();_szKey=key}
+  const pv=perVisit(c),L=_szCache; if(pv==null||L.s==null)return 'M';
+  return pv<L.s?'S':pv>=L.l?'L':'M';
+}
+const PTS={S:1,M:1.5,L:2};
+const ptsOf=c=>PTS[sizeOf(c)]||1.5;
+const ptsSum=list=>Math.round(list.reduce((a,c)=>a+ptsOf(c),0)*10)/10;
+const capPts=()=>maxV()*1.5;
+function kmBetween(a,b){if(!a||!b||a.lat==null||b.lat==null)return null;const x=(b.lng-a.lng)*111.32*Math.cos((a.lat+b.lat)/2*Math.PI/180),y=(b.lat-a.lat)*110.57;return Math.sqrt(x*x+y*y)}
+const posOf=c=>c&&c.lat!=null&&c.lng!=null?{lat:c.lat,lng:c.lng}:null;
+function centroid(list){const p=list.map(posOf).filter(Boolean);if(!p.length)return null;return {lat:p.reduce((a,x)=>a+x.lat,0)/p.length,lng:p.reduce((a,x)=>a+x.lng,0)/p.length}}
+/* Order villas inside a group by a short drive: nearest next (those without a position keep their place at the end). */
+function nnOrder(items,start){
+  const withP=items.filter(posOf), noP=items.filter(c=>!posOf(c)); if(withP.length<2)return [...withP,...noP];
+  const out=[], left=[...withP]; let cur=start||posOf(left[0]);
+  if(!start){out.push(left.shift());cur=posOf(out[0])}
+  while(left.length){let bi=0,bd=Infinity;left.forEach((c,i)=>{const d=kmBetween(cur,posOf(c));if(d<bd){bd=d;bi=i}});const c=left.splice(bi,1)[0];out.push(c);cur=posOf(c)}
+  return [...out,...noP];
+}
+/* Split villas (already in zone/area order) into k route pieces with balanced workload. */
 function splitVillas(list,k){
   if(k<=0)return [];
   const n=list.length; if(!n)return Array.from({length:k},()=>[]);
-  const cap=maxV(), groups=[];
-  for(let i=0;i<n;){let j=i;while(j<n&&areaShort(list[j])===areaShort(list[i]))j++;const g=list.slice(i,j);
-    if(g.length>cap){const parts=Math.ceil(g.length/cap),size=Math.ceil(g.length/parts);for(let p=0;p<g.length;p+=size)groups.push(g.slice(p,p+size))}else groups.push(g);
-    i=j}
-  const m=groups.length, pre=[0];groups.forEach(g=>pre.push(pre[pre.length-1]+g.length));
-  const dp=Array.from({length:m+1},()=>Array(k+1).fill(Infinity)), cut=Array.from({length:m+1},()=>Array(k+1).fill(0));
+  const cap=maxV(), cp=capPts();
+  // 1) area groups; an area too big for one team is cut by position (along its longest side) into balanced parts
+  const raw=[];
+  for(let i=0;i<n;){let j=i;while(j<n&&areaShort(list[j])===areaShort(list[i]))j++;raw.push(list.slice(i,j));i=j}
+  const groups=[];
+  raw.forEach(g=>{
+    const pts=ptsSum(g);
+    if(g.length<=cap&&pts<=cp*1.15){groups.push(nnOrder(g));return}
+    const parts=Math.max(Math.ceil(g.length/cap),Math.ceil(pts/cp));
+    const P=g.filter(posOf), N=g.filter(c=>!posOf(c));
+    let ordered=g;
+    if(P.length>=2){const la=P.map(c=>c.lat),lo=P.map(c=>c.lng),byLat=(Math.max(...la)-Math.min(...la))*110.57>(Math.max(...lo)-Math.min(...lo))*104;ordered=[...P.sort((a,b)=>byLat?a.lat-b.lat:a.lng-b.lng),...N]}
+    const target=pts/parts; let curP=[],acc=0;
+    ordered.forEach(c=>{if(curP.length&&acc+ptsOf(c)/2>target&&groups.length<1e9&&acc>0&&curP.length&&(acc>=target*0.85)){groups.push(nnOrder(curP));curP=[];acc=0}curP.push(c);acc+=ptsOf(c)});
+    if(curP.length)groups.push(nnOrder(curP));
+  });
+  // 2) driving order: zone by zone; inside a zone the nearest area comes next
+  const zones=[];groups.forEach(g=>{const z=zoneOf(g[0]);let Z=zones.find(x=>x.z===z);if(!Z)zones.push(Z={z,gs:[]});Z.gs.push(g)});
+  let last=null; const seq=[];
+  zones.forEach(Z=>{
+    const withC=Z.gs.filter(g=>centroid(g)), noC=Z.gs.filter(g=>!centroid(g));
+    const left=[...withC];
+    if(last&&left.length){left.sort((a,b)=>kmBetween(last,centroid(a))-kmBetween(last,centroid(b)))}
+    while(left.length){const g=left.shift();seq.push(g);last=centroid(g);left.sort((a,b)=>kmBetween(last,centroid(a))-kmBetween(last,centroid(b)))}
+    noC.forEach(g=>seq.push(g));
+  });
+  // 3) cut the route into k pieces, keeping the heaviest piece as light as possible
+  const m=seq.length, w=seq.map(ptsSum), pre=[0];w.forEach(x=>pre.push(pre[pre.length-1]+x));
+  const dp=Array.from({length:m+1},()=>Array(k+1).fill(Infinity)), cutAt=Array.from({length:m+1},()=>Array(k+1).fill(0));
   dp[0][0]=0;
-  for(let j=1;j<=k;j++)for(let i=0;i<=m;i++)for(let p=0;p<=i;p++){
-    if(dp[p][j-1]===Infinity)continue;
-    const v=Math.max(dp[p][j-1],pre[i]-pre[p]);
-    if(v<dp[i][j]){dp[i][j]=v;cut[i][j]=p}
-  }
+  for(let j=1;j<=k;j++)for(let i=0;i<=m;i++)for(let p=0;p<=i;p++){if(dp[p][j-1]===Infinity)continue;const v=Math.max(dp[p][j-1],pre[i]-pre[p]);if(v<dp[i][j]-1e-9){dp[i][j]=v;cutAt[i][j]=p}}
   const res=[];let i=m;
-  for(let j=k;j>=1;j--){const p=cut[i][j];res.unshift(groups.slice(p,i).flat());i=p}
+  for(let j=k;j>=1;j--){const p=cutAt[i][j];res.unshift(seq.slice(p,i).flat());i=p}
   return res;
 }
 /* Which villas each maintenance team covers on a date. Manual moves and skips for that day are kept. */
+const _vpCache=new Map();
 function villaPlan(date,teams){
   const r=dayRec(date), moved=r.villaMove||{}, skip=new Set(r.villaSkip||[]);
   const maint=teams.filter(t=>!isProj(t)), ids=new Set(maint.map(t=>t.id));
+  const ck=date+'|'+(S.updatedAt||0)+'|'+maint.map(t=>t.id+':'+people(t).length+':'+(t.leader||'')).join(',')+'|'+JSON.stringify(moved)+'|'+[...skip].join(',')+'|'+(S.clients||[]).length;
+  if(_vpCache.has(ck))return _vpCache.get(ck);
   const all=clientsOn(date).filter(c=>!skip.has(c.id));
   const auto=all.filter(c=>!(moved[c.id]&&ids.has(moved[c.id])));
   let parts=splitVillas(auto,maint.length); const byTeam={};
-  if(maint.length>1&&maint.length<=6&&S.learn&&S.learn.a){
+  if(maint.length>1&&maint.length<=6){
     const fit=(part,t)=>part.reduce((s,c)=>s+learnA(areaShort(c),t),0);
     const perm=a=>a.length<=1?[a]:a.flatMap((x,i)=>perm([...a.slice(0,i),...a.slice(i+1)]).map(r=>[x,...r]));
-    let best=null,bs=0.0001*maint.length;
-    perm(parts.map((_,i)=>i)).forEach(o=>{const s=o.reduce((acc,pi,ti)=>acc+fit(parts[pi]||[],maint[ti])+(pi===ti?0.001:0),0);if(s>bs+0.0001){bs=s;best=o}});
+    let best=null,bs=-Infinity;
+    perm(parts.map((_,i)=>i)).forEach(o=>{
+      const aff=S.learn&&S.learn.a?o.reduce((acc,pi,ti)=>acc+fit(parts[pi]||[],maint[ti]),0):0;
+      const bal=Math.max(...o.map((pi,ti)=>ptsSum(parts[pi]||[])/Math.max(1,people(maint[ti]).length)));
+      const s=aff-1.2*bal+o.reduce((a,pi,ti)=>a+(pi===ti?0.001:0),0);
+      if(s>bs+1e-9){bs=s;best=o}
+    });
     if(best)parts=best.map(i=>parts[i]);
   }
   maint.forEach((t,i)=>byTeam[t.id]=[...(parts[i]||[])]);
-  all.forEach(c=>{const to=moved[c.id];if(to&&ids.has(to))byTeam[to].push(c)});
-  maint.forEach(t=>byTeam[t.id].sort((a,b)=>zoneOf(a)-zoneOf(b)||areaShort(a).localeCompare(areaShort(b))||villaName(a).localeCompare(villaName(b))));
-  return {byTeam,skipped:clientsOn(date).filter(c=>skip.has(c.id)),total:all.length};
+  const order=new Map();parts.flat().forEach((c,i)=>order.set(c.id,i));
+  all.forEach(c=>{const to=moved[c.id];if(to&&ids.has(to)){byTeam[to].push(c)}});
+  maint.forEach(t=>{const L=byTeam[t.id];const ix=c=>order.has(c.id)?order.get(c.id):(()=>{const same=L.find(x=>order.has(x.id)&&areaShort(x)===areaShort(c));return same?order.get(same.id)+0.5:1e6})();L.sort((a,b)=>ix(a)-ix(b))});
+  const res={byTeam,skipped:clientsOn(date).filter(c=>skip.has(c.id)),total:all.length};
+  if(_vpCache.size>400)_vpCache.clear(); _vpCache.set(ck,res); return res;
+}
+/* Villas that sit far from the rest of their team's route but close to another team's villas. */
+function nearIdeas(date){
+  const teams=effTeams(date), vp=villaPlan(date,teams), maint=teams.filter(t=>!isProj(t)), moved=dayRec(date).villaMove||{}, out=[];
+  maint.forEach(T=>{(vp.byTeam[T.id]||[]).forEach(v=>{
+    if(moved[v.id]||!posOf(v))return;
+    const own=Math.min(...(vp.byTeam[T.id]||[]).filter(x=>x!==v&&posOf(x)).map(x=>kmBetween(posOf(v),posOf(x))));
+    if(!isFinite(own)||own<5)return;
+    let best=null;maint.forEach(U=>{if(U===T)return;const d=Math.min(...(vp.byTeam[U.id]||[]).filter(posOf).map(x=>kmBetween(posOf(v),posOf(x))));if(isFinite(d)&&(!best||d<best.d))best={U,d}});
+    if(best&&best.d<=own/2.5&&ptsSum(vp.byTeam[best.U.id]||[])+ptsOf(v)<=capPts()*1.1)out.push({kind:'near',id:v.id,name:villaName(v),from:T.name,to:best.U.id,toName:best.U.name,own:Math.round(own*10)/10,d:Math.round(best.d*10)/10});
+  })});
+  return out.sort((a,b)=>(b.own-b.d)-(a.own-a.d)).slice(0,3);
 }
 const maxV=()=>S.settings.maxVillas||7;
 function villaGroups(list){const g=[];list.forEach(c=>{const a=areaShort(c),last=g[g.length-1];if(last&&last.area===a)last.items.push(c);else g.push({area:a,items:[c]})});return g}
-function overloaded(date){const teams=effTeams(date),vp=villaPlan(date,teams);return teams.filter(t=>!isProj(t)&&(vp.byTeam[t.id]||[]).length>maxV())}
+function overloaded(date){const teams=effTeams(date),vp=villaPlan(date,teams);return teams.filter(t=>!isProj(t)&&ptsSum(vp.byTeam[t.id]||[])>capPts()||!isProj(t)&&(vp.byTeam[t.id]||[]).length>maxV())}
 /* Villas per maintenance team on a date if new work runs (or not) that day. */
 function loadFor(date,withJob){
   const v=clientsOn(date).filter(c=>!(dayRec(date).villaSkip||[]).includes(c.id)).length;
@@ -846,6 +949,8 @@ function migrate(o){
     o.jobsV17=true;
   }
   if(!o.expert)o.expert={};
+  Object.values(o.expert).forEach(a=>{const i=a.indexOf('sup');if(i>=0)a.splice(i,1,'sup3')});
+  (o.projects||[]).forEach(pr=>{if(!pr.size)pr.size='M'});
   if(!o.v18){(o.projects||[]).forEach(pr=>{if(pr.crewOk==null)pr.crewOk=pr.from<TODAY});o.v18=true}
   if(!o.jobsV9){
     const hj=o.jobs.find(j=>j.id==='hardscape'); if(hj&&/hardscape/i.test(hj.name)){hj.name='Concrete works (planters, concrete)';hj.heavy=true;hj.need=Object.assign({hardscape:1},hj.need||{});if(!hj.need.general)hj.need.general=1}
@@ -1074,7 +1179,10 @@ function suggest(date){
     const covers=Object.keys(sh).filter(k=>k!==skill&&has(n,k)); if(covers.length){s+=2*covers.length;why.push('also '+covers.map(k=>SK[k]).join(', '))}
     const aff=affinity(t,n);
     if(aff){s+=Math.max(-4,Math.min(4,aff*0.5));if(aff>=2)why.push(isProj(t)?'often on this kind of work':'usually in this team');if(aff<=-1)why.push('was moved off this work before')}
-    if(mode==='lead'){if(expert(n,'lead')){s+=2;why.push('expert leader')}if(isSup(n)&&expert(n,'sup')){s+=1.5;why.push('senior supervisor')}const l=learnL(t,n);if(l){s+=Math.min(4,l*0.7);if(l>=2)why.push('often leads this work')}if(isSup(n))s+=1}
+    if(mode==='lead'){if(expert(n,'lead')){s+=2;why.push('expert leader')}
+      const pj=projOf(t), lv=supLevel(n);
+      if(pj){const want=SIZE_WANT[pj.size||'M']||2;if(lv>=want){s+=5+(lv===want?1.5:0);why.push(`${SUP_NAME[lv]} for a ${SIZE_NAME[pj.size||'M'].toLowerCase()}`)}else if(lv){s+=lv*1.5;why.push(SUP_NAME[lv])}}
+      else if(lv)s+=lv*0.5;const l=learnL(t,n);if(l){s+=Math.min(4,l*0.7);if(l>=2)why.push('often leads this work')}if(isSup(n))s+=1}
     else if(has(n,'lead'))s-=0.7;
     const pr=people(t).reduce((a,m)=>a+learnP(n,m),0); if(pr>0){s+=Math.min(2,pr*0.2);if(pr>=2)why.push('works well with this team')}
     const dem=demandElsewhere(t), scarce=Object.keys(dem).filter(k=>has(n,k)&&!need[k]); if(scarce.length)s-=1.2*scarce.length;
@@ -1086,6 +1194,9 @@ function suggest(date){
     const cs=[];
     avail.forEach(n=>{if(pred(n))cs.push({name:n,from:null})});
     sim.forEach(d=>{if(d===t)return;d.members.forEach(m=>{if(pred(m)&&canGive(d,m))cs.push({name:m,from:d})})});
+    /* a large or medium job may take the supervisor leading a maintenance team, if that team has someone else who can lead */
+    const pj=projOf(t);
+    if(mode==='lead'&&pj&&(pj.size||'M')!=='S')sim.forEach(d=>{if(d===t||isProj(d)||!d.leader||!pred(d.leader))return;if(supLevel(d.leader)<(SIZE_WANT[pj.size||'M']||2))return;if(d.members.some(m=>has(m,'lead')))cs.push({name:d.leader,from:d})});
     if(!cs.length)return null;
     cs.forEach(c=>Object.assign(c,score(c.name,t,c.from,mode,skill)));
     cs.sort((a,b)=>b.s-a.s||a.name.localeCompare(b.name));
@@ -1096,7 +1207,7 @@ function suggest(date){
     if(lead)t.leader=c.name; else t.members.push(c.name);
     moves.push({type:'move',name:c.name,fromName:c.from?c.from.name:'Available',to:t.id,toName:t.name,why:[base,...(c.why||[])].filter(Boolean).join(' · '),makeLead:!!lead});
   };
-  const pri=t=>{const p=projOf(t);return (p&&p.urgent?1000:0)+(isProj(t)?100:0)+Object.values(jobNeeds(jobOf(t))).reduce((a,b)=>a+b,0)};
+  const pri=t=>{const p=projOf(t);return (p&&p.urgent?1000:0)+(isProj(t)?100:0)+(p?({L:60,M:30,S:0}[p.size||'M']||0):0)+Object.values(jobNeeds(jobOf(t))).reduce((a,b)=>a+b,0)};
   const order=[...sim].sort((a,b)=>pri(b)-pri(a));
   order.forEach(t=>pinsOf(t).forEach(n=>{if(people(t).includes(n))return;const from=sim.find(x=>people(x).includes(n));doMove({name:n,from:from||null,why:[]},t,'Must be on this job')}));
   const holders=sk=>S.staff.filter(n=>!absent.has(n)&&has(n,sk)).length;
@@ -1204,7 +1315,7 @@ function pdfTeamBlock(t,date,vp){
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), n=people(t).length, vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, over=vl&&vl.length>maxV();
   const badge=vl?`${plural(vl.length,'villa')} · ${plural(n,'person','people')}`:plural(n,'person','people');
   const works=p?(p.works||[]).map(w=>(WORKS.find(x=>x.id===w)||{}).name||w).join(' + ')||j.name:'';
-  const rows=vl?vl.map((c,i)=>`<tr><td class="n">${i+1}</td><td class="v">${esc(villaName(c))}${FREQ_TAG[c.frequency]?` <span class="tag">${FREQ_TAG[c.frequency]}</span>`:''}${c.newFrom&&daysBetween(c.newFrom,date)>=0&&daysBetween(c.newFrom,date)<14?' <span class="tag new">NEW</span>':''}</td><td class="a">${esc(areaShort(c))}</td><td class="d"><i></i></td></tr>`).join(''):'';
+  const rows=vl?vl.map((c,i)=>`<tr><td class="n">${i+1}</td><td class="v"><span class="tag sz">${sizeOf(c)}</span> ${esc(villaName(c))}${FREQ_TAG[c.frequency]?` <span class="tag">${FREQ_TAG[c.frequency]}</span>`:''}${c.newFrom&&daysBetween(c.newFrom,date)>=0&&daysBetween(c.newFrom,date)<14?' <span class="tag new">NEW</span>':''}</td><td class="a">${esc(areaShort(c))}</td><td class="d"><i></i></td></tr>`).join(''):'';
   return `<section class="pb ${isProj(t)?'nw':''}">
     <div class="pbh"><b>${esc(t.name)}</b><span class="${over?'over':''}">${badge}${over?' · above '+maxV():''}</span></div>
     <div class="pbp"><b>Leader: ${esc(dn(t.leader)||'—')}</b>${t.members.length?`<br><span>Crew:</span> ${t.members.map(m=>esc(dn(m))).join(', ')}`:''}
@@ -1323,7 +1434,7 @@ function readableRows(){
 }
 function schedulePush(){if(!syncUrl())return;clearTimeout(pushTimer);setSync('pending');pushTimer=setTimeout(push,1500)}
 /* Villas from the roster app: only names, areas, visit days and status are kept. */
-function mapRosterClients(arr){return (arr||[]).filter(Boolean).map((c,i)=>({id:String(c.id||('r'+i)),nick:String(c.nick||'').trim(),name:String(c.name||'').trim(),area:String(c.area||''),mainArea:String(c.mainArea||''),days:Array.isArray(c.days)?c.days:[],frequency:c.frequency||(String(c.monthlyVisits)==='2'?'twice_month':''),weeks:String(c.weeks||''),status:c.status||'active',newFrom:c.newFrom||'',routeOrder:c.routeOrder??null}))}
+function mapRosterClients(arr){return (arr||[]).filter(Boolean).map((c,i)=>({fee:numVal(c.fee!=null?c.fee:c.amount),mapUrl:String(c.mapUrl||'').trim(),...(parseLatLng(c.lat!=null&&c.lng!=null?`${c.lat},${c.lng}`:'',c.mapUrl,c.location)||{lat:null,lng:null}),id:String(c.id||('r'+i)),nick:String(c.nick||'').trim(),name:String(c.name||'').trim(),area:String(c.area||''),mainArea:String(c.mainArea||''),days:Array.isArray(c.days)?c.days:[],frequency:c.frequency||(String(c.monthlyVisits)==='2'?'twice_month':''),weeks:String(c.weeks||''),status:c.status||'active',newFrom:c.newFrom||'',routeOrder:c.routeOrder??null}))}
 /* The roster app sends its villa list to the same Google Sheet; take it when it is newer than ours. */
 function takeRosterVillas(v){
   if(!v||!Array.isArray(v.clients)||!v.at)return false;
@@ -1444,6 +1555,7 @@ function heavyIdeas(date){
     const best=lightestDay(TODAY<date?TODAY:date,21,true);
     if(best&&best.per<=maxV())ideas.push({kind:'job',proj:ps[0],to:best.s,per:best.per});
   }
+  nearIdeas(date).forEach(x=>ideas.push(x));
   return ideas;
 }
 function moveVillasToDay(from,ids,to){
@@ -1472,22 +1584,22 @@ function jobSelect(t,ctx,cs,onlyGroup){
 function villaList(t,vp,ctx){
   const list=vp.byTeam[t.id]||[], moved=dayRec(ctx.date).villaMove||{};
   if(!list.length)return '<p class="muted small">No villas</p>';
-  return villaGroups(list).map(g=>`<div class="varea"><span class="vname">${esc(g.area)}</span><div class="vchips">${g.items.map(c=>`<button class="vchip ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}">${esc(villaName(c))}${FREQ_TAG[c.frequency]?`<span class="vtag">${FREQ_TAG[c.frequency]}</span>`:''}</button>`).join('')}</div></div>`).join('');
+  return villaGroups(list).map(g=>`<div class="varea"><span class="vname">${esc(g.area)}</span><div class="vchips">${g.items.map(c=>`<button class="vchip ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}"><i class="vsz ${sizeOf(c).toLowerCase()}" title="${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa">${sizeOf(c)}</i>${esc(villaName(c))}${FREQ_TAG[c.frequency]?`<span class="vtag">${FREQ_TAG[c.frequency]}</span>`:''}</button>`).join('')}</div></div>`).join('');
 }
 function teamCard(t,ctx,vp){
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), ps=problems(t), cs=esc(JSON.stringify(ctx));
-  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id), mx=maxV(), over=vl&&vl.length>mx;
-  const pct=vl?Math.min(100,Math.round(vl.length/mx*100)):0;
+  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id), mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
+  const pct=vl?Math.min(100,Math.round(Math.max(vl.length/mx,pts/capPts())*100)):0, szc=vl?{L:vl.filter(c=>sizeOf(c)==='L').length,M:vl.filter(c=>sizeOf(c)==='M').length,S:vl.filter(c=>sizeOf(c)==='S').length}:null;
   const miss=new Set(ps.filter(x=>x.kind==='skill').map(x=>x.skill));
   const ticks=Object.keys(jobNeeds(j)).filter(k=>k!=='lead'&&active(k)).map(k=>`<span class="tick ${miss.has(k)?'no':''}">${miss.has(k)?'✗':'✓'} ${esc((SKILLS.find(s=>s.id===k)||{}).short||k)}</span>`).join('');
   const areas=vl&&vl.length?[...new Set(vl.map(areaShort))].map(esc).join(' · '):'';
-  const sub=p?`Day ${daysBetween(p.from,ctx.date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · heavy work':''}`:areas;
+  const sub=p?`${SIZE_NAME[p.size||'M']} · Day ${daysBetween(p.from,ctx.date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · heavy work':''}${t.leader&&supLevel(t.leader)<(SIZE_WANT[p.size||'M']||2)?` · <b class="warntxt">needs a ${SUP_NAME[SIZE_WANT[p.size||'M']].toLowerCase()}</b>`:''}`:areas;
   const noteShown=t.desc||noteTeams.has(t.id);
   return `<section class="tcard ${isProj(t)?'proj':'maint'} ${ps.length?'bad':''} ${open?'open':''}" data-drop="${t.id}" data-ctx='${cs}'>
     <button class="thead" data-toggle="${t.id}" aria-expanded="${open}">
       <span class="tl1"><span class="tname">${esc(t.name)}</span><span class="tright ${over?'warn':''}">${vl?plural(vl.length,'villa'):plural(n,'person','people')}</span>${ICON.chev}</span>
       <span class="tl2"><b>${esc(dn(t.leader)||'No leader')}</b>${t.members.length?` + ${t.members.length}`:''}</span>
-      ${vl?`<span class="vbar ${over?'over':''}" aria-label="${vl.length} of ${mx} villas"><i style="width:${pct}%"></i></span><span class="vbtxt"><b>${plural(vl.length,'villa')}</b> of ${mx}${over?' · above max, area kept together':''} · ${plural(n,'person','people')}</span>`:''}
+      ${vl?`<span class="vbar ${over?'over':''}" aria-label="${vl.length} of ${mx} villas"><i style="width:${pct}%"></i></span><span class="vbtxt"><b>${plural(vl.length,'villa')}</b> of ${mx} · ${szc.L?`<i class="vsz l">${szc.L} L</i>`:''}${szc.M?`<i class="vsz m">${szc.M} M</i>`:''}${szc.S?`<i class="vsz s">${szc.S} S</i>`:''} · workload ${pts}${over?' · <b class="warntxt">heavy</b>':''} · ${plural(n,'person','people')}</span>`:''}
       ${sub?`<span class="tl3">${sub}</span>`:''}
       ${ps.length?`<span class="tprob">${ICON.alert}${ps.map(x=>esc(x.text)).join(' · ')}</span>`:''}
     </button>
@@ -1532,7 +1644,7 @@ function issuesCard(){
       <button class="link" data-sugopen>${sugOpen?'Hide the changes':'See each change and why'}</button>
       ${sugOpen||sug.moves.length===1?sug.moves.map((m,i)=>`<div class="sg"><span>${moveText(m)}<em>${esc(m.why)}</em></span><button class="btn small" data-apply="${i}">Apply</button></div>`).join(''):''}</div>`:''}
     ${!sug.moves.length?iss.map(x=>`<div class="iss">${esc(x)}</div>`).join(''):''}
-    ${ideas.map((x,i)=>x.kind==='villas'?`<div class="sg"><span>Move <b>${x.names.map(esc).join(', ')}</b> to <b>${shortDate(x.to)}</b><em>${esc(x.team)} is above ${maxV()} villas; ${x.names.length===1?'this villa is':'these are'} not visited every week</em></span><button class="btn small primary" data-idea="${i}">Apply</button></div>`:`<div class="sg"><span>Move <b>${esc(x.proj.title)}</b> to start <b>${shortDate(x.to)}</b><em>About ${x.per} villas per team that day</em></span><button class="btn small" data-editproj="${x.proj.id}">Open job</button></div>`).join('')}
+    ${ideas.map((x,i)=>x.kind==='near'?`<div class="sg"><span>Move <b>${esc(x.name)}</b> to <b>${esc(x.toName)}</b><em>Nearby: ${x.d} km from ${esc(x.toName)}'s villas, ${x.own} km from the rest of ${esc(x.from)}'s route</em></span><button class="btn small primary" data-idea="${i}">Apply</button></div>`:x.kind==='villas'?`<div class="sg"><span>Move <b>${x.names.map(esc).join(', ')}</b> to <b>${shortDate(x.to)}</b><em>${esc(x.team)} is above ${maxV()} villas; ${x.names.length===1?'this villa is':'these are'} not visited every week</em></span><button class="btn small primary" data-idea="${i}">Apply</button></div>`:`<div class="sg"><span>Move <b>${esc(x.proj.title)}</b> to start <b>${shortDate(x.to)}</b><em>About ${x.per} villas per team that day</em></span><button class="btn small" data-editproj="${x.proj.id}">Open job</button></div>`).join('')}
     ${sug.left.length&&sug.moves.length?`<p class="cant">Still can't fix: ${sug.left.map(esc).join(' · ')}</p>`:''}
   </div>`;
 }
@@ -1736,9 +1848,9 @@ function draftExpert(){return (staffDraft&&staffDraft.expert)||S.expert||{}}
 function staffByPerson(){
   const sk=draftSkills(), sups=draftSups();
   return `<div class="plist">${S.staff.map((n,i)=>{const mine=(sk[n]||[]), open=staffOpen===n;
-    return `<div class="pcard ${open?'open':''}"><button class="phead" data-staffopen="${esc(n)}" aria-expanded="${open}"><span class="pname">${esc(n)}${sups.includes(n)?' <span class="sup">sup</span>':''}${personDirty(n)?' <span class="warntxt small">● not saved</span>':''}</span><span class="pskills">${mine.length?SKILLS.filter(s=>mine.includes(s.id)).map(s=>`<i class="${(draftExpert()[n]||[]).includes(s.id)?'x':''}">${(draftExpert()[n]||[]).includes(s.id)?'★ ':''}${s.short}</i>`).join(''):'<em>No skills yet — tap to add</em>'}</span>${ICON.chev}</button>
+    return `<div class="pcard ${open?'open':''}"><button class="phead" data-staffopen="${esc(n)}" aria-expanded="${open}"><span class="pname">${esc(n)}${sups.includes(n)?` <span class="sup">${['','junior sup','sup','senior sup'][supLevelIn(sups,draftExpert(),n)]}</span>`:''}${personDirty(n)?' <span class="warntxt small">● not saved</span>':''}</span><span class="pskills">${mine.length?SKILLS.filter(s=>mine.includes(s.id)).map(s=>`<i class="${(draftExpert()[n]||[]).includes(s.id)?'x':''}">${(draftExpert()[n]||[]).includes(s.id)?'★ ':''}${s.short}</i>`).join(''):'<em>No skills yet — tap to add</em>'}</span>${ICON.chev}</button>
       ${open?`<div class="pbody">
-        <div class="tgroup"><span class="lbl">Position</span><div class="tchips">${(()=>{const xs=(draftExpert()[n]||[]).includes('sup')&&sups.includes(n);return `<button class="tchip ${sups.includes(n)?'on':''} ${xs?'exp':''}" data-tsup="${esc(n)}">${xs?'★ ':''}Supervisor<em>${xs?'expert — senior supervisor':sups.includes(n)?'can lead any team':'can lead any team'}</em></button>`})()}</div></div>
+        <div class="tgroup"><span class="lbl">Position</span><div class="tchips">${(()=>{const lv=supLevelIn(sups,draftExpert(),n);return `<button class="tchip ${lv?'on':''} ${lv===3?'exp':''}" data-tsup="${esc(n)}">${lv===3?'★ ':''}${lv?SUP_NAME[lv]:'Supervisor'}<em>${lv===3?'leads large jobs':lv===2?'leads medium jobs':lv===1?'leads small jobs':'tap: junior → supervisor → senior'}</em></button>`})()}</div></div>
         ${SKILL_GROUPS.map(g=>`<div class="tgroup"><span class="lbl">${g.name}</span><div class="tchips">${g.ids.map(id=>{const ex=(draftExpert()[n]||[]).includes(id);return `<button class="tchip ${mine.includes(id)?'on':''} ${ex?'exp':''}" data-tskill="${id}" data-tperson="${esc(n)}">${ex?'★ ':''}${SK[id]}<em>${ex?'expert':mine.includes(id)?'can do':SKILL_HELP[id]}</em></button>`}).join('')}</div></div>`).join('')}
         ${learnedText(n)?`<p class="learned"><b>Learned from your plans:</b> ${esc(learnedText(n))}</p>`:''}
         <div class="row spread pfoot">${personDirty(n)?`<span class="row"><button class="btn primary" data-staffsave data-closeafter>✓ Save</button><button class="btn small" data-staffundo="${esc(n)}">Undo changes</button><span class="warntxt small">● Not saved yet</span></span>`:`<span class="row"><span class="oktxt small">✓ Saved</span><button class="btn small" data-staffopen="">Close</button></span>`}<button class="btn small warn" data-delstaff="${esc(n)}">${delArm==='ds:'+n?'Tap again to delete':'Delete member'}</button></div>
@@ -1807,12 +1919,20 @@ function renderSetup(){
       <button class="btn small" data-addjob>+ Add job type</button></div>`;
   }else if(setupTab==='villas'){
     const per=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d=>[d,(S.clients||[]).filter(c=>c.status!=='paused'&&(c.days||[]).includes(d)).length]);
-    body=`<div class="card"><h2>Maintenance villas · ${(S.clients||[]).length}</h2><p class="muted small">${(S.clientsInfo||{}).live?'<b class="oktxt">● Linked to the roster app</b> — villas update by themselves when you change them in the roster app':esc((S.clientsInfo||{}).source||'')}${(S.clientsInfo||{}).live&&S.clientsInfo.at?' · last update '+shortDate(iso(new Date(S.clientsInfo.at)))+' '+pad(new Date(S.clientsInfo.at).getHours())+':'+pad(new Date(S.clientsInfo.at).getMinutes()):(S.clientsInfo||{}).loaded?' · loaded '+shortDate(S.clientsInfo.loaded):''}. Only names, areas and visit days are used — no phone numbers or fees.</p>
+    body=`<div class="card"><h2>Maintenance villas · ${(S.clients||[]).length}</h2><p class="muted small">${(S.clientsInfo||{}).live?'<b class="oktxt">● Linked to the roster app</b> — villas update by themselves when you change them in the roster app':esc((S.clientsInfo||{}).source||'')}${(S.clientsInfo||{}).live&&S.clientsInfo.at?' · last update '+shortDate(iso(new Date(S.clientsInfo.at)))+' '+pad(new Date(S.clientsInfo.at).getHours())+':'+pad(new Date(S.clientsInfo.at).getMinutes()):(S.clientsInfo||{}).loaded?' · loaded '+shortDate(S.clientsInfo.loaded):''}. Uses names, areas, visit days, the monthly fee (only to work out villa size) and the map position — never phone numbers or payments.</p>
       <div class="row"><label class="btn primary" for="rosterfile">Load roster backup</label><input type="file" id="rosterfile" accept=".json,application/json" hidden>
       <label class="field inline"><span class="lbl">Max villas per team per day</span><input class="textin num" type="number" min="1" max="40" id="maxvillas" value="${maxV()}"></label></div>
       <p class="muted small">Villas are split between teams area by area. An area stays with one team even if that team gets more villas; it's only divided when it has more villas than this maximum.</p>
       <div class="kpis seven">${per.map(([d,n])=>`<div><b>${n}</b><span>${d.slice(0,3)}</span></div>`).join('')}</div>
-      <p class="muted small">In the roster app tap Backup, then load that file here. Do it again whenever clients change.</p></div>`;
+      <p class="muted small">In the roster app tap Backup, then load that file here. Do it again whenever clients change.</p></div>
+      ${(()=>{const L=sizeLimits(), cl=(S.clients||[]).filter(c=>c.status!=='paused'), cnt=k=>cl.filter(c=>sizeOf(c)===k).length, noFee=cl.filter(c=>!c.fee), noPos=cl.filter(c=>!posOf(c));
+        return `<div class="card"><h2>Villa sizes</h2><p class="muted small">Size = what the client pays <b>per visit</b> (monthly fee ÷ visits a month). The team builder balances teams by workload: Small = 1 point, Medium = 1.5, Large = 2. A team is "heavy" above ${maxV()} villas or ${capPts()} points.</p>
+        <div class="kpis"><div><b>${cnt('L')}</b><span>Large</span></div><div><b>${cnt('M')}</b><span>Medium</span></div><div><b>${cnt('S')}</b><span>Small</span></div><div><b>${noFee.length}</b><span>no fee</span></div></div>
+        <div class="row"><label class="field inline"><span class="lbl">Small below (AED / visit)</span><input class="textin num" type="number" min="0" id="sizes" value="${S.settings.sizeS||''}" placeholder="${L.auto.s?Math.round(L.auto.s):'auto'}"></label>
+        <label class="field inline"><span class="lbl">Large from (AED / visit)</span><input class="textin num" type="number" min="0" id="sizel" value="${S.settings.sizeL||''}" placeholder="${L.auto.l?Math.round(L.auto.l):'auto'}"></label></div>
+        <p class="muted small">Leave empty for automatic (one third each). ${noFee.length?`Villas with no fee count as Medium: ${noFee.slice(0,8).map(c=>esc(villaName(c))).join(', ')}${noFee.length>8?' …':''}.`:''}</p></div>
+        <div class="card"><h2>Map positions · ${cl.length-noPos.length} of ${cl.length}</h2><p class="muted small">Villas with a map position are grouped with their nearest neighbours and the builder suggests moving a villa to the team working closest to it. Villas without one are placed by area only.</p>
+        ${noPos.length?`<details><summary class="link">${plural(noPos.length,'villa')} without a map position</summary><p class="muted small">${noPos.map(c=>esc(villaName(c))).join(', ')}</p><p class="muted small">In the roster app, paste the full Google Maps link (open the pin in Google Maps → Share → Copy link, or copy the address bar so it contains the coordinates). Short links like maps.app.goo.gl can't be read for a position.</p></details>`:'<p class="oktxt small">Every villa has a map position.</p>'}</div>`})()}`;
   }else{
     const url=syncUrl();
     body=`<div class="card" id="syncpanel"><h2>Google Sheet</h2><p class="muted small">Saves the plan to your Google Sheet so it's backed up and every phone with this app sees the same plan.</p>
@@ -1947,7 +2067,7 @@ function openProj(id,from){
   const works=p?(p.works||[WORK_BY_JOB[p.type]||'planting']):[];
   const calc=needsForWorks(works);
   modal={kind:'job',id:p?p.id:null,title:p?p.title:'',works,from:p?p.from:(from||cur),to:p?p.to:(from||cur),
-    need:clone((p&&p.need)||calc.need),min:(p&&p.min)||calc.min,heavy:p&&p.heavy!=null?p.heavy:calc.heavy,addOpen:false,pins:p?[...(p.pins||[])]:[],urgent:!!(p&&p.urgent),pinOpen:false,works0:works.join(',')};
+    need:clone((p&&p.need)||calc.need),min:(p&&p.min)||calc.min,heavy:p&&p.heavy!=null?p.heavy:calc.heavy,addOpen:false,pins:p?[...(p.pins||[])]:[],urgent:!!(p&&p.urgent),size:(p&&p.size)||'M',pinOpen:false,works0:works.join(',')};
   sel=null;villaSel=null;renderMenu();renderModal();
   setTimeout(()=>{const i=$('pm-title');if(i&&!p)i.focus()},30);
 }
@@ -1974,6 +2094,8 @@ function workPicker(){
       <div class="row"><label class="field" style="max-width:200px"><span class="lbl">Team size (at least)</span><input class="textin" type="number" min="1" max="20" id="pm-min" value="${modal.min}"></label>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}</div>
       <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p></div>
     <div class="field"><span class="lbl">3 · Options (optional)</span>
+      <span class="lbl">Job size</span>
+      <div class="tchips">${[['L','Large','senior supervisor leads it'],['M','Medium','supervisor leads it'],['S','Small','any team leader']].map(([k,l,d])=>`<button type="button" class="tchip ${modal.size===k?'on':''}" data-pmsize="${k}">${modal.size===k?'✓ ':''}${l}<em>${d}</em></button>`).join('')}</div>
       <div class="tchips"><button type="button" class="tchip ${modal.urgent?'on':''}" data-pmurgent>${modal.urgent?'✓ ':''}Urgent<em>gets people first if two jobs need the same skills</em></button></div>
       <span class="lbl" style="margin-top:6px">Must be on this job</span>
       ${modal.pins.length?`<div class="picked">${modal.pins.map(n=>`<span class="pk"><b>${esc(n)}</b><button type="button" class="iconbtn sm" data-pmpin="${esc(n)}" aria-label="Remove">×</button></span>`).join('')}</div>`:'<p class="muted small">Nobody fixed — the builder picks the best people. Add someone if the client asked for them.</p>'}
@@ -2001,7 +2123,7 @@ function saveProj(){
   let p=modal.id?projById(modal.id):null;
   if(!modal.works.length){toast('Tap what work it is first');return}
   const type=(WORKS.find(w=>w.id===modal.works[0])||{}).job||'landscape';
-  const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent};
+  const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M'};
   if(p&&modal.works.join(',')!==modal.works0)p.crewOk=false;
   if(p)Object.assign(p,{title,type,from:modal.from,to:modal.to},extra);
   else{
@@ -2046,7 +2168,8 @@ document.addEventListener('click',e=>{
     const can=a.includes(sk),ex=e.includes(sk);
     if(!can){a.push(sk)}else if(!ex){e.push(sk)}else{a.splice(a.indexOf(sk),1);if(ex)e.splice(e.indexOf(sk),1)}
     render();return}
-  if(d.tsup){ensureDraft();const n=d.tsup,a=staffDraft.supervisors,i=a.indexOf(n),e=staffDraft.expert[n]||(staffDraft.expert[n]=[]),x=e.indexOf('sup');if(i<0)a.push(n);else if(x<0)e.push('sup');else{a.splice(i,1);e.splice(x,1)}render();return}
+  if(d.tsup){ensureDraft();const n=d.tsup,a=staffDraft.supervisors,e=staffDraft.expert[n]||(staffDraft.expert[n]=[]),lv=supLevelIn(a,staffDraft.expert,n),clr=()=>{['sup','sup1','sup3'].forEach(k=>{const i=e.indexOf(k);if(i>=0)e.splice(i,1)})};clr();
+    if(lv===0){a.push(n);e.push('sup1')}else if(lv===1){}else if(lv===2){e.push('sup3')}else{a.splice(a.indexOf(n),1)}render();return}
   if(d.skillall!=null){ensureDraft();const on=d.skillall==='1';S.staff.forEach(n=>{const a=staffDraft.skills[n]||(staffDraft.skills[n]=[]);const i=a.indexOf(staffSkill);if(on&&i<0)a.push(staffSkill);if(!on&&i>=0){a.splice(i,1);const e=staffDraft.expert[n]||[];if(e.includes(staffSkill))e.splice(e.indexOf(staffSkill),1)}});toast(on?`${SK[staffSkill]} ticked for everyone — untick anyone who can't, then Save`:`${SK[staffSkill]} cleared for everyone`);render();return}
   if(d.staffundo!=null&&staffDraft){const n=d.staffundo;staffDraft.skills[n]=[...(S.skills[n]||[])];staffDraft.expert[n]=[...((S.expert||{})[n]||[])];const i=staffDraft.supervisors.indexOf(n);if(i>=0&&!(S.supervisors||[]).includes(n))staffDraft.supervisors.splice(i,1);if(i<0&&(S.supervisors||[]).includes(n))staffDraft.supervisors.push(n);render();return}
   if('staffsave' in d){if('closeafter' in d)staffOpen=null;if(staffDraft){S.skills=staffDraft.skills;S.supervisors=staffDraft.supervisors;if(staffDraft.expert)S.expert=staffDraft.expert;staffDraft=null;save()}staffSavedAt=new Date();toast(syncUrl()&&syncStatus!=='error'&&syncStatus!=='offline'?'Saved — remembered on this device and sent to your Google Sheet':'Saved on this device'+(syncUrl()?' — it will go to the Google Sheet once the sync works again':''));render();return}
@@ -2055,6 +2178,7 @@ document.addEventListener('click',e=>{
   if('closemodal' in d){modal=null;delArm=null;renderModal();return}
   if('closemenu' in d){sel=null;villaSel=null;menuMode=null;renderMenu();render();return}
   if(d.pmwork){readModal();const w=d.pmwork,i=modal.works.indexOf(w);if(i>=0)modal.works.splice(i,1);else modal.works.push(w);const c=needsForWorks(modal.works);modal.need=c.need;modal.min=c.min;modal.heavy=c.heavy;renderModal();return}
+  if(d.pmsize){readModal();modal.size=d.pmsize;renderModal();return}
   if('pmurgent' in d){readModal();modal.urgent=!modal.urgent;renderModal();return}
   if('pmpinopen' in d){readModal();modal.pinOpen=!modal.pinOpen;renderModal();return}
   if(d.pmpin){readModal();const n=d.pmpin,i=modal.pins.indexOf(n);if(i>=0)modal.pins.splice(i,1);else modal.pins.push(n);renderModal();return}
@@ -2105,7 +2229,7 @@ document.addEventListener('click',e=>{
   if('vskip' in d&&villaSel){const r=ensureDay(cur);r.villaSkip=[...new Set([...(r.villaSkip||[]),villaSel])];save();toast('Villa skipped today');villaSel=null;render();return}
   if(d.vnext&&villaSel){moveVillasToDay(cur,[villaSel],d.vnext);toast(`Visit moved to ${shortDate(d.vnext)}`);villaSel=null;render();return}
   if(d.unskip){putVillaBack(cur,d.unskip);render();return}
-  if(d.idea!=null){const x=heavyIdeas(cur)[Number(d.idea)];if(x&&x.kind==='villas'){moveVillasToDay(cur,x.ids,x.to);toast(`${plural(x.ids.length,'villa')} moved to ${shortDate(x.to)}`)}render();return}
+  if(d.idea!=null){const x=heavyIdeas(cur)[Number(d.idea)];if(x&&x.kind==='near'){learnAreaMove(cur,x.id,x.to);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[x.id]=x.to;save();toast(`${x.name} moved to ${x.toName} for today`);render();return}if(x&&x.kind==='villas'){moveVillasToDay(cur,x.ids,x.to);toast(`${plural(x.ids.length,'villa')} moved to ${shortDate(x.to)}`)}render();return}
   /* day actions */
   if('build' in d){const b=buildDay(cur);toast(`Teams built — ${plural(b.moves.length,'change')}`);render();return}
   if('buildweek' in d){const ws=weekStart(cur);let n=0;for(let i=0;i<7;i++){const s=addDays(ws,i);if(s<TODAY||isDayOff(s))continue;buildDay(s);n++}toast(n?`Built ${plural(n,'day')}`:'No days left to build this week');render();return}
@@ -2179,6 +2303,7 @@ document.addEventListener('change',e=>{
     else if(d.jobfield==='name')j.name=t.value.trim()||'Job';
     else if(d.jobfield==='group')j.group=t.value;
     save();return}
+  if(t.id==='sizes'||t.id==='sizel'){S.settings[t.id==='sizes'?'sizeS':'sizeL']=Math.max(0,parseFloat(t.value)||0)||null;save();render();return}
   if(t.id==='maxvillas'){S.settings.maxVillas=Math.max(1,parseInt(t.value)||7);save();toast('Saved');render();return}
   if(t.id==='dayoff'){S.settings.dayOff=Number(t.value);save();toast('Saved');return}
   if(t.id==='note'){ensureDay(cur).note=t.value.trim();save();return}
