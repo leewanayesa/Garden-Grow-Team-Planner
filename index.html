@@ -337,6 +337,10 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 #notebar .note span{flex:1}
 #notebar .note .btn{flex:none}
 @media print{#notebar{display:none!important}}
+.smj{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#fdeee2;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:.9rem}
+.smj em{display:block;font-style:normal;color:var(--muted);font-size:.82rem}
+.smj select.sm{padding:6px 8px;min-height:36px;width:auto}
+.smtag{color:#c2410c}
 .toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9rem;z-index:100;max-width:calc(100vw - 32px);text-align:center}
 
 /* laptop */
@@ -601,59 +605,78 @@ const $=id=>document.getElementById(id);
 const SKILLS=[
   {id:'lead',label:'Can lead a team',short:'Lead'},{id:'driver',label:'Driver',short:'Driver'},
   {id:'lawn',label:'Lawn care',short:'Lawn'},{id:'hedge',label:'Hedge & shrub pruning',short:'Hedge'},
-  {id:'palm',label:'Palm tree care',short:'Palm'},{id:'spray',label:'Spraying & plant health',short:'Spray'},
+  {id:'palm',label:'Palm care & climbing',short:'Palm'},{id:'spray',label:'Spraying & plant health',short:'Spray'},
   {id:'tree',label:'Tree climbing & cutting',short:'Tree climb'},{id:'tools',label:'Chainsaw & power tools',short:'Chainsaw'},
   {id:'planting',label:'Planting & soil prep',short:'Planting'},{id:'turf',label:'Natural grass laying',short:'Nat. grass'},{id:'artgrass',label:'Artificial grass',short:'Art. grass'},
   {id:'gravel',label:'Gravel & pebbles',short:'Gravel'},{id:'indoor',label:'Indoor plants',short:'Indoor'},
   {id:'irrigation',label:'New irrigation install',short:'Irr. new'},{id:'irrfix',label:'Irrigation repair',short:'Irr. repair'},
-  {id:'hardscape',label:'Concrete & paving',short:'Concrete'},{id:'wood',label:'Wood & fencing',short:'Wood'},
-  {id:'lighting',label:'Lighting & electrical',short:'Lighting'},{id:'general',label:'General labour',short:'Labour'},{id:'heavy',label:'Heavy work',short:'Heavy'}
+  {id:'hardscape',label:'Masonry & concrete',short:'Masonry'},{id:'tiling',label:'Tiling',short:'Tiling'},{id:'waterproof',label:'Waterproofing & drainage',short:'Waterproof'},{id:'wood',label:'Fencing (wood & metal)',short:'Fencing'},
+  {id:'lighting',label:'Electrical, lights & pumps',short:'Electrical'},{id:'machine',label:'Machinery (compactor, loader, cleaning machine)',short:'Machinery'},{id:'drawings',label:'Reads drawings / set-out',short:'Drawings'},{id:'general',label:'General labour',short:'Labour'},{id:'heavy',label:'Heavy work',short:'Heavy'}
 ];
 const SK=Object.fromEntries(SKILLS.map(s=>[s.id,s.label]));
 const SKILL_GROUPS=[
-  {name:'Roles',ids:['lead','driver']},
+  {name:'Roles',ids:['lead','driver','drawings']},
   {name:'Maintenance',ids:['lawn','hedge','irrfix','palm','spray']},
-  {name:'New work (installation)',ids:['planting','gravel','indoor','turf','artgrass','irrigation','hardscape','wood','lighting']},
+  {name:'New work (installation)',ids:['planting','gravel','indoor','turf','artgrass','irrigation','hardscape','tiling','waterproof','wood','lighting','machine']},
   {name:'Heavy work',ids:['tree','tools','heavy']},
   {name:'General',ids:['general']}
 ];
 const WORKS=[
   {id:'planting',name:'Planting & soil prep',job:'landscape',min:4,need:{planting:2,general:1,driver:1}},
-  {id:'treeplant',name:'Tree plantation',job:'landscape',min:4,need:{planting:1,heavy:1,general:2,driver:1}},
+  {id:'treeplant',name:'Tree & palm planting',job:'landscape',min:4,need:{planting:1,heavy:2,general:1,driver:1}},
+  {id:'indoor',name:'Pots & indoor plants',job:'landscape',min:2,need:{indoor:1,driver:1}},
   {id:'makeover',name:'Garden makeover',job:'landscape',min:5,need:{planting:2,hedge:1,general:2,driver:1}},
-  {id:'gravel',name:'Gravel & pebbles',job:'landscape',min:3,need:{gravel:1,general:2,driver:1}},
-  {id:'indoor',name:'Indoor plants',job:'landscape',min:2,need:{indoor:1,driver:1}},
+  {id:'dig',name:'Dig-out & soil replacement',job:'cleanup',min:4,truck:true,need:{general:3,machine:1,driver:1}},
   {id:'turf',name:'Natural grass laying',job:'turf',min:4,need:{turf:1,general:2,driver:1}},
-  {id:'artgrass',name:'Artificial grass',job:'artgrass',min:2,need:{artgrass:1,driver:1}},
-  {id:'irrnew',name:'New irrigation',job:'irrigation',min:2,need:{irrigation:1,general:1}},
+  {id:'artgrass',name:'Artificial grass',job:'artgrass',min:3,need:{artgrass:1,machine:1,general:1,driver:1}},
+  {id:'irrnew',name:'New irrigation & pumps',job:'irrigation',min:2,need:{irrigation:1,general:1}},
   {id:'irrfix',name:'Irrigation repair',job:'irrigation',min:2,need:{irrfix:1}},
-  {id:'hard',name:'Concrete & paving',job:'hardscape',min:2,need:{hardscape:1}},
-  {id:'wood',name:'Pergola / fencing',job:'wood',min:2,need:{wood:1,general:1}},
-  {id:'lighting',name:'Garden lighting / electrical',job:'lighting',min:2,need:{lighting:1}},
-  {id:'tree',name:'Heavy tree cutting',job:'tree',min:4,heavy:true,need:{tree:2,tools:1,heavy:1,driver:1}},
-  {id:'treeremoval',name:'Tree removal',job:'treeremoval',min:4,heavy:true,need:{tools:1,heavy:2,driver:1}},
-  {id:'palm',name:'Palm tree pruning',job:'palm',min:3,heavy:true,need:{palm:1,tools:1,driver:1}},
-  {id:'spray',name:'Pest control spraying',job:'spray',min:2,need:{spray:1}},
-  {id:'cleanup',name:'Cleanup / waste removal',job:'cleanup',min:3,need:{general:2,driver:1}}
+  {id:'gravel',name:'Gravel, stones & edging',job:'landscape',min:3,need:{gravel:1,general:2,driver:1}},
+  {id:'hard',name:'Masonry, tiling & waterproofing',job:'hardscape',min:2,need:{hardscape:1,general:1}},
+  {id:'wood',name:'Fencing & metal supports',job:'wood',min:2,need:{wood:1,general:1}},
+  {id:'lighting',name:'Garden lighting',job:'lighting',min:2,need:{lighting:1}},
+  {id:'tree',name:'Tree cutting & tall trimming',job:'tree',min:4,heavy:true,truck:true,need:{tree:2,tools:1,heavy:1,driver:1}},
+  {id:'treeremoval',name:'Tree removal',job:'treeremoval',min:4,heavy:true,truck:true,need:{tools:1,heavy:2,driver:1}},
+  {id:'palm',name:'Palm care',job:'palm',min:3,heavy:true,need:{palm:1,tools:1,driver:1}},
+  {id:'spray',name:'Pest control',job:'spray',min:2,need:{spray:1}},
+  {id:'cleaning',name:'Cleaning services',job:'cleaning',min:2,need:{machine:1,general:1}},
+  {id:'supply',name:'Supply & delivery only',job:'supply',min:1,truck:true,need:{driver:1}},
+  {id:'cleanup',name:'Clean-up / waste removal',job:'cleanup',min:3,truck:true,need:{general:2,driver:1}}
 ];
-const WORK_BY_JOB={artgrass:'artgrass',treeremoval:'treeremoval',landscape:'planting',turf:'turf',irrigation:'irrnew',hardscape:'hard',paving:'hard',wood:'wood',lighting:'lighting',tree:'tree',palm:'palm',spray:'spray',cleanup:'cleanup'};
+/* Work that can be done by a maintenance team on its route (when the quote is small). */
+const SMALLABLE=new Set(['makeover','irrfix','spray','lighting','indoor','cleaning','cleanup']);
+const REMOVAL_NAME={soil:'cut to soil level',stump:'with stump & roots',crane:'crane-assisted'};
+const isSupply=p=>(p.works||[]).length>0&&(p.works||[]).every(w=>w==='supply');
+const needsTruck=p=>(p.works||[]).some(w=>(WORKS.find(x=>x.id===w)||{}).truck)||((p.works||[]).includes('makeover')&&p.waste!==false);
+const needsSub=p=>!!(p.sub||((p.works||[]).includes('treeremoval')&&p.removal==='crane'));
+const sizeFromValue=v=>v<5000?'S':v<25000?'M':'L';
+/* Jobs that get their own team (small jobs ride with a maintenance team), and jobs that change the maintenance set-up (not delivery-only). */
+const teamProjects=s=>activeProjects(s).filter(p=>!p.small);
+const layoutProjects=s=>teamProjects(s).filter(p=>!isSupply(p));
+const smallJobs=s=>activeProjects(s).filter(p=>p.small);
+
+const WORK_BY_JOB={cleaning:'cleaning',supply:'supply',artgrass:'artgrass',treeremoval:'treeremoval',landscape:'planting',turf:'turf',irrigation:'irrnew',hardscape:'hard',paving:'hard',wood:'wood',lighting:'lighting',tree:'tree',palm:'palm',spray:'spray',cleanup:'cleanup'};
 /* Skills a job needs = the most each chosen work needs, plus a driver. */
 function needsForWorks(ids){const need={},ws=WORKS.filter(w=>ids.includes(w.id));ws.forEach(w=>Object.entries(w.need).forEach(([k,v])=>{need[k]=Math.max(need[k]||0,v)}));if(ws.length&&!need.driver)need.driver=1;return {need,min:ws.length?Math.max(2,...ws.map(w=>w.min)):2,heavy:ws.some(w=>w.heavy)}}
+const SKILL_HELP_NEW={tiling:'tiles, raised planter finish, re-laying tiles',waterproof:'planters, balconies, leaks, drains',machine:'plate compactor, mini loader, floor / grass cleaning machine',drawings:'reads a landscape drawing and sets out plants'};
 const SKILL_HELP={lead:'leads a team',driver:'drives the pickup',lawn:'mowing, edging, trimming grass',hedge:'hedge trimmer, shaping bushes',palm:'cleaning and pruning palms',spray:'pest control, fertiliser',tree:'big trees, working at height',tools:'chainsaw, hedge cutter, blower',heavy:'hard physical work, heavy lifting',planting:'digging, soil, outdoor plants',gravel:'gravel, pebbles, weed sheet, edging',indoor:'indoor pots, plant styling, office & home plants',turf:'laying natural grass (turf rolls)',artgrass:'cutting, joining and fixing artificial grass',irrigation:'laying new drip lines, sprinklers, timers',irrfix:'finding and fixing leaks, broken drippers, timers',hardscape:'concrete planters, kerbs, interlock, stepping stones',wood:'pergolas, wooden planters, fences',lighting:'garden lights, cables, sockets',general:'lifting, loading, cleanup, waste'};
+Object.assign(SKILL_HELP,SKILL_HELP_NEW);
 const DEFAULT_JOBS=[
   {id:'maint',name:'Regular maintenance',group:'maint',min:3,heavy:false,need:{driver:1,lawn:1,hedge:1}},
   {id:'landscape',name:'New garden / landscaping',group:'project',min:4,heavy:false,need:{planting:1,irrigation:1,driver:1,general:1}},
-  {id:'tree',name:'Heavy tree cutting',group:'project',min:4,heavy:true,need:{tree:2,tools:1,driver:1}},
-  {id:'palm',name:'Palm tree pruning',group:'project',min:3,heavy:true,need:{palm:1,tools:1,driver:1}},
-  {id:'spray',name:'Pest control spraying',group:'project',min:2,heavy:false,need:{spray:1}},
+  {id:'tree',name:'Tree cutting & tall trimming',group:'project',min:4,heavy:true,need:{tree:2,tools:1,driver:1}},
+  {id:'palm',name:'Palm care',group:'project',min:3,heavy:true,need:{palm:1,tools:1,driver:1}},
+  {id:'spray',name:'Pest control',group:'project',min:2,heavy:false,need:{spray:1}},
   {id:'irrigation',name:'Irrigation work',group:'project',min:2,heavy:false,need:{irrigation:1}},
-  {id:'hardscape',name:'Concrete & paving',group:'project',min:2,heavy:false,need:{hardscape:1}},
+  {id:'hardscape',name:'Masonry, tiling & waterproofing',group:'project',min:2,heavy:false,need:{hardscape:1}},
   {id:'treeremoval',name:'Tree removal',group:'project',min:4,heavy:true,need:{tools:1,heavy:2,driver:1}},
-  {id:'wood',name:'Pergola / fencing',group:'project',min:2,heavy:false,need:{wood:1,general:1}},
-  {id:'lighting',name:'Garden lighting / electrical',group:'project',min:2,heavy:false,need:{lighting:1}},
+  {id:'wood',name:'Fencing & metal supports',group:'project',min:2,heavy:false,need:{wood:1,general:1}},
+  {id:'lighting',name:'Garden lighting',group:'project',min:2,heavy:false,need:{lighting:1}},
   {id:'turf',name:'Natural grass laying',group:'project',min:4,heavy:false,need:{turf:1,general:2}},
   {id:'artgrass',name:'Artificial grass',group:'project',min:2,heavy:false,need:{artgrass:1}},
-  {id:'cleanup',name:'Cleanup / waste removal',group:'project',min:3,heavy:false,need:{driver:1,general:2}}
+  {id:'cleanup',name:'Clean-up / waste removal',group:'project',min:3,heavy:false,need:{driver:1,general:2}},
+  {id:'cleaning',name:'Cleaning services',group:'project',min:2,heavy:false,need:{machine:1}},
+  {id:'supply',name:'Supply & delivery only',group:'project',min:1,heavy:false,need:{driver:1}}
 ];
 const SEED_CLIENTS=[{"id":"s1","nick":"City Season Hotel","name":"City Season Hotel","area":"Abu Dhabi City, Abu Dhabi","days":["Monday"]},{"id":"s2","nick":"Mona Marina Villa","name":"Mona Marina Villa","area":"Marina Area, Abu Dhabi","days":["Monday","Thursday"]},{"id":"s3","nick":"Amoona Wala Villa","name":"Mushrif Villa 291","area":"Al Mushrif, Abu Dhabi","days":["Monday"],"frequency":"twice_month"},{"id":"s4","nick":"Design Villa","name":"Design Villa","area":"Al Mushrif, Abu Dhabi","days":["Monday"]},{"id":"s5","nick":"Angreez Villa","name":"Angreez Villa","area":"Al Bateen, Abu Dhabi","days":["Monday","Thursday"]},{"id":"s6","nick":"Bloom Garden 159","name":"Villa 159","area":"Bloom Gardens, Abu Dhabi","days":["Monday"]},{"id":"s7","nick":"Abdullah Villa","name":"Abdullah Villa","area":"Bain Al Jessrain, Abu Dhabi","days":["Monday"]},{"id":"s8","nick":"Abdullah Roor","name":"Villa 56","area":"Bain Al Jessrain, Abu Dhabi","days":["Monday"]},{"id":"s9","nick":"Timeroo Wala Villa","name":"Villa 15","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Monday"]},{"id":"s10","nick":"Ameer Arbab Villa","name":"Villa 83","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Monday"]},{"id":"s11","nick":"iPack","name":"iPack","area":"ICAD, Abu Dhabi","days":["Monday"]},{"id":"s12","nick":"Saloon","name":"Mrina Kasb Beauty Center","area":"Khalifa City, Abu Dhabi","days":["Saturday"]},{"id":"s13","nick":"Doctor Villa","name":"Saud","area":"Khalifa City, Abu Dhabi","days":["Saturday"]},{"id":"s14","nick":"Misree Villa · Egypt","name":"Egypt","area":"Khalifa City, Abu Dhabi","days":["Saturday"]},{"id":"s15","nick":"Raphael","name":"Raphael Villa","area":"Al Jubail Island, Abu Dhabi","days":["Saturday"]},{"id":"s16","nick":"Kajooro Villa","name":"Khatim Al Kobaisee","area":"Shakhbout City, Abu Dhabi","days":["Saturday"]},{"id":"s17","nick":"Tableeghi - Abayee Villa","name":"Abayee Villa","area":"Bani Yas, Abu Dhabi","days":["Saturday"]},{"id":"s18","nick":"Misree Villa · Baniyas","name":"Misree Villa","area":"Bani Yas, Abu Dhabi","days":["Saturday"]},{"id":"s19","nick":"Malwaray Villa","name":"Ashraf","area":"Bani Yas, Abu Dhabi","days":["Saturday"]},{"id":"s20","nick":"Bangalay","name":"Bangaly","area":"Bani Yas, Abu Dhabi","days":["Saturday"]},{"id":"s21","nick":"Shaleela Villa","name":"Mooza","area":"Al Sheleilah, Abu Dhabi","days":["Saturday"]},{"id":"s22","nick":"Villa 27 - Badria","name":"Villa 27 - Badria","area":"Al Sheleilah, Abu Dhabi","days":["Saturday"]},{"id":"s23","nick":"Villa 200 - Tableeghi","name":"Villa 200","area":"Bani Yas, Abu Dhabi","days":["Saturday"]},{"id":"s24","nick":"Villa 156","name":"Villa 156","area":"Shakhbout City, Abu Dhabi","days":["Saturday"]},{"id":"s25","nick":"Al Qalla Security Office","name":"Al Qalla Security Office","area":"Khalifa City, Abu Dhabi","days":["Saturday"]},{"id":"s26","nick":"Villa 26 - Haitham Sister","name":"Villa 26 - Haitham Sister","area":"Khalifa City, Abu Dhabi","days":["Saturday"]},{"id":"s27","nick":"Ahmad Badar Villa 2","name":"Ahmad Badar Villa 2","area":"Al Bateen, Abu Dhabi","days":["Thursday"]},{"id":"s28","nick":"Miss Badar","name":"Miss Badar","area":"Al Bateen, Abu Dhabi","days":["Thursday"]},{"id":"s29","nick":"Saif Villa","name":"Saif Villa","area":"Al Bateen, Abu Dhabi","days":["Thursday"]},{"id":"s30","nick":"Villa 1","name":"Villa 1","area":"Al Bateen, Abu Dhabi","days":["Thursday"]},{"id":"s31","nick":"Jasim Villa","name":"Jasim","area":"Al Nahyan, Abu Dhabi","days":["Thursday"]},{"id":"s32","nick":"Pineapple Building - Villa 23","name":"Pineapple Building","area":"Pineapple Tower, Abu Dhabi","days":["Thursday"]},{"id":"s33","nick":"Taaal Villa","name":"Muroor","area":"Al Mushrif, Abu Dhabi","days":["Thursday"]},{"id":"s34","nick":"Caboodle Office","name":"Caboodle Office","area":"Al Reem Island, Abu Dhabi","days":["Thursday"]},{"id":"s35","nick":"Freedom Office","name":"Freedom Office","area":"Al Reem Island, Abu Dhabi","days":["Thursday"]},{"id":"s36","nick":"Mika's Saloon","name":"Mika's Saloon","area":"Al Mushrif, Abu Dhabi","days":["Thursday"]},{"id":"s37","nick":"Building","name":"Building","area":"Abu Dhabi City, Abu Dhabi","days":["Thursday"]},{"id":"s38","nick":"Near to Jasim","name":"Villa 24","area":"Al Nahyan, Abu Dhabi","days":["Thursday"]},{"id":"s39","nick":"Nawee Villa 171","name":"Muhammad Balghood","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Tuesday"]},{"id":"s40","nick":"Jabree Villa","name":"Jabree Villa","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Tuesday"]},{"id":"s41","nick":"Hinda","name":"Hinda","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Tuesday"],"frequency":"twice_month"},{"id":"s42","nick":"Kanoo Wala Villa","name":"Kanoo Wala Villa","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Tuesday"]},{"id":"s43","nick":"Filipinay Villa","name":"Filipinay","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Tuesday"]},{"id":"s44","nick":"Bisam Office","name":"Bisam Office","area":"Mohammed Bin Zayed City, Abu Dhabi","days":["Tuesday"]},{"id":"s45","nick":"Majid Villa","name":"Majid","area":"Al Shawamekh, Abu Dhabi","days":["Tuesday"]},{"id":"s46","nick":"Ayesha Villa","name":"Ayesha","area":"Al Shawamekh, Abu Dhabi","days":["Tuesday"]},{"id":"s47","nick":"Yousaf Villa 48","name":"Yousaf Villa 48","area":"Al Shawamekh, Abu Dhabi","days":["Tuesday"]},{"id":"s48","nick":"Khoori Villa","name":"Khoori Villa","area":"Al Shamkha, Abu Dhabi","days":["Tuesday"]},{"id":"s49","nick":"Villa 8 · Shamkha","name":"Villa 8","area":"Al Shamkha, Abu Dhabi","days":["Tuesday"],"frequency":"twice_month"},{"id":"s50","nick":"Choota Villa","name":"Bu Zayed","area":"Madinat Al Riyad, Abu Dhabi","days":["Tuesday"]},{"id":"s51","nick":"Markoo Villa","name":"Markoo Villa","area":"Madinat Al Riyad, Abu Dhabi","days":["Tuesday"]},{"id":"s52","nick":"Baba Villa","name":"Baba Villa","area":"Madinat Zayed, Abu Dhabi","days":["Tuesday"]},{"id":"s53","nick":"Ayesha Roor","name":"Villa 20","area":"Shakhbout City, Abu Dhabi","days":["Tuesday"]},{"id":"s54","nick":"Gap Shapee Saray Villa","name":"Villa 27","area":"Madinat Al Riyad, Abu Dhabi","days":["Tuesday"]},{"id":"s55","nick":"Villa 25 · Madina Riyadh","name":"Villa 25","area":"Madinat Al Riyad, Abu Dhabi","days":["Tuesday"]},{"id":"s56","nick":"Jaber Obaid - Villa 38","name":"Villa 38","area":"Al Falah New Community, Abu Dhabi","days":["Tuesday"]},{"id":"s57","nick":"Villa 25 · New Al Falah","name":"Villa 25","area":"Al Falah New Community, Abu Dhabi","days":["Tuesday"]},{"id":"s58","nick":"Villa 35","name":"Villa 35","area":"Al Falah New Community, Abu Dhabi","days":["Tuesday"]},{"id":"s59","nick":"Villa 41","name":"Villa 41","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s60","nick":"NBM","name":"Pachasay Villa (Abayee)","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s61","nick":"Bangalee Villa 66","name":"Bangalee Villa 66","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s62","nick":"212 Villa","name":"212 Villa","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s63","nick":"SANAD YAGHI","name":"Villa 8","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s64","nick":"Villa 512","name":"Villa 512","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s65","nick":"751 Villa","name":"751 Villa","area":"Saadiyat Island, Abu Dhabi","days":["Wednesday"]},{"id":"s66","nick":"Centiya Villa","name":"Centiya Villa","area":"Saadiyat Island, Abu Dhabi","days":["Wednesday"],"frequency":"twice_month"},{"id":"s67","nick":"Soor Angreez - Villa 24","name":"Villa 24","area":"Hidd Al Saadiyat, Abu Dhabi","days":["Wednesday"]},{"id":"s68","nick":"Villa 85","name":"Villa 85","area":"Yas Island, Abu Dhabi","days":["Wednesday"],"frequency":"twice_month"},{"id":"s69","nick":"Villa 4 Russian","name":"Villa 4 Russian","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s70","nick":"Villa 1158","name":"Villa 58","area":"Yas Island, Abu Dhabi","days":["Wednesday"]},{"id":"s71","nick":"Abdul Razzaq 61","name":"TH 61","area":"Al Jubail Island, Abu Dhabi","days":["Wednesday"]},{"id":"s72","nick":"Hani","name":"Villa 146","area":"Al Jubail Island, Abu Dhabi","days":["Wednesday"]},{"id":"s73","nick":"AJ","name":"Villa 148","area":"Al Jubail Island, Abu Dhabi","days":["Wednesday"]},{"id":"s74","nick":"Embassy","name":"Embassy","area":"Embassy District, Abu Dhabi","days":["Wednesday"],"frequency":"twice_month"},{"id":"s75","nick":"Michael Dunkel","name":"Villa 713","area":"Saadiyat Island, Abu Dhabi","days":["Wednesday"]},{"id":"s76","nick":"Sultan Alneyadi","name":"Villa 9","area":"Khalifa City, Abu Dhabi","days":["Saturday"]},{"id":"s77","nick":"Mia Bella","name":"Nishad","area":"Shakhbout City, Abu Dhabi","days":["Saturday"]},{"id":"s78","nick":"Haitam Alkhubaisee Mother","name":"Villa 6","area":"Khalifa City, Abu Dhabi","days":["Saturday"]}];
 const DEFAULT={
@@ -790,7 +813,7 @@ const PTS={S:1,M:1.5,L:2};
 const ptsOf=c=>PTS[sizeOf(c)]||1.5;
 const ptsSum=list=>Math.round(list.reduce((a,c)=>a+ptsOf(c),0)*10)/10;
 const capPts=()=>maxV()*1.5;
-const maxTeam=()=>S.settings.maxTeam||5, carsN=()=>S.settings.cars||3;
+const maxTeam=()=>S.settings.maxTeam||5, carsN=()=>S.settings.cars||3, trucksN=()=>S.settings.trucks||1;
 function kmBetween(a,b){if(!a||!b||a.lat==null||b.lat==null)return null;const x=(b.lng-a.lng)*111.32*Math.cos((a.lat+b.lat)/2*Math.PI/180),y=(b.lat-a.lat)*110.57;return Math.sqrt(x*x+y*y)}
 const posOf=c=>c&&c.lat!=null&&c.lng!=null?{lat:c.lat,lng:c.lng}:null;
 function centroid(list){const p=list.map(posOf).filter(Boolean);if(!p.length)return null;return {lat:p.reduce((a,x)=>a+x.lat,0)/p.length,lng:p.reduce((a,x)=>a+x.lng,0)/p.length}}
@@ -888,7 +911,7 @@ function overloaded(date){const teams=effTeams(date),vp=villaPlan(date,teams);re
 /* Villas per maintenance team on a date if new work runs (or not) that day. */
 function loadFor(date,withJob){
   const v=clientsOn(date).filter(c=>!(dayRec(date).villaSkip||[]).includes(c.id)).length;
-  const teams=(withJob||activeProjects(date).length?S.layouts.newwork:S.layouts.normal).filter(t=>jobOf(t).group==='maint').length||1;
+  const teams=(withJob||layoutProjects(date).length?S.layouts.newwork:S.layouts.normal).filter(t=>jobOf(t).group==='maint').length||1;
   return {villas:v,teams,per:Math.ceil(v/teams)};
 }
 
@@ -972,6 +995,13 @@ function migrate(o){
     const m=o.jobs.find(j=>j.id==='maint'); if(m){m.need=m.need||{};if(m.need.lawn==null)m.need.lawn=1;if(m.need.hedge==null)m.need.hedge=1}
     const tf=o.jobs.find(j=>j.id==='turf'); if(tf&&tf.need&&tf.need.turf==null){tf.need.turf=1;if(tf.need.planting===1)delete tf.need.planting}
     o.jobsV10=true;
+  }
+  if(!o.jobsV37){
+    DEFAULT_JOBS.forEach(dj=>{if(!o.jobs.some(j=>j.id===dj.id))o.jobs.push(clone(dj))});
+    const ren={'Concrete & paving':'Masonry, tiling & waterproofing','Concrete works (planters, concrete)':'Masonry, tiling & waterproofing','Pergola / fencing':'Fencing & metal supports','Garden lighting / electrical':'Garden lighting','Heavy tree cutting':'Tree cutting & tall trimming','Palm tree pruning':'Palm care','Pest control spraying':'Pest control','Cleanup / waste removal':'Clean-up / waste removal'};
+    o.jobs.forEach(j=>{if(ren[j.name])j.name=ren[j.name]});
+    (o.projects||[]).forEach(pr=>{if((pr.works||[]).includes('makeover')&&pr.waste==null)pr.waste=true});
+    o.jobsV37=true;
   }
   if(!o.clients){o.clients=clone(SEED_CLIENTS);o.clientsInfo={source:'Starting list from the roster app file',loaded:'2026-10-19'}}
   if(!o.updatedAt)o.updatedAt=0;
@@ -1078,16 +1108,13 @@ function projectTeam(p,ab,taken){
 /* Each team needs a car: maintenance teams = cars left after the jobs (at least one maintenance team). */
 function maintLayout(ps){const base=(ps.length?S.layouts.newwork:S.layouts.normal).filter(t=>jobOf(t).group==='maint');return base.slice(0,Math.max(1,carsN()-ps.length))}
 function defaultTeams(s){
-  const r=dayRec(s), ab=new Set(r.absent||[]), ps=activeProjects(s);
-  let teams;
-  if(!ps.length){const keep=new Set(maintLayout(ps).map(t=>t.id));teams=clone(S.layouts.normal).filter(t=>jobOf(t).group!=='maint'||keep.has(t.id))}
-  else{
-    const taken=new Set();
-    const pts=ps.map(p=>projectTeam(p,ab,taken));
-    const base=clone(maintLayout(ps));
-    base.forEach(t=>{if(taken.has(t.leader))t.leader=null;t.members=t.members.filter(m=>!taken.has(m))});
-    teams=[...pts,...base];
-  }
+  const r=dayRec(s), ab=new Set(r.absent||[]), ps=teamProjects(s), lp=layoutProjects(s);
+  const taken=new Set(), pts=ps.map(p=>projectTeam(p,ab,taken));
+  let base;
+  if(!lp.length){const keep=new Set(maintLayout(lp).map(t=>t.id));base=clone(S.layouts.normal).filter(t=>jobOf(t).group!=='maint'||keep.has(t.id))}
+  else base=clone(maintLayout(lp));
+  base.forEach(t=>{if(taken.has(t.leader))t.leader=null;t.members=t.members.filter(m=>!taken.has(m))});
+  let teams=[...pts,...base];
   teams.forEach(t=>{if(ab.has(t.leader))t.leader=null;t.members=t.members.filter(m=>!ab.has(m))});
   return teams;
 }
@@ -1095,19 +1122,19 @@ function effTeams(s){const r=dayRec(s);return r.teams||defaultTeams(s)}
 /* Keep an edited day in step with the jobs running on it. Other edits on that day are kept. */
 function needsRelayout(s){
   const r=S.days[s]; if(!r||!r.teams||s<TODAY)return false;
-  const ps=activeProjects(s), want=maintLayout(ps).map(t=>t.id).sort().join(','), have=r.teams.filter(t=>!t.projectId).map(t=>t.id).sort().join(',');
+  const ps=layoutProjects(s), want=maintLayout(ps).map(t=>t.id).sort().join(','), have=r.teams.filter(t=>!t.projectId).map(t=>t.id).sort().join(',');
   return want!==have;
 }
 function reconcile(s,rebuild){
   const r=S.days[s]; if(!r||!r.teams)return;
-  const ab=new Set(r.absent||[]), ps=activeProjects(s), ids=new Set(ps.map(p=>p.id));
+  const ab=new Set(r.absent||[]), ps=teamProjects(s), ids=new Set(ps.map(p=>p.id));
   /* New work started or ended on this day: maintenance teams follow the right standard setup
      (3 teams on a normal day, the new-work setup when a job runs), and the teams are built again. */
   if(needsRelayout(s)){
     if(!r.manual||(rebuild&&rebuild.has(s))){if(ps.length)buildDay(s);else r.teams=null;return}
     /* You changed this day by hand and chose to keep it: a finished job's people go back to the maintenance teams. */
-    if(!ps.length){
-      const back=[];r.teams.filter(t=>t.projectId).forEach(t=>back.push(...people(t)));r.teams=r.teams.filter(t=>!t.projectId);
+    if(!layoutProjects(s).length){
+      const back=[];r.teams.filter(t=>t.projectId&&!ids.has(t.projectId)).forEach(t=>back.push(...people(t)));r.teams=r.teams.filter(t=>!t.projectId||ids.has(t.projectId));
       back.filter(n=>!ab.has(n)).forEach(n=>{const m=r.teams.filter(t=>people(t).length<maxTeam()).sort((a,b)=>people(a).length-people(b).length)[0];if(m)m.members.push(n);else{r.nursery=r.nursery||[];r.nursery.push(n)}});
       if(!r.teams.length)r.teams=null;return}
   }
@@ -1309,7 +1336,7 @@ function suggest(date){
     if(!done)break;
   }
   for(const n of [...avail]){
-    let pool=sim.filter(t=>!isProj(t)&&people(t).length<maxTeam()); if(!pool.length)pool=sim.filter(t=>isProj(t)&&people(t).length<maxTeam());
+    const supT=t=>{const p=projOf(t);return !!(p&&isSupply(p))};let pool=sim.filter(t=>!isProj(t)&&people(t).length<maxTeam()); if(!pool.length)pool=sim.filter(t=>isProj(t)&&!supT(t)&&people(t).length<maxTeam());
     if(!pool.length){avail=avail.filter(x=>x!==n);moves.push({type:'nursery',name:n,why:`All cars are full (${maxTeam()} per car) — works at the nursery / farm today`});continue}
     const best=[...pool].sort((a,b)=>(learnT(b.id,n)-learnT(a.id,n))||(people(a).length-people(b).length))[0];
     doMove({name:n,from:null,why:[]},best,learnT(best.id,n)>=2?'Usually in this team':'Added to the smallest maintenance team');
@@ -1329,7 +1356,7 @@ function buildDay(date){
 }
 function buildDay_(date){
   const r=ensureDay(date); r.teams=defaultTeams(date); r.manual=false;
-  const fresh=activeProjects(date).filter(p=>!p.crewOk);
+  const fresh=teamProjects(date).filter(p=>!p.crewOk);
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t){t.leader=null;t.members=[]}});
   const {moves}=suggest(date); moves.forEach(m=>applyMove(date,m));
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t&&people(t).length){saveCrew(p,t,date);p.crewOk=true}});
@@ -1395,12 +1422,12 @@ async function doPrint(title){
 function pdfTeamBlock(t,date,vp){
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), n=people(t).length, vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, over=vl&&vl.length>maxV();
   const badge=vl?`${plural(vl.length,'villa')} · ${plural(n,'person','people')}`:plural(n,'person','people');
-  const works=p?(p.works||[]).map(w=>(WORKS.find(x=>x.id===w)||{}).name||w).join(' + ')||j.name:'';
+  const works=p?worksText(p):'';
   const rows=vl?vl.map((c,i)=>`<tr><td class="n">${i+1}</td><td class="v"><span class="tag sz">${sizeOf(c)}</span> ${esc(villaName(c))}${FREQ_TAG[c.frequency]?` <span class="tag">${FREQ_TAG[c.frequency]}</span>`:''}${c.newFrom&&daysBetween(c.newFrom,date)>=0&&daysBetween(c.newFrom,date)<14?' <span class="tag new">NEW</span>':''}</td><td class="a">${esc(areaShort(c))}</td><td class="d"><i></i></td></tr>`).join(''):'';
   return `<section class="pb ${isProj(t)?'nw':''}">
     <div class="pbh"><b>${esc(t.name)}</b><span class="${over?'over':''}">${badge}${over?' · above '+maxV():''}</span></div>
     <div class="pbp"><b>Leader: ${esc(dn(t.leader)||'—')}</b>${t.members.length?`<br><span>Crew:</span> ${t.members.map(m=>esc(dn(m))).join(', ')}`:''}
-      ${p?`<br><span>Job:</span> <b class="jb">${esc(works)}</b> · ${rangeText(p.from,p.to)} · day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · <b class="hv">Heavy work: safety gear and supervision required</b>':''}`:''}
+      ${p?`<br><span>Job:</span> <b class="jb">${esc(works)}</b> · ${rangeText(p.from,p.to)} · day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · <b class="hv">Heavy work: safety gear and supervision required</b>':''}${needsTruck(p)?' · truck':''}${needsSub(p)?' · <b class="hv">machinery / subcontractor</b>':''}`:''}${(smallByTeam(date,effTeams(date),vp)[t.id]||[]).map(q=>`<br><span>Extra job:</span> <b class="jb">${esc(q.title)}</b> · ${esc(worksText(q))}`).join('')}
       ${t.desc?`<br><span>Note:</span> ${esc(t.desc)}`:''}</div>
     ${vl?(vl.length?`<table class="pt"><thead><tr><th>#</th><th>Villa</th><th>Area</th><th class="d">Done</th></tr></thead><tbody>${rows}</tbody></table>`:'<p class="pnone">No villas today</p>'):''}
   </section>`;
@@ -1428,14 +1455,14 @@ function pdfLeaderPages(date){
   const teams=effTeams(date), vp=villaPlan(date,teams), all=[...teams.filter(isProj),...teams.filter(t=>!isProj(t))];
   return all.map((t,ix)=>{
     const p=t.projectId&&projById(t.projectId), j=jobOf(t), vl=!isProj(t)?(vp.byTeam[t.id]||[]):null, gs=vl?villaGroups(vl):[];
-    const works=p?(p.works||[]).map(w=>(WORKS.find(x=>x.id===w)||{}).name||w).join(' + ')||j.name:'';
+    const works=p?worksText(p):'';
     return `<div class="lp ${isProj(t)?'nw':''}">
       <header><div class="lt"><span class="llogo"><img src="${LOGO}" alt="Garden Grow"></span><small>TEAM PLAN</small></div>
         <div class="ld">${longDate(date)}</div><b>${esc(t.name)}</b>
         <div class="ls">${vl?`${plural(vl.length,'villa')} · ${plural(gs.length,'area')} · `:''}${plural(people(t).length,'person','people')}</div></header>
       <section><small>LEADER</small><div class="lld">${esc(dn(t.leader)||'—')}</div>
         ${t.members.length?`<small>CREW</small><div class="lcr">${t.members.map(m=>esc(dn(m))).join('<br>')}</div>`:''}
-        ${p?`<small>JOB</small><div class="lcr"><b>${esc(works)}</b><br>Day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?'<br><b class="hv">Heavy work: safety gear required</b>':''}</div>`:''}</section>
+        ${p?`<small>JOB</small><div class="lcr"><b>${esc(works)}</b><br>Day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?'<br><b class="hv">Heavy work: safety gear required</b>':''}${needsSub(p)?'<br><b class="hv">Machinery / subcontractor on site</b>':''}</div>`:''}${(smallByTeam(date,teams,vp)[t.id]||[]).length?`<small>EXTRA JOB TODAY</small><div class="lcr">${(smallByTeam(date,teams,vp)[t.id]||[]).map(q=>`<b>${esc(q.title)}</b><br>${esc(worksText(q))}`).join('<br>')}</div>`:''}</section>
       ${vl?`<section><small>ROUTE — IN THIS ORDER</small>${gs.length?gs.map((g,i)=>`<div class="lr"><span class="ln">${i+1}</span><div><b>${esc(g.area)}</b>${g.items.map(c=>`<div class="lv"><span>${esc(villaName(c))}${FREQ_TAG[c.frequency]?` <em>${FREQ_TAG[c.frequency]}</em>`:''}</span><i></i></div>`).join('')}</div></div>`).join(''):'<div class="lcr">No villas today</div>'}</section>`:''}
       <section class="lnt"><small>NOTE FOR TODAY</small><div>${esc(t.desc||dayRec(date).note||'— none —')}</div></section>
       <footer><span>Garden Grow · +971 58 208 2936</span><span>${ix+1} of ${all.length} teams</span></footer>
@@ -1717,7 +1744,9 @@ function issuesFor(date){
   const teams=effTeams(date), out=[];
   teams.forEach(t=>problems(t).forEach(p=>out.push(`${t.name}: ${p.text}`)));
   const av=available({type:'day',date}); if(av.length)out.push(`Not placed: ${dnl(av).join(', ')}`);
-  if(teams.length>carsN())out.push(`${teams.length} teams but only ${carsN()} cars — merge a team or move a job to another day`);
+  const carTeams=teams.filter(t=>{const p=t.projectId&&projById(t.projectId);return !(p&&isSupply(p))}).length;
+  if(carTeams>carsN())out.push(`${carTeams} teams but only ${carsN()} cars — merge a team or move a job to another day`);
+  const tj=activeProjects(date).filter(needsTruck); if(tj.length>trucksN())out.push(`${tj.length} jobs need the truck (${tj.map(p=>p.title).join(', ')}) but you have ${plural(trucksN(),'truck')} — move one to another day`);
   return out;
 }
 const FLEX=new Set(['twice_month','fortnightly','monthly']);
@@ -1770,6 +1799,18 @@ function villaList(t,vp,ctx){
   if(!list.length)return '<p class="muted small">No villas</p>';
   return villaGroups(list).map(g=>`<div class="varea"><span class="vname">${esc(g.area)}</span><div class="vchips">${g.items.map(c=>`<button class="vchip ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}"><i class="vsz ${sizeOf(c).toLowerCase()}" title="${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa">${sizeOf(c)}</i>${esc(villaName(c))}${FREQ_TAG[c.frequency]?`<span class="vtag">${FREQ_TAG[c.frequency]}</span>`:''}</button>`).join('')}</div></div>`).join('');
 }
+/* Which maintenance team does each small job today: the one you picked, else the team with the right skills and fewest villas. */
+function smallByTeam(s,teams,vp){
+  const maint=teams.filter(t=>!isProj(t)), out={}, pick=(dayRec(s).smallTo)||{};
+  smallJobs(s).forEach(p=>{
+    let t=maint.find(x=>x.id===pick[p.id]);
+    if(!t&&maint.length){const need=Object.keys(p.need||{}).filter(k=>!['driver','general','lead'].includes(k));
+      const sc=x=>need.filter(k=>people(x).some(n=>has(n,k))).length*10-((vp&&vp.byTeam[x.id])||[]).length;
+      t=[...maint].sort((a,b)=>sc(b)-sc(a))[0]}
+    if(t)(out[t.id]=out[t.id]||[]).push(p);
+  });
+  return out;
+}
 function teamCard(t,ctx,vp){
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), ps=problems(t), cs=esc(JSON.stringify(ctx));
   const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id), mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
@@ -1777,19 +1818,20 @@ function teamCard(t,ctx,vp){
   const miss=new Set(ps.filter(x=>x.kind==='skill').map(x=>x.skill));
   const ticks=Object.keys(jobNeeds(j)).filter(k=>k!=='lead'&&active(k)).map(k=>`<span class="tick ${miss.has(k)?'no':''}">${miss.has(k)?'✗':'✓'} ${esc((SKILLS.find(s=>s.id===k)||{}).short||k)}</span>`).join('');
   const areas=vl&&vl.length?[...new Set(vl.map(areaShort))].map(esc).join(' · '):'';
-  const sub=p?`${SIZE_NAME[p.size||'M']} · Day ${daysBetween(p.from,ctx.date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · heavy work':''}${t.leader&&supLevel(t.leader)<(SIZE_WANT[p.size||'M']||2)?` · <b class="warntxt">needs a ${SUP_NAME[SIZE_WANT[p.size||'M']].toLowerCase()}</b>`:''}`:areas;
-  const noteShown=t.desc||noteTeams.has(t.id);
+  const sub=p?`${SIZE_NAME[p.size||'M']} · Day ${daysBetween(p.from,ctx.date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · heavy work':''}${needsTruck(p)?' · truck':''}${needsSub(p)?' · <b class="warntxt">machinery / subcontractor</b>':''}${t.leader&&supLevel(t.leader)<(SIZE_WANT[p.size||'M']||2)?` · <b class="warntxt">needs a ${SUP_NAME[SIZE_WANT[p.size||'M']].toLowerCase()}</b>`:''}`:areas;
+  const noteShown=t.desc||noteTeams.has(t.id), allT=ctx.type==='day'?effTeams(ctx.date):[], sm=(!isProj(t)&&ctx.type==='day')?(smallByTeam(ctx.date,allT,vp)[t.id]||[]):[], mts=allT.filter(x=>!isProj(x));
   return `<section class="tcard ${isProj(t)?'proj':'maint'} ${ps.length?'bad':''} ${open?'open':''}" data-drop="${t.id}" data-ctx='${cs}'>
     <button class="thead" data-toggle="${t.id}" aria-expanded="${open}">
       <span class="tl1"><span class="tname">${esc(t.name)}</span><span class="tright ${over?'warn':''}">${vl?plural(vl.length,'villa'):`${n}/${maxTeam()} seats`}</span>${ICON.chev}</span>
       <span class="tl2"><b>${esc(dn(t.leader)||'No leader')}</b>${t.members.length?` + ${t.members.length}`:''}</span>
       ${vl?`<span class="vbar ${over?'over':''}" aria-label="${vl.length} of ${mx} villas"><i style="width:${pct}%"></i></span><span class="vbtxt"><b>${plural(vl.length,'villa')}</b> of ${mx} · ${szc.L?`<i class="vsz l">${szc.L} L</i>`:''}${szc.M?`<i class="vsz m">${szc.M} M</i>`:''}${szc.S?`<i class="vsz s">${szc.S} S</i>`:''} · workload ${pts}${over?' · <b class="warntxt">heavy</b>':''} · <span class="${n>maxTeam()?'redtxt':''}">${n}/${maxTeam()} seats</span></span>`:''}
-      ${sub?`<span class="tl3">${sub}</span>`:''}
+      ${sub?`<span class="tl3">${sub}</span>`:''}${sm.length?`<span class="tl3 smtag">＋ ${plural(sm.length,'small job')}: ${sm.map(p=>esc(p.title)).join(', ')}</span>`:''}
       ${ps.length?`<span class="tprob">${ICON.alert}${ps.map(x=>esc(x.text)).join(' · ')}</span>`:''}
     </button>
     <div class="tbody">
-      ${p?`<div class="tjob"><span class="worksline">${(p.works||[]).map(w=>esc((WORKS.find(x=>x.id===w)||{}).name||w)).join(' + ')||esc(j.name)}</span><button class="link" data-editproj="${p.id}">Edit job</button>${!crewMatches(p,t,ctx.date)&&n?`<button class="pillbtn" data-savecrew="${p.id}">Use this crew every day</button>`:''}</div>`:''}
+      ${p?`<div class="tjob"><span class="worksline">${esc(worksText(p))}</span><button class="link" data-editproj="${p.id}">Edit job</button>${!crewMatches(p,t,ctx.date)&&n?`<button class="pillbtn" data-savecrew="${p.id}">Use this crew every day</button>`:''}</div>`:''}
       ${ticks?`<div class="ticks">${ticks}</div>`:''}
+      ${sm.map(p=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(p.title)}<em>${esc(worksText(p))}${jobFlags(p).filter(f=>f!=='small job').length?' · '+jobFlags(p).filter(f=>f!=='small job').join(' · '):''}</em></span><span class="row"><select class="textin sm" data-smallteam="${p.id}" aria-label="Team doing ${esc(p.title)}">${mts.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><button class="link small" data-editproj="${p.id}">Edit</button></span></div>`).join('')}
       <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader — tap a name to make one leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button></div>
       ${vl?`<div class="vwrap">${villaList(t,vp,ctx)}</div>`:''}
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):''}
@@ -1878,7 +1920,7 @@ function renderDay(){
       <div class="ibox desk-blk"><div><span class="lbl">Villas today</span><b class="big">${vp.total}</b><span>max ${maxV()} per team</span></div></div>
       <div class="ibox clbox"><div><span class="lbl">Maintenance clients</span><b class="big">${nClients}</b><span>all days${nPaused?` · ${nPaused} paused`:''}</span></div></div>
       <div class="ibox offbox desk-blk"><div><span class="lbl">Off today · ${off.length}</span>${off.length?`<div class="chips sm">${off.map(n=>chip(n,ctx,'offc')).join('')}</div>${off.filter(n=>leaveOn(n,cur)).map(n=>`<span class="muted small">${off.length>1?esc(dn(n).split(' ')[0])+': ':''}${esc(leaveLabel(n,cur))}</span>`).join('')}`:'<span>Everyone is in</span>'}<span class="row"><button class="link small" data-newleave>+ Leave</button><button class="link small" data-off>Change</button></span></div></div>
-      <div class="ibox nwbox"><div><span class="nwh"><span class="lbl">New work</span><button class="btn small nwadd2" data-newproj>＋ Add new work</button></span>${ps.length?ps.map(p=>`<button class="nwi" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1} · ${plural(people(p.crew).length,'person','people')}</span></button>`).join(''):'<span>None today</span>'}
+      <div class="ibox nwbox"><div><span class="nwh"><span class="lbl">New work</span><button class="btn small nwadd2" data-newproj>＋ Add new work</button></span>${ps.length?ps.map(p=>{const smt=p.small?Object.entries(smallByTeam(cur,teams,vp)).find(([k,v])=>v.includes(p)):null,tn=smt?(teams.find(x=>x.id===smt[0])||{}).name:'';return `<button class="nwi" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>${p.small?`Small job · with ${esc(tn||'a maintenance team')}`:isSupply(p)?'Delivery only · driver':`Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1} · ${plural(people(p.crew).length,'person','people')}`}</span></button>`}).join(''):'<span>None today</span>'}
         ${upcoming.length?`${upcoming.map(p=>`<button class="nwi up" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Coming up · ${rangeText(p.from,p.to)} · ${plural(Object.values(p.need||{}).length?Math.max(p.min||0,people(p.crew).length):people(p.crew).length,'person','people')}</span></button>`).join('')}`:''}<button class="link small" data-alljobs>All jobs (${S.projects.length}) →</button></div></div>
     </section>
     ${fixes}
@@ -1889,7 +1931,7 @@ function renderDay(){
     ${proj.length?`<div class="sechead"><h3>New work · ${plural(proj.length,'team')}</h3></div><div class="board">${proj.map(t=>teamCard(t,ctx,vp)).join('')}</div>`:''}
     <div class="sechead"><h3>Maintenance · ${plural(maint.length,'team')}</h3></div>
     <div class="board">${maint.map(t=>teamCard(t,ctx,vp)).join('')}</div>
-    <div class="card nursery" data-drop="nursery" data-ctx='${esc(JSON.stringify(ctx))}'><div class="cardhead"><h3>Nursery / farm · ${nurseryOf(cur).length}</h3><span class="muted small">${teams.length} of ${carsN()} cars out · ${maxTeam()} seats per car</span></div><div class="chips">${nurseryOf(cur).map(n=>chip(n,ctx)).join('')||'<span class="muted small">Nobody at the nursery today. When every car is full, the extra people are placed here to look after the plants.</span>'}</div></div>
+    <div class="card nursery" data-drop="nursery" data-ctx='${esc(JSON.stringify(ctx))}'><div class="cardhead"><h3>Nursery / farm · ${nurseryOf(cur).length}</h3><span class="muted small">${teams.filter(t=>{const p=t.projectId&&projById(t.projectId);return !(p&&isSupply(p))}).length} of ${carsN()} cars out · ${maxTeam()} seats per car</span></div><div class="chips">${nurseryOf(cur).map(n=>chip(n,ctx)).join('')||'<span class="muted small">Nobody at the nursery today. When every car is full, the extra people are placed here to look after the plants.</span>'}</div></div>
     ${vp.skipped.length?`<div class="card"><h3>Villas not today · ${vp.skipped.length}</h3><div class="chips">${vp.skipped.map(c=>{const to=(r.villaMovedTo||{})[c.id];return `<button class="vchip" data-unskip="${esc(c.id)}">${esc(villaName(c))}${to?' → '+shortDate(to):''} · put back</button>`}).join('')}</div></div>`:''}
     
     <p class="muted small desk-only">Drag a name or villa to another team. Click a name for leader, off today, skills and rename.</p>
@@ -1962,7 +2004,8 @@ function swapPeople(a,b){
   else if(A){learnManualMove(ctx,b,A.id);put(A,a,b)}
   save();
 }
-const worksText=p=>(p.works||[]).map(w=>(WORKS.find(x=>x.id===w)||{}).name||w).join(' + ')||jobOfId(p.type).name;
+function worksText(p){return (p.works||[]).map(w=>((WORKS.find(x=>x.id===w)||{}).name||w)+(w==='treeremoval'&&p.removal?` (${REMOVAL_NAME[p.removal]})`:'')).join(' + ')||jobOfId(p.type).name}
+const jobFlags=p=>[p.small?'small job':'',needsTruck(p)?'truck':'',needsSub(p)?'machinery / subcontractor':''].filter(Boolean);
 function jobState(p){if(p.done||TODAY>p.to)return 'fin';if(TODAY<p.from)return 'up';return 'run'}
 function allJobsHtml(f){
   const all=[...S.projects].sort((a,b)=>a.from<b.from?-1:1), by=k=>all.filter(p=>jobState(p)===k);
@@ -2086,7 +2129,9 @@ function renderSetup(){
     body=`<div class="row spread"><p class="muted small">Your standard teams. Each day starts from one of these, depending on whether new work runs that day.</p><button class="btn" data-pdfsetup>Save setups as PDF</button></div>
       <div class="card"><h2>Cars</h2><p class="muted small">Each team travels in one car. The builder never puts more people in a team than one car takes, and sends anyone extra to the nursery / farm to look after the plants.</p>
       <div class="row"><label class="field inline"><span class="lbl">Cars</span><input class="textin num" type="number" min="1" max="20" id="carsn" value="${carsN()}"></label>
-      <label class="field inline"><span class="lbl">People per car (with driver)</span><input class="textin num" type="number" min="2" max="15" id="maxteam" value="${maxTeam()}"></label></div></div>
+      <label class="field inline"><span class="lbl">People per car (with driver)</span><input class="textin num" type="number" min="2" max="15" id="maxteam" value="${maxTeam()}"></label>
+      <label class="field inline"><span class="lbl">Trucks (green waste / delivery)</span><input class="textin num" type="number" min="1" max="10" id="trucksn" value="${trucksN()}"></label></div>
+      <p class="muted small">Delivery-only jobs use the truck, not a team car. Small jobs ride with a maintenance team and take no car.</p></div>
       ${maintNeedsCard()}
       ${sec('normal','Days with no new work.')}${sec('newwork','Days with new work. The orange team is the default crew for a new job; the green teams keep doing maintenance.')}`;
   }else if(setupTab==='staff'){
@@ -2198,9 +2243,12 @@ function leaderText(t,date){
   let s=`*Garden Grow – ${shortDate(date)}*\n*${t.name}* – ${j.name}\n`;
   if(p)s+=`Day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1} (${rangeText(p.from,p.to)})\n`;
   if(j.heavy)s+=`⚠ Heavy work – safety gear required\n`;
+  if(p&&needsSub(p))s+=`⚠ Machinery / subcontractor on site\n`;
+  if(p&&needsTruck(p))s+=`🚚 Truck needed (green waste / delivery)\n`;
   s+=`Leader: ${dn(t.leader)||'—'}\nTeam: ${dnl(t.members).join(', ')||'—'}\n`;
   if(!p&&t.desc)s+=`Note: ${t.desc}\n`;
   if(vl.length){s+=`Villas (${vl.length}):\n`;villaGroups(vl).forEach(g=>s+=`${g.area}: ${g.items.map(villaName).join(', ')}\n`)}
+  if(!isProj(t)){const sm=smallByTeam(date,effTeams(date),villaPlan(date,effTeams(date)))[t.id]||[];sm.forEach(q=>s+=`➕ Extra job: ${q.title} – ${worksText(q)}\n`)}
   if(note)s+=`Day note: ${note}\n`;
   return s;
 }
@@ -2266,7 +2314,8 @@ function openProj(id,from){
   const works=p?(p.works||[WORK_BY_JOB[p.type]||'planting']):[];
   const calc=needsForWorks(works);
   modal={kind:'job',id:p?p.id:null,title:p?p.title:'',works,from:p?p.from:(from||cur),to:p?p.to:(from||cur),
-    need:clone((p&&p.need)||calc.need),min:(p&&p.min)||calc.min,heavy:p&&p.heavy!=null?p.heavy:calc.heavy,addOpen:false,pins:p?[...(p.pins||[])]:[],urgent:!!(p&&p.urgent),size:(p&&p.size)||'M',pinOpen:false,works0:works.join(',')};
+    need:clone((p&&p.need)||calc.need),min:(p&&p.min)||calc.min,heavy:p&&p.heavy!=null?p.heavy:calc.heavy,addOpen:false,pins:p?[...(p.pins||[])]:[],urgent:!!(p&&p.urgent),size:(p&&p.size)||'M',pinOpen:false,works0:works.join(','),
+    value:(p&&p.value)||'',small:!!(p&&p.small),smallSet:!!p,waste:p&&p.waste!=null?p.waste:true,removal:(p&&p.removal)||'soil',sub:!!(p&&p.sub)};
   sel=null;villaSel=null;renderMenu();renderModal();
   setTimeout(()=>{const i=$('pm-title');if(i&&!p)i.focus()},30);
 }
@@ -2293,6 +2342,13 @@ function workPicker(){
       <div class="row"><label class="field" style="max-width:200px"><span class="lbl">Team size (at least)</span><input class="textin" type="number" min="1" max="20" id="pm-min" value="${modal.min}"></label>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}</div>
       <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p></div>
     <div class="field"><span class="lbl">3 · Options (optional)</span>
+      <label class="field" style="max-width:260px"><span class="lbl">Quote value (AED)</span><input class="textin" type="number" min="0" step="50" id="pm-value" value="${modal.value||''}" placeholder="e.g. 4500" inputmode="decimal"></label>
+      <p class="muted small" style="margin-top:-4px">Sets the job size: under 5,000 Small · 5,000–25,000 Medium · above 25,000 Large.</p>
+      ${modal.works.includes('makeover')?`<div class="tchips"><button type="button" class="tchip ${modal.waste?'on':''}" data-pmwaste>${modal.waste?'✓ ':''}We remove the green waste<em>${modal.waste?'needs the truck':'waste left on site for the client'}</em></button></div>`:''}
+      ${modal.works.includes('treeremoval')?`<span class="lbl">Tree removal</span><div class="tchips">${Object.entries(REMOVAL_NAME).map(([k,l])=>`<button type="button" class="tchip ${modal.removal===k?'on':''}" data-pmremoval="${k}">${modal.removal===k?'✓ ':''}${l[0].toUpperCase()+l.slice(1)}${k==='crane'?'<em>crane is hired (subcontract)</em>':''}</button>`).join('')}</div>`:''}
+      ${modal.works.includes('hard')?`<span class="lbl">Masonry includes</span><div class="tchips">${[['tiling','Tiling'],['waterproof','Waterproofing']].map(([k,l])=>`<button type="button" class="tchip ${modal.need[k]?'on':''}" data-pmtoggle="${k}">${modal.need[k]?'✓ ':''}${l}</button>`).join('')}</div>`:''}
+      <div class="tchips"><button type="button" class="tchip ${modal.small?'on':''}" data-pmsmall>${modal.small?'✓ ':''}Small job<em>a maintenance team does it on its route — no extra car, maintenance stays as normal</em></button>
+      <button type="button" class="tchip ${modal.sub?'on':''}" data-pmsub>${modal.sub?'✓ ':''}Needs machinery / subcontractor<em>crane, excavator, painter… your staff supervise and help</em></button></div>
       <span class="lbl">Job size</span>
       <div class="tchips">${[['L','Large','senior supervisor leads it'],['M','Medium','supervisor leads it'],['S','Small','any team leader']].map(([k,l,d])=>`<button type="button" class="tchip ${modal.size===k?'on':''}" data-pmsize="${k}">${modal.size===k?'✓ ':''}${l}<em>${d}</em></button>`).join('')}</div>
       <div class="tchips"><button type="button" class="tchip ${modal.urgent?'on':''}" data-pmurgent>${modal.urgent?'✓ ':''}Urgent<em>gets people first if two jobs need the same skills</em></button></div>
@@ -2314,7 +2370,7 @@ function jobForm(){
     <div class="row spread"><div class="row">${p?`<button type="button" class="btn small warn" data-pmdelete>${delArm==='p:'+p.id?'Tap again to delete':'Delete'}</button>${p.done?'<button type="button" class="btn small" data-pmreopen>Reopen</button>':'<button type="button" class="btn small" data-pmdone>Mark done today</button>'}`:''}</div>
     <div class="row"><button type="button" class="btn" data-closemodal>Cancel</button><button class="btn primary">${p?'Save':'Add'}</button></div></div></form>`;
 }
-function readModal(){if(!$('pm-title'))return;modal.title=$('pm-title').value;modal.from=$('pm-from').value;modal.to=$('pm-to').value;const mi=$('pm-min');if(mi)modal.min=Math.max(1,parseInt(mi.value)||1)}
+function readModal(){if(!$('pm-title'))return;modal.title=$('pm-title').value;modal.from=$('pm-from').value;modal.to=$('pm-to').value;const mi=$('pm-min');if(mi)modal.min=Math.max(1,parseInt(mi.value)||1);const pv=$('pm-value');if(pv)modal.value=Math.max(0,parseFloat(pv.value)||0)||''}
 function saveProj(){
   readModal();
   const title=modal.title.trim(); if(!title){toast('Type the site or task');return}
@@ -2322,12 +2378,12 @@ function saveProj(){
   let p=modal.id?projById(modal.id):null;
   if(!modal.works.length){toast('Tap what work it is first');return}
   const type=(WORKS.find(w=>w.id===modal.works[0])||{}).job||'landscape';
-  const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M'};
+  const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M',value:modal.value||null,small:!!modal.small,waste:modal.works.includes('makeover')?!!modal.waste:undefined,removal:modal.works.includes('treeremoval')?modal.removal:undefined,sub:!!modal.sub};
   if(p&&modal.works.join(',')!==modal.works0)p.crewOk=false;
   if(p)Object.assign(p,{title,type,from:modal.from,to:modal.to},extra);
   else{
     const overlap=S.projects.some(q=>q.from<=modal.to&&q.to>=modal.from), def=S.layouts.newwork.find(t=>jobOf(t).group!=='maint');
-    p={id:'p'+uid(),title,type,from:modal.from,to:modal.to,done:false,...extra,crewOk:false,crew:(!overlap&&def)?{leader:def.leader,members:[...def.members]}:{leader:null,members:[]}};
+    p={id:'p'+uid(),title,type,from:modal.from,to:modal.to,done:false,...extra,crewOk:false,crew:(!overlap&&def&&!extra.small&&!modal.works.every(w=>w==='supply'))?{leader:def.leader,members:[...def.members]}:{leader:null,members:[]}};
     S.projects.push(p);
   }
   reconcileAll(true);save();modal=null;delArm=null;renderModal();toast(`Saved: ${title}, ${rangeText(p.from,p.to)}`);render();
@@ -2379,6 +2435,10 @@ document.addEventListener('click',e=>{
   if(d.pmwork){readModal();const w=d.pmwork,i=modal.works.indexOf(w);if(i>=0)modal.works.splice(i,1);else modal.works.push(w);const c=needsForWorks(modal.works);modal.need=c.need;modal.min=c.min;modal.heavy=c.heavy;renderModal();return}
   if(d.pmsize){readModal();modal.size=d.pmsize;renderModal();return}
   if('pmurgent' in d){readModal();modal.urgent=!modal.urgent;renderModal();return}
+  if('pmwaste' in d){readModal();modal.waste=!modal.waste;renderModal();return}
+  if(d.pmremoval){readModal();modal.removal=d.pmremoval;if(d.pmremoval==='crane')modal.sub=true;renderModal();return}
+  if('pmsmall' in d){readModal();modal.small=!modal.small;modal.smallSet=true;renderModal();return}
+  if('pmsub' in d){readModal();modal.sub=!modal.sub;renderModal();return}
   if('pmpinopen' in d){readModal();modal.pinOpen=!modal.pinOpen;renderModal();return}
   if(d.pmpin){readModal();const n=d.pmpin,i=modal.pins.indexOf(n);if(i>=0)modal.pins.splice(i,1);else modal.pins.push(n);renderModal();return}
   if('pmaddskill' in d){readModal();modal.addOpen=!modal.addOpen;renderModal();return}
@@ -2488,6 +2548,7 @@ document.addEventListener('change',e=>{
   if(modal&&modal.kind==='job'&&t.dataset.pmskill){readModal();const s=t.dataset.pmskill;if(t.checked)modal.need[s]=modal.need[s]||1;else delete modal.need[s];renderModal();return}
   if(modal&&modal.kind==='job'&&t.id==='pm-heavy'){readModal();if(modal.heavy){modal.need.heavy=modal.need.heavy||2}else delete modal.need.heavy;renderModal();return}
   if(modal&&modal.kind==='job'&&t.id==='pm-min'){readModal();return}
+  if(t.id==='pm-value'&&modal&&modal.kind==='job'){readModal();if(modal.value){modal.size=sizeFromValue(modal.value);if(modal.value<3000&&!modal.smallSet&&modal.works.length&&modal.works.every(w=>SMALLABLE.has(w)))modal.small=true}setTimeout(()=>{if(modal&&modal.kind==='job')renderModal()},0);return}
   if(modal&&modal.kind==='job'){if(t.id==='pm-from'){readModal();if(modal.to<modal.from)modal.to=modal.from;renderModal()}else if(t.id==='pm-to'){readModal();renderModal()}return}
   if(d.rename){const x=ctxTeams(JSON.parse(d.ctx),true).find(x=>x.id===d.rename);if(x)x.name=t.value.trim()||'Team';save();render();return}
   if(d.job){const ctx=JSON.parse(d.ctx),x=ctxTeams(ctx,false).find(x=>x.id===d.job);
@@ -2505,7 +2566,8 @@ document.addEventListener('change',e=>{
     else if(d.jobfield==='name')j.name=t.value.trim()||'Job';
     else if(d.jobfield==='group')j.group=t.value;
     save();return}
-  if(t.id==='carsn'||t.id==='maxteam'){S.settings[t.id==='carsn'?'cars':'maxTeam']=Math.max(1,parseInt(t.value)||0)||null;save();render();return}
+  if(t.id==='carsn'||t.id==='maxteam'||t.id==='trucksn'){S.settings[{carsn:'cars',maxteam:'maxTeam',trucksn:'trucks'}[t.id]]=Math.max(1,parseInt(t.value)||0)||null;save();render();return}
+  if(t.dataset&&t.dataset.smallteam){const r=ensureDay(cur);r.smallTo=Object.assign({},r.smallTo||{},{[t.dataset.smallteam]:t.value});save();render();return}
   if(t.id==='sizes'||t.id==='sizel'){S.settings[t.id==='sizes'?'sizeS':'sizeL']=Math.max(0,parseFloat(t.value)||0)||null;save();render();return}
   if(t.id==='maxvillas'){S.settings.maxVillas=Math.max(1,parseInt(t.value)||7);save();toast('Saved');render();return}
   if(t.id==='dayoff'){S.settings.dayOff=Number(t.value);save();toast('Saved');return}
