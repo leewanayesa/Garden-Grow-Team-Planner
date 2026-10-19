@@ -366,7 +366,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 
 .nwbtn{border:2px solid var(--orange-bar);background:var(--orange-soft);color:var(--orange);font-weight:800}
 .nwbox{border:2px dashed var(--orange-bar)!important}
-.nwbox>div{width:100%}@media (max-width:899px){.desk-blk{display:none!important}}.sumtxt{font-weight:600}.nwbox .link{color:var(--orange)}.nwadd2{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:800;min-height:40px}.nwi.up{background:var(--orange-soft)!important}.nwi.up span{color:var(--orange)!important}.nwh .link{color:var(--orange)}
+.nwbox>div{width:100%}@media (max-width:899px){.desk-blk{display:none!important}}.sumtxt{font-weight:600}@media (max-width:899px){.clbox{grid-column:1/-1}.clbox>div{display:flex!important;align-items:baseline;gap:8px;flex-wrap:wrap}.clbox b.big{font-size:1.25rem}}.nwbox .link{color:var(--orange)}.nwadd2{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:800;min-height:40px}.nwi.up{background:var(--orange-soft)!important}.nwi.up span{color:var(--orange)!important}.nwh .link{color:var(--orange)}
 .nwh{display:flex;justify-content:space-between;align-items:center;gap:8px}.nwbox .lbl{color:var(--orange)}
 .nwi{display:grid;gap:1px;text-align:left;border:0;border-radius:8px;background:var(--orange-soft);padding:6px 8px;cursor:pointer;font:inherit;color:var(--ink)}
 .nwi b{font-size:.86rem}.nwi span{font-size:.78rem!important;color:var(--orange)!important}
@@ -433,12 +433,12 @@ table.skills .chip{min-height:32px;padding:5px 11px}
   .dacts.desk-flex{display:flex;justify-content:flex-end}
   .monthpop,.dnote,.dbar>.link{grid-column:1/-1}
   .monthpop{max-width:340px}
-  .irow{grid-template-columns:1.2fr .8fr .8fr 1.4fr 1.2fr}
+  .irow{grid-template-columns:1.2fr .75fr .75fr .85fr 1.3fr 1.3fr}
   .ibox.ok,.ibox.bad,.ibox.warn,.offbox,.nwbox{grid-column:auto}
   .board{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   .tcard .tl2,.tcard.maint .tl3{display:none}
 }
-@media (min-width:900px) and (max-width:1250px){.irow{grid-template-columns:repeat(6,minmax(0,1fr))}.irow>.ibox{grid-column:span 2}.irow>.offbox,.irow>.nwbox{grid-column:span 3}.dbar{grid-template-columns:1fr auto}.wstrip{grid-column:1/-1;max-width:none;order:3}}
+@media (min-width:900px) and (max-width:1250px){.irow{grid-template-columns:repeat(6,minmax(0,1fr))}.irow>.ibox{grid-column:span 2}.irow>.offbox,.irow>.nwbox{grid-column:span 2}.dbar{grid-template-columns:1fr auto}.wstrip{grid-column:1/-1;max-width:none;order:3}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header.top,#tabbar,main#view,.fab,#menu,#modalroot,#overlay,.toast{display:none!important}}
 /* printable sheet (PDF) */
@@ -1557,8 +1557,8 @@ function renderDay(){
       ${built?'<button class="btn" data-build>Rebuild teams</button><button class="btn" data-undo>Undo changes</button>':'<button class="btn" data-send>Send to leaders</button>'}
       <button class="btn" data-pdfleaders>Leader pages (phone PDF)</button><button class="btn" data-pdfweek>Week PDF (one page per day)</button><button class="btn" data-noteopen>Note for the day</button><button class="btn" data-newleave>+ Annual leave</button><button class="btn" data-off>Change who's off</button><button class="btn" data-alljobs>All new work jobs</button>
     </div></details>`;
-  const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length;
-  const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} of ${nClients} villas today · ${off.length} off</span>`;
+  const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
+  const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} villas today · ${off.length} off</span>`;
   const okBox=iss.length?`<div class="ibox bad">${ICON.alert}<div><b>${plural(iss.length,'thing')} to check</b>${sumTxt}<span>${esc(iss[0])}</span>${sug.moves.length?`<button class="btn small primary" data-applyall>Fix all (${sug.moves.length})</button>`:''}</div></div>`
     :heavy.length?`<div class="ibox warn">${ICON.alert}<div><b>Teams ready · busy day</b>${sumTxt}<span>${heavy.map(t=>esc(t.name)+' '+(vp.byTeam[t.id]||[]).length).join(', ')} villas — above ${maxV()}</span></div></div>`
     :`<div class="ibox ok">${ICON.ok}<div><b>All teams ready</b>${sumTxt}<span>Leaders, skills and sizes OK</span></div></div>`;
@@ -1579,7 +1579,8 @@ function renderDay(){
     <section class="irow">
       ${okBox}
       <div class="ibox desk-blk"><div><span class="lbl">Working</span><b class="big">${placed}</b><span>in ${plural(teams.length,'team')}</span></div></div>
-      <div class="ibox desk-blk"><div><span class="lbl">Villas today</span><b class="big">${vp.total}</b><span>of <b>${nClients}</b> maintenance clients · max ${maxV()} per team</span></div></div>
+      <div class="ibox desk-blk"><div><span class="lbl">Villas today</span><b class="big">${vp.total}</b><span>max ${maxV()} per team</span></div></div>
+      <div class="ibox clbox"><div><span class="lbl">Maintenance clients</span><b class="big">${nClients}</b><span>all days${nPaused?` · ${nPaused} paused`:''}</span></div></div>
       <div class="ibox offbox desk-blk"><div><span class="lbl">Off today · ${off.length}</span>${off.length?`<div class="chips sm">${off.map(n=>chip(n,ctx,'offc')).join('')}</div>${off.filter(n=>leaveOn(n,cur)).map(n=>`<span class="muted small">${off.length>1?esc(dn(n).split(' ')[0])+': ':''}${esc(leaveLabel(n,cur))}</span>`).join('')}`:'<span>Everyone is in</span>'}<span class="row"><button class="link small" data-newleave>+ Leave</button><button class="link small" data-off>Change</button></span></div></div>
       <div class="ibox nwbox"><div><span class="nwh"><span class="lbl">New work</span><button class="btn small nwadd2" data-newproj>＋ Add new work</button></span>${ps.length?ps.map(p=>`<button class="nwi" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1} · ${plural(people(p.crew).length,'person','people')}</span></button>`).join(''):'<span>None today</span>'}
         ${upcoming.length?`${upcoming.map(p=>`<button class="nwi up" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Coming up · ${rangeText(p.from,p.to)} · ${plural(Object.values(p.need||{}).length?Math.max(p.min||0,people(p.crew).length):people(p.crew).length,'person','people')}</span></button>`).join('')}`:''}<button class="link small" data-alljobs>All jobs (${S.projects.length}) →</button></div></div>
