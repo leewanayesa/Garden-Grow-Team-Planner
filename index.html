@@ -147,6 +147,8 @@ main#view{max-width:1480px;margin:0 auto;padding-inline:16px;padding-block:16px 
 @media (max-width:560px){.matchrow{grid-template-columns:1fr 1fr}.matchrow select{grid-column:1/-1}}
 .nickin{width:130px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:6px 8px}
 .fulln{font-size:.72rem;margin-top:2px;white-space:normal;max-width:220px}
+.sup.drv{background:#1565c0}
+.srow .sup{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--forest);color:#fff;border-radius:4px;padding:1px 4px;font-style:normal}
 .chip .sup{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--forest);color:#fff;border-radius:4px;padding:1px 4px}
 .chip .lv{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 4px}
 .lvrow{border-left-color:var(--warn)}
@@ -211,6 +213,9 @@ table.skills tr.allrow th{background:var(--green-soft);color:var(--green);border
 .wtile{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);padding:10px;text-align:left;cursor:pointer;color:var(--ink);min-height:52px}
 .wtile b{font-size:.9rem;display:block} .wtile em{font-style:normal;font-size:.7rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em}
 .wtile.on{border-color:var(--orange-bar);background:var(--orange-soft)} .wtile.on .wtick{background:var(--orange-bar);border-color:var(--orange-bar);color:#fff}
+.needsum{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1.5px solid #b9dcb5;background:#eef7ec;border-radius:12px;padding:10px 12px;font-weight:700}
+.needsum em{font-style:normal;font-weight:500;color:var(--muted)}
+.needsum.short{border-color:#c62828;background:#fbe9e7}
 .needlist{display:grid;gap:6px}
 .needrow{display:flex;align-items:center;gap:8px;border:1px solid var(--green);background:var(--green-soft);border-radius:12px;padding:6px 8px 6px 12px}
 .needrow.short{border-color:var(--red);background:var(--red-soft)}
@@ -2258,9 +2263,11 @@ function putVillaBack(date,id){
 }
 
 /* ---------- small pieces ---------- */
+/* Small tag after a name: SUP, DRIVER, or SUP / DRIVER. */
+function roleTag(n){const s=isSup(n),d=has(n,'driver');return s&&d?'<span class="sup">sup / driver</span>':s?'<span class="sup">sup</span>':d?'<span class="sup drv">driver</span>':''}
 function chip(name,ctx,cls=''){
   const on=sel&&sel.name===name&&sameCtx(sel.ctx,ctx);
-  return `<button class="chip ${cls} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}">${esc(dn(name))}${cls==='lead'?'<span class="lt">leader</span>':''}${isSup(name)?'<span class="sup">sup</span>':''}${ctx.type==='day'&&leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</button>`;
+  return `<button class="chip ${cls} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}">${esc(dn(name))}${cls==='lead'?'<span class="lt">leader</span>':''}${roleTag(name)}${ctx.type==='day'&&leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</button>`;
 }
 function jobSelect(t,ctx,cs,onlyGroup){
   const list=S.jobs.filter(x=>!onlyGroup||x.group===onlyGroup||x.id===t.job);
@@ -2518,7 +2525,7 @@ function simpleRows(t,out,act){
   teams.filter(x=>x!==t).forEach(x=>people(x).forEach(n=>rows.push({n,where:esc(x.name)+(x.leader===n?' · leader':''),r:x.leader===n||isSup(n)?3:2})));
   rows.forEach(o=>{o.f=[...new Set(need)].filter(k=>has(o.n,k))});
   rows.sort((a,b)=>b.f.length-a.f.length||a.r-b.r||dn(a.n).localeCompare(dn(b.n)));
-  return rows.map(o=>`<button class="srow" ${act}="${esc(o.n)}"><span><b>${esc(dn(o.n))}</b><em> · ${o.where}</em></span>${o.f.length?`<i>✓ ${o.f.map(k=>esc((SKILLS.find(x=>x.id===k)||{}).short||SK[k]||k)).join(', ')}</i>`:''}</button>`).join('')||'<p class="muted small">Nobody else is working today.</p>';
+  return rows.map(o=>`<button class="srow" ${act}="${esc(o.n)}"><span><b>${esc(dn(o.n))}</b> ${roleTag(o.n)}<em> · ${o.where}</em></span>${o.f.length?`<i>✓ ${o.f.map(k=>esc((SKILLS.find(x=>x.id===k)||{}).short||SK[k]||k)).join(', ')}</i>`:''}</button>`).join('')||'<p class="muted small">Nobody else is working today.</p>';
 }
 function addToHtml(){
   const t=effTeams(cur).find(x=>x.id===modal.team); if(!t)return '';
@@ -2929,12 +2936,14 @@ function workPicker(){
         return `<button type="button" class="wtile ${on?'on':''}" data-pmwork="${w.id}"><span class="wtick">${on?'✓':''}</span><span><b>${w.name}</b>${w.sub?`<small class="wsub">${w.sub}</small>`:''}${w.heavy?'<em>heavy</em>':''}</span></button>${on?`<div class="szinline"><span class="szwork">How big is the ${esc(w.name.toLowerCase())}?</span><div class="szcards">${['S','M','L'].map((k,i)=>`<button type="button" class="szcard ${cur===k?'on':''}" data-pmwsize="${w.id}:${k}" aria-pressed="${cur===k}"><b>${cur===k?'✓ ':''}${SZL[k]}</b><span>${esc(hp[i])}</span><span class="szn"><b>${crewFor(w.id,k)}</b> ${crewFor(w.id,k)===1?'person':'people'}</span><em>${SZLEAD[k]}</em></button>`).join('')}</div></div>`:''}`}).join('')}</div>
       ${modal.works.length?'<span class="muted small">Every new job starts on Medium. The biggest size decides who leads; the team gets the biggest crew.</span>':''}
       ${modal.works.length&&jobHint(modal.works,modal.sizes)?`<p class="jobhint">📈 ${jobHint(modal.works,modal.sizes)}</p>`:''}</div>
-    <div class="field"><span class="lbl">2 · Skills the team needs</span>
+    <div class="field"><span class="lbl">2 · Team needs</span>
+      ${!modal.needOpen?`<div class="needsum ${picked.some(x=>avail(x.id)<on[x.id])?'short':''}"><span>${picked.length?picked.map(x=>`${esc(x.short||x.label)}${on[x.id]>1?' ×'+on[x.id]:''}${avail(x.id)<on[x.id]?' ⚠':''}`).join(' · '):'Nothing special'} <em>· ${modal.min} people · ${modal.needEdited?'changed by you':'set automatically'}</em>${picked.some(x=>avail(x.id)<on[x.id])?`<b class="redtxt"> Not enough: ${picked.filter(x=>avail(x.id)<on[x.id]).map(x=>esc(x.label)).join(', ')}</b>`:''}</span><button type="button" class="link" data-pmneedopen>Change</button></div>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}`:`
       ${picked.length?`<div class="needlist">${picked.map(s=>{const a=avail(s.id),c=on[s.id];return `<div class="needrow ${a<c?'short':''}"><span class="nl"><b>${s.label}</b><em>${a} available${a<c?' — not enough':''}</em></span><span class="wcnt"><button type="button" data-pmcount="${s.id}" data-delta="-1" aria-label="Fewer">−</button><b>${c}</b><button type="button" data-pmcount="${s.id}" data-delta="1" aria-label="More">+</button></span><button type="button" class="iconbtn sm" data-pmtoggle="${s.id}" aria-label="Remove ${s.label}">×</button></div>`}).join('')}</div>`:'<p class="muted small">Tap the work above and the skills it needs appear here.</p>'}
       <button type="button" class="link" data-pmaddskill>${modal.addOpen?'Hide other skills':'+ Add another skill'}</button>
       ${modal.addOpen?notPicked.map(g=>`<div class="tgroup"><span class="lbl">${g.name}</span><div class="tchips">${g.ids.map(id=>`<button type="button" class="tchip" data-pmtoggle="${id}">${SK[id]}<em>${avail(id)} available</em></button>`).join('')}</div></div>`).join(''):''}
       <div class="row"><label class="field" style="max-width:200px"><span class="lbl">Team size (at least)</span><input class="textin" type="number" min="1" max="20" id="pm-min" value="${modal.min}"></label>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}</div>
-      <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p></div>
+      <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p>
+      <button type="button" class="link" data-pmneedopen>Done</button>`}</div>
     <div class="field"><span class="lbl">3 · Options (optional)</span>
       <label class="field" style="max-width:260px"><span class="lbl">Quote value (AED)</span><input class="textin" type="number" min="0" step="50" id="pm-value" value="${modal.value||''}" placeholder="e.g. 4500" inputmode="decimal"></label>
       <p class="muted small" style="margin-top:-4px">Sets the size of every work: under 5,000 Small · 5,000–25,000 Medium · above 25,000 Large. You can still change each card.</p>
@@ -3036,11 +3045,12 @@ document.addEventListener('click',e=>{
   if('pmsub' in d){readModal();modal.sub=!modal.sub;renderModal();return}
   if('pmpinopen' in d){readModal();modal.pinOpen=!modal.pinOpen;renderModal();return}
   if(d.pmpin){readModal();const n=d.pmpin,i=modal.pins.indexOf(n);if(i>=0)modal.pins.splice(i,1);else modal.pins.push(n);renderModal();return}
+  if('pmneedopen' in d){readModal();modal.needOpen=!modal.needOpen;renderModal();return}
   if('pmaddskill' in d){readModal();modal.addOpen=!modal.addOpen;renderModal();return}
   if('maintopen' in d){readModal();maintOpen=!maintOpen;renderModal();return}
-  if(d.pmtoggle){readModal();const s=d.pmtoggle;if(modal.need[s])delete modal.need[s];else modal.need[s]=s==='heavy'?2:1;if(s==='heavy')modal.heavy=!!modal.need.heavy;modal.addOpen=false;renderModal();return}
+  if(d.pmtoggle){readModal();modal.needEdited=true;const s=d.pmtoggle;if(modal.need[s])delete modal.need[s];else modal.need[s]=s==='heavy'?2:1;if(s==='heavy')modal.heavy=!!modal.need.heavy;modal.addOpen=false;renderModal();return}
   if('pmheavy' in d){readModal();modal.heavy=!modal.heavy;if(modal.heavy)modal.need.heavy=modal.need.heavy||2;else delete modal.need.heavy;renderModal();return}
-  if(d.pmcount){readModal();const s=d.pmcount;modal.need[s]=Math.max(1,Math.min(9,(modal.need[s]||1)+Number(d.delta)));renderModal();return}
+  if(d.pmcount){readModal();modal.needEdited=true;const s=d.pmcount;modal.need[s]=Math.max(1,Math.min(9,(modal.need[s]||1)+Number(d.delta)));renderModal();return}
   if('pmextend' in d){readModal();modal.to=addDays(modal.to<modal.from?modal.from:modal.to,1);renderModal();return}
   if('pmdone' in d){const p=projById(modal.id);p.done=true;if(p.to>TODAY)p.to=TODAY<p.from?p.from:TODAY;learnJob(p,p.to);reconcileAll(true);save();modal=null;renderModal();toast('Marked done');render();return}
   if('pmreopen' in d){const p=projById(modal.id);p.done=false;save();modal=null;renderModal();render();return}
@@ -3183,7 +3193,7 @@ document.addEventListener('change',e=>{
   if(false&&modal&&modal.kind==='job'&&t.id==='pm-type'){readModal();const b=jobOfId(t.value);modal.need=clone(jobNeeds(b));modal.min=b.min;modal.heavy=!!b.heavy;renderModal();return}
   if(modal&&modal.kind==='job'&&t.dataset.pmskill){readModal();const s=t.dataset.pmskill;if(t.checked)modal.need[s]=modal.need[s]||1;else delete modal.need[s];renderModal();return}
   if(modal&&modal.kind==='job'&&t.id==='pm-heavy'){readModal();if(modal.heavy){modal.need.heavy=modal.need.heavy||2}else delete modal.need.heavy;renderModal();return}
-  if(modal&&modal.kind==='job'&&t.id==='pm-min'){readModal();return}
+  if(modal&&modal.kind==='job'&&t.id==='pm-min'){readModal();modal.needEdited=true;return}
   if(t.id==='pm-value'&&modal&&modal.kind==='job'){readModal();if(modal.value){const z=sizeFromValue(modal.value);modal.works.forEach(w=>modal.sizes[w]=z);applySizes();if(modal.value<3000&&!modal.smallSet&&modal.works.length&&modal.works.every(w=>SMALLABLE.has(w)))modal.small=true}setTimeout(()=>{if(modal&&modal.kind==='job')renderModal()},0);return}
   if(modal&&modal.kind==='job'){if(t.id==='pm-from'){readModal();if(modal.to<modal.from)modal.to=modal.from;renderModal()}else if(t.id==='pm-to'){readModal();renderModal()}return}
   if(d.rename){const x=ctxTeams(JSON.parse(d.ctx),true).find(x=>x.id===d.rename);if(x)x.name=t.value.trim()||'Team';save();render();return}
