@@ -342,6 +342,13 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .smj select.sm{padding:6px 8px;min-height:36px;width:auto}
 .smtag{color:#c2410c}
 .skhint{font-size:.86rem;background:var(--red-soft,#fdecea);border-radius:10px;padding:8px 10px;margin:6px 0;display:flex;flex-wrap:wrap;gap:4px 10px}
+.splitnote{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;justify-content:space-between;background:#fdf3dc;border-radius:10px;padding:8px 10px;margin:4px 0 8px;font-size:.86rem}
+.splitnote em{display:block;font-style:normal;color:var(--muted);font-size:.8rem}
+.arealist{display:flex;flex-direction:column;gap:6px}
+.arow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;border-top:1px solid var(--line);padding-top:6px}
+.arow .an em{display:block;font-style:normal;font-size:.8rem;color:var(--muted)}
+.arow .textin.sm{min-height:38px;padding:6px 8px}
+@media (max-width:600px){.arow{grid-template-columns:1fr 1fr}.arow .an{grid-column:1/-1}}
 .toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9rem;z-index:100;max-width:calc(100vw - 32px);text-align:center}
 
 /* laptop */
@@ -817,6 +824,45 @@ const capPts=()=>maxV()*1.5;
 const maxTeam=()=>S.settings.maxTeam||5, carsN=()=>S.settings.cars||3, trucksN=()=>S.settings.trucks||1;
 function kmBetween(a,b){if(!a||!b||a.lat==null||b.lat==null)return null;const x=(b.lng-a.lng)*111.32*Math.cos((a.lat+b.lat)/2*Math.PI/180),y=(b.lat-a.lat)*110.57;return Math.sqrt(x*x+y*y)}
 const posOf=c=>c&&c.lat!=null&&c.lng!=null?{lat:c.lat,lng:c.lng}:null;
+/* Approximate centre of each Abu Dhabi area, so villas without a map link are still placed by their area.
+   A villa with a readable map link always uses its exact position. Fix or add an area in Setup → Villas → Area locations. */
+const AREA_POS={
+ 'abu dhabi city':[24.487,54.360],'downtown':[24.487,54.360],'corniche':[24.476,54.336],'khalidiyah':[24.473,54.346],'bateen':[24.456,54.336],
+ 'marina area':[24.476,54.321],'marina':[24.476,54.321],'breakwater':[24.478,54.320],'manhal':[24.468,54.363],'danah':[24.488,54.357],'wahda':[24.470,54.375],
+ 'zahiyah':[24.495,54.380],'tourist club':[24.495,54.380],'mina zayed':[24.520,54.380],'karamah':[24.455,54.382],'nahyan':[24.462,54.388],'mushrif':[24.438,54.388],
+ 'muroor':[24.440,54.400],'rawdah':[24.425,54.405],'matar':[24.432,54.452],'gurm':[24.445,54.430],'qurm':[24.445,54.430],'eastern mangroves':[24.448,54.432],
+ 'reem island':[24.495,54.405],'reem':[24.495,54.405],'maryah island':[24.501,54.390],'saadiyat':[24.542,54.430],'saadiyat island':[24.542,54.430],'jubail island':[24.530,54.480],
+ 'hudayriyat':[24.432,54.310],'bain al jesrain':[24.410,54.490],'between two bridges':[24.410,54.490],'maqtaa':[24.408,54.500],
+ 'khalifa city':[24.420,54.580],'raha':[24.447,54.577],'raha beach':[24.447,54.577],'raha gardens':[24.423,54.572],'bandar':[24.452,54.590],'yas island':[24.490,54.605],'yas':[24.490,54.605],
+ 'masdar city':[24.430,54.618],'reef':[24.437,54.626],'hydra village':[24.430,54.640],'falah':[24.453,54.716],'shamkha':[24.390,54.705],'shakhbout city':[24.375,54.625],
+ 'mohammed bin zayed city':[24.348,54.547],'mbz city':[24.348,54.547],'zayed city':[24.348,54.547],'musaffah':[24.360,54.500],'mussafah':[24.360,54.500],'icad':[24.330,54.480],
+ 'shawamekh':[24.335,54.660],'bani yas':[24.305,54.630],'baniyas':[24.305,54.630],'madinat al riyadh':[24.285,54.735],'riyadh city':[24.285,54.735],'riyadh':[24.285,54.735],
+ 'wathba':[24.250,54.615],'mafraq':[24.285,54.590],'bahia':[24.530,54.640],'shahama':[24.540,54.680],'rahba':[24.590,54.690],'samha':[24.680,54.740],
+ 'al ain':[24.207,55.744],'dubai':[25.204,55.270]
+};
+const normArea=s=>String(s||'').toLowerCase().replace(/[’'`]/g,'').replace(/[-_]/g,' ').replace(/\s+/g,' ').trim().replace(/^(al|el) /,'').replace(/,? ?abu dhabi$/,'');
+function areaPosByName(name){
+  const ov=(S.settings.areaPos||{})[name]; if(ov&&ov.lat!=null)return {lat:ov.lat,lng:ov.lng,approx:true,set:true};
+  const n=normArea(name); let p=AREA_POS[n]||AREA_POS[n.replace(/ (city|area|community)$/,'')];
+  if(!p){const k=Object.keys(AREA_POS).filter(k=>k.length>3&&(n.includes(k))).sort((a,b)=>b.length-a.length)[0];if(k)p=AREA_POS[k]}
+  return p?{lat:p[0],lng:p[1],approx:true}:null;
+}
+/* Where a villa is: its own map pin (exact), else the centre of its area (approximate), else unknown. */
+const vPos=c=>posOf(c)||areaPosByName(areaShort(c));
+const basePos=()=>{const b=S.settings.base;return b&&b.lat!=null?b:null};
+/* Estimated drive for a list of villas: area by area, nearest area next (from the start point if set), + the drive inside areas with map pins. ×1.3 for roads. */
+function routeKm(list){
+  const g={};list.forEach(c=>{const a=areaShort(c);(g[a]=g[a]||[]).push(c)});
+  let approx=false,unknown=0;const pts=[];let inner=0;
+  Object.values(g).forEach(items=>{const ex=items.filter(posOf);let p=null;
+    if(ex.length){p={lat:ex.reduce((s,c)=>s+c.lat,0)/ex.length,lng:ex.reduce((s,c)=>s+c.lng,0)/ex.length};const o=nnOrder(ex);for(let i=1;i<o.length;i++)inner+=kmBetween(posOf(o[i-1]),posOf(o[i]))}
+    else{p=areaPosByName(areaShort(items[0]));if(p)approx=true}
+    if(p)pts.push(p);else unknown++});
+  let km=0,cur=basePos(),left=[...pts];if(!cur&&left.length)cur=left.shift();
+  while(left.length){let bi=0,bd=Infinity;left.forEach((q,i)=>{const d=kmBetween(cur,q);if(d<bd){bd=d;bi=i}});km+=bd;cur=left.splice(bi,1)[0]}
+  return {km:Math.round((km+inner)*1.3),approx,unknown};
+}
+function centroidV(list){const p=list.map(vPos).filter(Boolean);if(!p.length)return null;return {lat:p.reduce((a,x)=>a+x.lat,0)/p.length,lng:p.reduce((a,x)=>a+x.lng,0)/p.length}}
 function centroid(list){const p=list.map(posOf).filter(Boolean);if(!p.length)return null;return {lat:p.reduce((a,x)=>a+x.lat,0)/p.length,lng:p.reduce((a,x)=>a+x.lng,0)/p.length}}
 /* Order villas inside a group by a short drive: nearest next (those without a position keep their place at the end). */
 function nnOrder(items,start){
@@ -850,10 +896,10 @@ function splitVillas(list,k){
   const zones=[];groups.forEach(g=>{const z=zoneOf(g[0]);let Z=zones.find(x=>x.z===z);if(!Z)zones.push(Z={z,gs:[]});Z.gs.push(g)});
   let last=null; const seq=[];
   zones.forEach(Z=>{
-    const withC=Z.gs.filter(g=>centroid(g)), noC=Z.gs.filter(g=>!centroid(g));
+    const withC=Z.gs.filter(g=>centroidV(g)), noC=Z.gs.filter(g=>!centroidV(g));
     const left=[...withC];
-    if(last&&left.length){left.sort((a,b)=>kmBetween(last,centroid(a))-kmBetween(last,centroid(b)))}
-    while(left.length){const g=left.shift();seq.push(g);last=centroid(g);left.sort((a,b)=>kmBetween(last,centroid(a))-kmBetween(last,centroid(b)))}
+    if(last&&left.length){left.sort((a,b)=>kmBetween(last,centroidV(a))-kmBetween(last,centroidV(b)))}
+    while(left.length){const g=left.shift();seq.push(g);last=centroidV(g);left.sort((a,b)=>kmBetween(last,centroidV(a))-kmBetween(last,centroidV(b)))}
     noC.forEach(g=>seq.push(g));
   });
   // 3) cut the route into k pieces, keeping the heaviest piece as light as possible
@@ -868,14 +914,20 @@ function splitVillas(list,k){
 /* Fair split: the route split can leave one team far busier (whole areas only). Move a whole area, or single villas, from the
    busiest team to another when it lowers the heaviest work per person. Keeps areas together where it can, stays under the
    villa limit, and leans to the areas each team usually covers. Villas you moved by hand stay where you put them. */
-function balanceVillas(byTeam,maint,movedList,moved){
+function balanceVillas(byTeam,maint,movedList,moved,date){
   if(maint.length<2)return;
-  const fixed={},cnt0={};maint.forEach(t=>{const m=movedList.filter(c=>moved[c.id]===t.id);fixed[t.id]=ptsSum(m);cnt0[t.id]=m.length});
-  const ppl=t=>Math.max(1,people(t).length), useA=!!(S.learn&&S.learn.a&&Object.keys(S.learn.a).length);
-  const score=()=>{let mx=0,sq=0,over=0,aff=0;const at={};
-    maint.forEach(t=>{const L=byTeam[t.id],ld=(ptsSum(L)+fixed[t.id])/ppl(t);mx=Math.max(mx,ld);sq+=ld*ld;const n=L.length+cnt0[t.id];if(n>maxV())over+=n-maxV();
-      L.forEach(c=>{const a=areaShort(c);(at[a]=at[a]||new Set()).add(t.id);if(useA)aff+=learnA(a,t)})});
-    return mx+0.05*sq+0.12*Object.values(at).reduce((s,x)=>s+x.size-1,0)+0.4*over-0.01*aff};
+  const fixed={},cnt0={};maint.forEach(t=>{const m=movedList.filter(c=>moved[c.id]===t.id);fixed[t.id]=m;cnt0[t.id]=m.length});
+  const ppl=t=>Math.max(1,people(t).length), owner=S.settings.areaOwner||{}, wk=date?weekdayAreas(date):{}, leaders=new Set(maint.map(t=>t.leader).filter(Boolean));
+  const useA=!!(S.learn&&S.learn.a&&Object.keys(S.learn.a).length);
+  const score=()=>{let mx=0,sq=0,over=0,km=0,aff=0,own=0,wkm=0;const at={};
+    maint.forEach(t=>{const L=byTeam[t.id],all=[...L,...fixed[t.id]],ld=ptsSum(all)/ppl(t);mx=Math.max(mx,ld);sq+=ld*ld;
+      const n=all.length,ov=Math.max(0,n-maxV());over+=ov*ov;km+=routeKm(all).km;
+      const areas=new Set(L.map(areaShort));areas.forEach(a=>{(at[a]=at[a]||new Set()).add(t.id);
+        if(useA)aff+=Math.min(5,learnA(a,t));
+        const o=owner[a];if(o&&leaders.has(o)&&o!==t.leader)own++;
+        const w=wk[a];if(w&&t.leader){const top=Object.entries(w).filter(([L2])=>leaders.has(L2)).sort((x,y)=>y[1]-x[1])[0];if(top&&top[0]===t.leader)wkm++}})});
+    const splits=Object.values(at).reduce((s,x)=>s+x.size-1,0);
+    return mx+0.05*sq+0.03*km+0.6*splits+0.25*over+10*own-0.02*aff-0.15*wkm};
   let best=score();
   for(let it=0;it<60;it++){
     let mv=null,bs=best-1e-6;
@@ -886,26 +938,45 @@ function balanceVillas(byTeam,maint,movedList,moved){
         const s=score();byTeam[T.id]=keepT;byTeam[H.id]=L;
         if(s<bs){bs=s;mv={H,T,u}}}));
     });
+    /* swap two areas between teams (e.g. each team back to the area it did last week) */
+    const unitsOf=t=>{const m={};(byTeam[t.id]||[]).forEach(c=>{(m[areaShort(c)]=m[areaShort(c)]||[]).push(c)});return Object.values(m)};
+    for(let a=0;a<maint.length;a++)for(let b2=a+1;b2<maint.length;b2++){const A=maint[a],B=maint[b2],LA=byTeam[A.id],LB=byTeam[B.id];
+      unitsOf(A).forEach(u=>unitsOf(B).forEach(w=>{byTeam[A.id]=[...LA.filter(c=>!u.includes(c)),...w];byTeam[B.id]=[...LB.filter(c=>!w.includes(c)),...u];
+        const sc=score();byTeam[A.id]=LA;byTeam[B.id]=LB;if(sc<bs){bs=sc;mv={swap:true,A,B,u,w}}}))}
     if(!mv)break;
-    byTeam[mv.H.id]=byTeam[mv.H.id].filter(c=>!mv.u.includes(c));byTeam[mv.T.id]=[...byTeam[mv.T.id],...mv.u];best=bs;
+    if(mv.swap){byTeam[mv.A.id]=[...byTeam[mv.A.id].filter(c=>!mv.u.includes(c)),...mv.w];byTeam[mv.B.id]=[...byTeam[mv.B.id].filter(c=>!mv.w.includes(c)),...mv.u]}
+    else{byTeam[mv.H.id]=byTeam[mv.H.id].filter(c=>!mv.u.includes(c));byTeam[mv.T.id]=[...byTeam[mv.T.id],...mv.u]}
+    best=bs;
   }
+}
+/* L7 drive order for one team: area by area, nearest area next from the start point; inside an area by map pin, then the roster's route order. */
+function orderRoute(list){
+  const g={};list.forEach(c=>{const a=areaShort(c);(g[a]=g[a]||[]).push(c)});
+  const groups=Object.entries(g).map(([a,items])=>{const ex=items.filter(posOf);const p=ex.length?{lat:ex.reduce((s,c)=>s+c.lat,0)/ex.length,lng:ex.reduce((s,c)=>s+c.lng,0)/ex.length}:areaPosByName(a);
+    const rest=items.filter(c=>!posOf(c)).sort((x,y)=>((x.routeOrder??999)-(y.routeOrder??999))||villaName(x).localeCompare(villaName(y)));
+    return {a,p,items:[...nnOrder(ex),...rest]}});
+  const known=groups.filter(x=>x.p), unk=groups.filter(x=>!x.p).sort((x,y)=>zoneOf(x.items[0])-zoneOf(y.items[0])||x.a.localeCompare(y.a));
+  const out=[];let cur=basePos();if(!cur&&known.length){known.sort((x,y)=>zoneOf(x.items[0])-zoneOf(y.items[0]));cur=known[0].p}
+  const left=[...known];while(left.length){let bi=0,bd=Infinity;left.forEach((x,i)=>{const d=kmBetween(cur,x.p);if(d<bd){bd=d;bi=i}});const x=left.splice(bi,1)[0];out.push(...x.items);cur=x.p}
+  unk.forEach(x=>out.push(...x.items));return out;
 }
 /* Which villas each maintenance team covers on a date. Manual moves and skips for that day are kept. */
 const _vpCache=new Map();
 function villaPlan(date,teams){
   const r=dayRec(date), moved=r.villaMove||{}, skip=new Set(r.villaSkip||[]);
   const maint=teams.filter(t=>!isProj(t)), ids=new Set(maint.map(t=>t.id));
-  const ck=date+'|'+(S.updatedAt||0)+'|'+maint.map(t=>t.id+':'+people(t).length+':'+(t.leader||'')).join(',')+'|'+JSON.stringify(moved)+'|'+[...skip].join(',')+'|'+(S.clients||[]).length;
+  const ck=date+'|'+(S.updatedAt||0)+'|'+JSON.stringify(S.settings.areaOwner||{})+JSON.stringify(S.settings.base||'')+'|'+maint.map(t=>t.id+':'+people(t).length+':'+(t.leader||'')).join(',')+'|'+JSON.stringify(moved)+'|'+[...skip].join(',')+'|'+(S.clients||[]).length;
   if(_vpCache.has(ck))return _vpCache.get(ck);
   const all=clientsOn(date).filter(c=>!skip.has(c.id));
   const auto=all.filter(c=>!(moved[c.id]&&ids.has(moved[c.id])));
   let parts=splitVillas(auto,maint.length); const byTeam={};
   if(maint.length>1&&maint.length<=6){
-    const fit=(part,t)=>part.reduce((s,c)=>s+learnA(areaShort(c),t),0);
+    const wk=weekdayAreas(date), own=S.settings.areaOwner||{};
+    const fit=(part,t)=>part.reduce((s,c)=>{const a=areaShort(c),w=wk[a]||{};return s+learnA(areaShort(c),t)+(t.leader&&w[t.leader]?w[t.leader]*0.6:0)+(own[a]&&own[a]===t.leader?6:0)},0);
     const perm=a=>a.length<=1?[a]:a.flatMap((x,i)=>perm([...a.slice(0,i),...a.slice(i+1)]).map(r=>[x,...r]));
     let best=null,bs=-Infinity;
     perm(parts.map((_,i)=>i)).forEach(o=>{
-      const aff=S.learn&&S.learn.a?o.reduce((acc,pi,ti)=>acc+fit(parts[pi]||[],maint[ti]),0):0;
+      const aff=o.reduce((acc,pi,ti)=>acc+fit(parts[pi]||[],maint[ti]),0);
       const bal=Math.max(...o.map((pi,ti)=>ptsSum(parts[pi]||[])/Math.max(1,people(maint[ti]).length)));
       const s=aff-1.2*bal+o.reduce((a,pi,ti)=>a+(pi===ti?0.001:0),0);
       if(s>bs+1e-9){bs=s;best=o}
@@ -913,11 +984,17 @@ function villaPlan(date,teams){
     if(best)parts=best.map(i=>parts[i]);
   }
   maint.forEach((t,i)=>byTeam[t.id]=[...(parts[i]||[])]);
-  balanceVillas(byTeam,maint,all.filter(c=>moved[c.id]&&ids.has(moved[c.id])),moved);
+  balanceVillas(byTeam,maint,all.filter(c=>moved[c.id]&&ids.has(moved[c.id])),moved,date);
   const order=new Map();parts.flat().forEach((c,i)=>order.set(c.id,i));
   all.forEach(c=>{const to=moved[c.id];if(to&&ids.has(to)){byTeam[to].push(c)}});
-  maint.forEach(t=>{const L=byTeam[t.id];const ix=c=>order.has(c.id)?order.get(c.id):(()=>{const same=L.find(x=>order.has(x.id)&&areaShort(x)===areaShort(c));return same?order.get(same.id)+0.5:1e6})();L.sort((a,b)=>ix(a)-ix(b))});
-  const res={byTeam,skipped:clientsOn(date).filter(c=>skip.has(c.id)),total:all.length};
+  maint.forEach(t=>{byTeam[t.id]=orderRoute(byTeam[t.id])});
+  /* L8 areas shared between teams today, and why */
+  const shared=[];const at={};maint.forEach(t=>(byTeam[t.id]||[]).forEach(c=>{const a=areaShort(c);(at[a]=at[a]||{})[t.id]=(at[a][t.id]||0)+1}));
+  Object.entries(at).forEach(([a,m])=>{const ts=Object.keys(m);if(ts.length<2)return;const main=ts.sort((x,y)=>m[y]-m[x])[0],total=ts.reduce((s,x)=>s+m[x],0);
+    const mt=maint.find(t=>t.id===main),n=(byTeam[main]||[]).length;
+    shared.push({area:a,main,counts:m,total,why:total>maxV()?`${a} has ${total} villas today — more than one team's limit of ${maxV()}`:n>=maxV()?`${mt.name} already has ${n} villas (limit ${maxV()})`:`to share the work fairly between the teams`})});
+  const km={};maint.forEach(t=>{km[t.id]=routeKm(byTeam[t.id]||[])});
+  const res={byTeam,shared,km,skipped:clientsOn(date).filter(c=>skip.has(c.id)),total:all.length};
   if(_vpCache.size>400)_vpCache.clear(); _vpCache.set(ck,res); return res;
 }
 /* Villas that sit far from the rest of their team's route but close to another team's villas. */
@@ -1104,7 +1181,9 @@ function learnAreaMove(date,villaId,toId){
 /* Past days you edited teach the planner who usually works where. Each day is read once. */
 function learnHistory(){Object.entries(S.days).forEach(([s,r])=>{if(s>=TODAY||!r.teams||r.learned)return;r.teams.forEach(t=>{people(t).forEach(n=>learnInTeam(t,n,0.5));if(t.leader)learnLead(t,t.leader,0.5);learnPairs(t,0.2)});try{if(r.areaSnap&&r.areaSnap.a){r.teams.filter(t=>!isProj(t)).forEach(t=>{(r.areaSnap.a[t.id]||[]).forEach(a=>bump(LRN().a,a,areaKey(t),0.3));((r.areaSnap.m||{})[t.id]||[]).forEach(a=>bump(LRN().a,a,areaKey(t),0.5))})}else{const vp=villaPlan(s,r.teams);r.teams.filter(t=>!isProj(t)).forEach(t=>{const moved=r.villaMove||{};new Set((vp.byTeam[t.id]||[]).map(areaShort)).forEach(a=>bump(LRN().a,a,areaKey(t),0.3));(vp.byTeam[t.id]||[]).filter(c=>moved[c.id]===t.id).forEach(c=>bump(LRN().a,areaShort(c),areaKey(t),0.5))})}}catch(e){}r.learned=true})}
 /* Remember which areas each team covered today, so learning later uses the villa list as it was on the day. */
-function snapToday(){try{const r=S.days[TODAY];if(!r||!r.teams)return;const vp=villaPlan(TODAY,r.teams),moved=r.villaMove||{},a={},m={};r.teams.filter(t=>!isProj(t)).forEach(t=>{const L=vp.byTeam[t.id]||[];a[t.id]=[...new Set(L.map(areaShort))];m[t.id]=[...new Set(L.filter(c=>moved[c.id]===t.id).map(areaShort))]});r.areaSnap={a,m}}catch(e){}}
+function snapToday(){try{const r=S.days[TODAY];if(!r||!r.teams)return;const vp=villaPlan(TODAY,r.teams),moved=r.villaMove||{},a={},m={},l={};r.teams.filter(t=>!isProj(t)).forEach(t=>{const L=vp.byTeam[t.id]||[];a[t.id]=[...new Set(L.map(areaShort))];m[t.id]=[...new Set(L.filter(c=>moved[c.id]===t.id).map(areaShort))];l[t.id]=t.leader||''});r.areaSnap={a,m,l}}catch(e){}}
+/* Who covered each area on the same weekday in the last 4 weeks (newer weeks count more). */
+function weekdayAreas(date){const out={};for(let k=1;k<=4;k++){const s=S.days[addDays(date,-7*k)],sn=s&&s.areaSnap;if(!sn||!sn.l)continue;Object.entries(sn.a||{}).forEach(([tid,areas])=>{const L=sn.l[tid];if(!L)return;areas.forEach(a=>{out[a]=out[a]||{};out[a][L]=(out[a][L]||0)+(5-k)})})}return out}
 function affinity(t,n){const p=t.projectId&&projById(t.projectId);return p?(p.works||[]).reduce((a,w)=>a+learnW(w,n),0)/Math.max(1,(p.works||[]).length):learnT(t.id,n)}
 /* When you move someone by hand, remember it. */
 function learnManualMove(ctx,name,target){
@@ -1498,7 +1577,7 @@ function pdfLeaderPages(date){
     return `<div class="lp ${isProj(t)?'nw':''}">
       <header><div class="lt"><span class="llogo"><img src="${LOGO}" alt="Garden Grow"></span><small>TEAM PLAN</small></div>
         <div class="ld">${longDate(date)}</div><b>${esc(t.name)}</b>
-        <div class="ls">${vl?`${plural(vl.length,'villa')} · ${plural(gs.length,'area')} · `:''}${plural(people(t).length,'person','people')}</div></header>
+        <div class="ls">${vl?`${plural(vl.length,'villa')} · ${plural(gs.length,'area')} · `:''}${plural(people(t).length,'person','people')}${vl&&vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈ ':''}${vp.km[t.id].km} km`:''}</div></header>
       <section><small>LEADER</small><div class="lld">${esc(dn(t.leader)||'—')}</div>
         ${t.members.length?`<small>CREW</small><div class="lcr">${t.members.map(m=>esc(dn(m))).join('<br>')}</div>`:''}
         ${p?`<small>JOB</small><div class="lcr"><b>${esc(works)}</b><br>Day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?'<br><b class="hv">Heavy work: safety gear required</b>':''}${needsSub(p)?'<br><b class="hv">Machinery / subcontractor on site</b>':''}</div>`:''}${(smallByTeam(date,teams,vp)[t.id]||[]).length?`<small>EXTRA JOB TODAY</small><div class="lcr">${(smallByTeam(date,teams,vp)[t.id]||[]).map(q=>`<b>${esc(q.title)}</b><br>${esc(worksText(q))}`).join('<br>')}</div>`:''}</section>
@@ -1838,7 +1917,10 @@ function jobSelect(t,ctx,cs,onlyGroup){
 function villaList(t,vp,ctx){
   const list=vp.byTeam[t.id]||[], moved=dayRec(ctx.date).villaMove||{};
   if(!list.length)return '<p class="muted small">No villas</p>';
-  return villaGroups(list).map(g=>`<div class="varea"><span class="vname">${esc(g.area)}</span><div class="vchips">${g.items.map(c=>`<button class="vchip ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}"><i class="vsz ${sizeOf(c).toLowerCase()}" title="${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa">${sizeOf(c)}</i>${esc(villaName(c))}${FREQ_TAG[c.frequency]?`<span class="vtag">${FREQ_TAG[c.frequency]}</span>`:''}</button>`).join('')}</div></div>`).join('');
+  const allT=effTeams(ctx.date), tn=id=>(allT.find(x=>x.id===id)||{}).name||'another team';
+  const notes=(vp.shared||[]).filter(s=>s.counts[t.id]).map(s=>{const others=Object.keys(s.counts).filter(x=>x!==t.id);
+    return `<div class="splitnote"><span><b>${esc(s.area)}</b> is shared with ${others.map(x=>esc(tn(x))+' ('+s.counts[x]+')').join(', ')}<em>${esc(s.why)}</em></span><button class="link small" data-keeparea="${esc(s.area)}" data-keepto="${s.main}">Keep area together (${esc(tn(s.main))} ${s.total})</button></div>`}).join('');
+  return notes+villaGroups(list).map(g=>`<div class="varea"><span class="vname">${esc(g.area)}</span><div class="vchips">${g.items.map(c=>`<button class="vchip ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}"><i class="vsz ${sizeOf(c).toLowerCase()}" title="${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa">${sizeOf(c)}</i>${esc(villaName(c))}${FREQ_TAG[c.frequency]?`<span class="vtag">${FREQ_TAG[c.frequency]}</span>`:''}</button>`).join('')}</div></div>`).join('');
 }
 /* Which maintenance team does each small job today: the one you picked, else the team with the right skills and fewest villas. */
 function smallByTeam(s,teams,vp){
@@ -1872,7 +1954,7 @@ function teamCard(t,ctx,vp){
     <button class="thead" data-toggle="${t.id}" aria-expanded="${open}">
       <span class="tl1"><span class="tname">${esc(t.name)}</span><span class="tright ${over?'warn':''}">${vl?plural(vl.length,'villa'):`${n}/${maxTeam()} seats`}</span>${ICON.chev}</span>
       <span class="tl2"><b>${esc(dn(t.leader)||'No leader')}</b>${t.members.length?` + ${t.members.length}`:''}</span>
-      ${vl?`<span class="vbar ${over?'over':''}" aria-label="${vl.length} of ${mx} villas"><i style="width:${pct}%"></i></span><span class="vbtxt"><b>${plural(vl.length,'villa')}</b> of ${mx} · ${szc.L?`<i class="vsz l">${szc.L} L</i>`:''}${szc.M?`<i class="vsz m">${szc.M} M</i>`:''}${szc.S?`<i class="vsz s">${szc.S} S</i>`:''} · workload ${pts} (${(pts/Math.max(1,n)).toFixed(1)} per person)${over?' · <b class="warntxt">heavy</b>':''} · <span class="${n>maxTeam()?'redtxt':''}">${n}/${maxTeam()} seats</span></span>`:''}
+      ${vl?`<span class="vbar ${over?'over':''}" aria-label="${vl.length} of ${mx} villas"><i style="width:${pct}%"></i></span><span class="vbtxt"><b>${plural(vl.length,'villa')}</b> of ${mx} · ${szc.L?`<i class="vsz l">${szc.L} L</i>`:''}${szc.M?`<i class="vsz m">${szc.M} M</i>`:''}${szc.S?`<i class="vsz s">${szc.S} S</i>`:''} · workload ${pts} (${(pts/Math.max(1,n)).toFixed(1)} per person)${over?' · <b class="warntxt">heavy</b>':''} · <span class="${n>maxTeam()?'redtxt':''}">${n}/${maxTeam()} seats</span>${vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈':''}${vp.km[t.id].km} km drive`:''}</span>`:''}
       ${sub?`<span class="tl3">${sub}</span>`:''}${sm.length?`<span class="tl3 smtag">＋ ${plural(sm.length,'small job')}: ${sm.map(p=>esc(p.title)).join(', ')}</span>`:''}
       ${ps.length?`<span class="tprob">${ICON.alert}${ps.map(x=>esc(x.text)).join(' · ')}</span>`:''}
     </button>
@@ -2221,8 +2303,18 @@ function renderSetup(){
         <div class="row"><label class="field inline"><span class="lbl">Small below (AED / visit)</span><input class="textin num" type="number" min="0" id="sizes" value="${S.settings.sizeS||''}" placeholder="${L.auto.s?Math.round(L.auto.s):'auto'}"></label>
         <label class="field inline"><span class="lbl">Large from (AED / visit)</span><input class="textin num" type="number" min="0" id="sizel" value="${S.settings.sizeL||''}" placeholder="${L.auto.l?Math.round(L.auto.l):'auto'}"></label></div>
         <p class="muted small">Leave empty for automatic (one third each). ${noFee.length?`Villas with no fee count as Medium: ${noFee.slice(0,8).map(c=>esc(villaName(c))).join(', ')}${noFee.length>8?' …':''}.`:''}</p></div>
-        <div class="card"><h2>Map positions · ${cl.length-noPos.length} of ${cl.length}</h2><p class="muted small">Villas with a map position are grouped with their nearest neighbours and the builder suggests moving a villa to the team working closest to it. Villas without one are placed by area only.</p>
-        ${noPos.length?`<details><summary class="link">${plural(noPos.length,'villa')} without a map position</summary><p class="muted small">${noPos.map(c=>esc(villaName(c))).join(', ')}</p><p class="muted small">In the roster app, paste the full Google Maps link (open the pin in Google Maps → Share → Copy link, or copy the address bar so it contains the coordinates). Short links like maps.app.goo.gl can't be read for a position.</p></details>`:'<p class="oktxt small">Every villa has a map position.</p>'}</div>`})()}`;
+        ${(()=>{const exact=cl.filter(posOf),byArea=cl.filter(c=>!posOf(c)&&areaPosByName(areaShort(c))),unk=cl.filter(c=>!vPos(c));
+          const areas=[...new Set(cl.map(areaShort))].sort((a,b)=>a.localeCompare(b)), leadersL=[...new Set([...S.layouts.normal,...S.layouts.newwork].filter(t=>jobOf(t).group==='maint').map(t=>t.leader).filter(Boolean))];
+          const ow=S.settings.areaOwner||{}, b=basePos();
+          return `<div class="card"><h2>Map positions</h2><p class="muted small">A villa with a readable map link is placed exactly. A villa without one is placed at the centre of its area (approximate), so it is still grouped and routed with its area. Villas whose area is unknown are placed by area name only.</p>
+          <div class="kpis"><div><b>${exact.length}</b><span>exact map pin</span></div><div><b>${byArea.length}</b><span>by area (approx.)</span></div><div><b>${unk.length}</b><span>area unknown</span></div></div>
+          ${cl.length-exact.length?`<details><summary class="link">${plural(cl.length-exact.length,'villa')} without a readable map link</summary><p class="muted small">${cl.filter(c=>!posOf(c)).map(c=>esc(villaName(c))+' <span class="muted">('+esc(areaShort(c))+')</span>').join(', ')}</p><p class="muted small">To fix one: in the roster app open the villa → paste the full Google Maps link (in Google Maps open the pin → Share → Copy link, then open that link once in the browser and copy the address bar, which holds the coordinates). Short links like maps.app.goo.gl can't be read.</p></details>`:'<p class="oktxt small">Every villa has an exact map position.</p>'}</div>
+          <div class="card"><h2>Start point</h2><p class="muted small">Where the teams start the day (nursery / office). Routes start from here and the drive estimate counts from here.</p>
+          <div class="row"><label class="field grow"><span class="lbl">Paste a Google Maps link or "lat, lng"</span><input class="textin" id="basepos" value="${b?esc(b.lat.toFixed(5)+', '+b.lng.toFixed(5)):''}" placeholder="e.g. 24.3750, 54.6250"></label>${b?'<button class="btn small" data-baseclear>Clear</button>':''}</div></div>
+          <div class="card"><h2>Areas · ${areas.length}</h2><p class="muted small"><b>Location:</b> the planner knows most Abu Dhabi areas. If an area shows "unknown" or is wrong, paste a map link of the area. <b>Team:</b> tick a team to always give it that area (when its leader is working).</p>
+          <div class="arealist">${areas.map(a=>{const p=areaPosByName(a),n=cl.filter(c=>areaShort(c)===a).length;return `<div class="arow"><span class="an"><b>${esc(a)}</b><em>${plural(n,'villa')} · ${p?(p.set?'location set by you':'location known'):'<span class="warntxt">location unknown</span>'}</em></span>
+            <input class="textin sm" data-areapos="${esc(a)}" value="" placeholder="${p?'change: paste map link':'paste map link'}" aria-label="Map link for ${esc(a)}">
+            <select class="textin sm" data-areaowner="${esc(a)}" aria-label="Team for ${esc(a)}"><option value="">Any team</option>${leadersL.map(L=>`<option value="${esc(L)}" ${ow[a]===L?'selected':''}>Team ${esc(dn(L).split(' ')[0])}</option>`).join('')}</select></div>`}).join('')}</div></div>`})()}`})()}`;
   }else{
     const url=syncUrl();
     body=`<div class="card" id="syncpanel"><h2>Google Sheet</h2><p class="muted small">Saves the plan to your Google Sheet so it's backed up and every phone with this app sees the same plan.</p>
@@ -2537,6 +2629,8 @@ document.addEventListener('click',e=>{
   if('vskip' in d&&villaSel){const r=ensureDay(cur);r.villaSkip=[...new Set([...(r.villaSkip||[]),villaSel])];save();toast('Villa skipped today');villaSel=null;render();return}
   if(d.vnext&&villaSel){moveVillasToDay(cur,[villaSel],d.vnext);toast(`Visit moved to ${shortDate(d.vnext)}`);villaSel=null;render();return}
   if(d.unskip){putVillaBack(cur,d.unskip);render();return}
+  if(d.keeparea&&d.keepto){const r=ensureDay(cur),tm=effTeams(cur),vp=villaPlan(cur,tm);r.villaMove=r.villaMove||{};tm.filter(x=>!isProj(x)).forEach(x=>(vp.byTeam[x.id]||[]).forEach(c=>{if(areaShort(c)===d.keeparea){r.villaMove[c.id]=d.keepto;if(x.id!==d.keepto)learnAreaMove(cur,c.id,d.keepto)}}));save();toast(`${d.keeparea} kept with one team today`);render();return}
+  if('baseclear' in d){S.settings.base=null;save();render();return}
   if(d.pullname&&d.pullto){const n=d.pullname;learnManualMove({type:'day',date:cur},n,d.pullto);moveTo({type:'day',date:cur},n,d.pullto);toast(`${dn(n)} moved — check the team they left`);render();return}
   if(d.idea!=null){const x=heavyIdeas(cur)[Number(d.idea)];if(x&&x.kind==='small'){x.proj.small=true;reconcileAll(true);save();toast(`${x.proj.title} is now a small job`);render();return}if(x&&x.kind==='near'){learnAreaMove(cur,x.id,x.to);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[x.id]=x.to;save();toast(`${x.name} moved to ${x.toName} for today`);render();return}if(x&&x.kind==='villas'){moveVillasToDay(cur,x.ids,x.to);toast(`${plural(x.ids.length,'villa')} moved to ${shortDate(x.to)}`)}render();return}
   /* day actions */
@@ -2618,6 +2712,9 @@ document.addEventListener('change',e=>{
     save();return}
   if(t.id==='carsn'||t.id==='maxteam'||t.id==='trucksn'){S.settings[{carsn:'cars',maxteam:'maxTeam',trucksn:'trucks'}[t.id]]=Math.max(1,parseInt(t.value)||0)||null;save();render();return}
   if(t.dataset&&t.dataset.smallteam){const r=ensureDay(cur);r.smallTo=Object.assign({},r.smallTo||{},{[t.dataset.smallteam]:t.value});save();render();return}
+  if(t.id==='basepos'){const p=parseLatLng(t.value);if(t.value.trim()&&!p){toast('No position found in that link — copy the full Google Maps address');return}S.settings.base=p?{lat:p.lat,lng:p.lng}:null;save();toast(p?'Start point saved':'Start point cleared');render();return}
+  if(t.dataset&&t.dataset.areapos!=null){const p=parseLatLng(t.value);if(!p){toast('No position found in that link');return}S.settings.areaPos=Object.assign({},S.settings.areaPos||{},{[t.dataset.areapos]:{lat:p.lat,lng:p.lng}});save();toast(`${t.dataset.areapos}: location saved`);render();return}
+  if(t.dataset&&t.dataset.areaowner!=null){const o=Object.assign({},S.settings.areaOwner||{});if(t.value)o[t.dataset.areaowner]=t.value;else delete o[t.dataset.areaowner];S.settings.areaOwner=o;save();toast(t.value?`${t.dataset.areaowner} → Team ${dn(t.value).split(' ')[0]}`:`${t.dataset.areaowner}: any team`);render();return}
   if(t.id==='sizes'||t.id==='sizel'){S.settings[t.id==='sizes'?'sizeS':'sizeL']=Math.max(0,parseFloat(t.value)||0)||null;save();render();return}
   if(t.id==='maxvillas'){S.settings.maxVillas=Math.max(1,parseInt(t.value)||7);save();toast('Saved');render();return}
   if(t.id==='dayoff'){S.settings.dayOff=Number(t.value);save();toast('Saved');return}
