@@ -349,6 +349,14 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .arow .an em{display:block;font-style:normal;font-size:.8rem;color:var(--muted)}
 .arow .textin.sm{min-height:38px;padding:6px 8px}
 @media (max-width:600px){.arow{grid-template-columns:1fr 1fr}.arow .an{grid-column:1/-1}}
+.wsub{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.szwork{display:block;font-size:13px;font-weight:700;margin:6px 0 4px}
+.szcards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.szcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--surface,#fff);font:inherit;color:inherit;min-height:120px;cursor:pointer}
+.szcard>span{font-size:12px;color:var(--muted);line-height:1.35}
+.szcard .szn{margin-top:auto;color:inherit;font-size:12px}.szcard .szn b{font-size:19px}
+.szcard em{font-style:normal;font-size:11px;font-weight:700;color:#2e7d32}
+.szcard.on{border:2px solid #2e7d32;background:#e8f3e6}
 .toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9rem;z-index:100;max-width:calc(100vw - 32px);text-align:center}
 
 /* laptop */
@@ -630,8 +638,8 @@ const SKILL_GROUPS=[
   {name:'General',ids:['general']}
 ];
 const WORKS=[
-  {id:'planting',name:'Planting & soil prep',job:'landscape',min:4,need:{planting:2,general:1,driver:1}},
-  {id:'treeplant',name:'Tree & palm planting',job:'landscape',min:4,need:{planting:1,heavy:2,general:1,driver:1}},
+  {id:'planting',name:'Small plant & shrub planting',sub:'incl. soil prep',job:'landscape',min:3,need:{planting:2,general:1,driver:1}},
+  {id:'treeplant',name:'Large tree & palm planting',sub:'incl. soil prep',job:'landscape',min:4,need:{planting:1,heavy:2,general:1,driver:1}},
   {id:'indoor',name:'Pots & indoor plants',job:'landscape',min:2,need:{indoor:1,driver:1}},
   {id:'makeover',name:'Garden makeover',job:'landscape',min:5,need:{planting:2,hedge:1,general:2,driver:1}},
   {id:'dig',name:'Dig-out & soil replacement',job:'cleanup',min:4,truck:true,need:{general:3,machine:1,driver:1}},
@@ -652,6 +660,18 @@ const WORKS=[
   {id:'cleanup',name:'Clean-up / waste removal',job:'cleanup',min:3,truck:true,need:{general:2,driver:1}}
 ];
 /* Work that can be done by a maintenance team on its route (when the quote is small). */
+/* Crew for each work by size [Small, Medium, Large] (leader included, driver counts as one). */
+const CREW={makeover:[3,4,5],irrfix:[2,2,3],planting:[2,3,5],treeplant:[3,4,5],turf:[3,4,5],artgrass:[3,4,5],irrnew:[2,3,4],supply:[1,1,1],_:[2,3,5]};
+const SIZE_IX={S:0,M:1,L:2}, SZL={S:'Small',M:'Medium',L:'Large'}, SZLEAD={S:'Any team leader',M:'Supervisor leads',L:'Senior supervisor leads'};
+/* What each size means, shown on the size cards. */
+const SIZE_HELP={makeover:['Small garden, half day','Normal villa garden, one day','Big garden or compound + truck'],
+  irrfix:['Timer, valve or a few sprinklers','Several faults','Whole system or pump'],
+  planting:['A few plants','Beds / one area','Whole garden'],
+  treeplant:['1–3 trees up to 2.5 m','Several trees or palms','Big palms 4 m+ or many trees'],
+  turf:['Up to 50 sqm','50–150 sqm','Over 150 sqm'],artgrass:['Up to 50 sqm','50–150 sqm','Over 150 sqm'],
+  irrnew:['One area or drip only','Garden system','Large system + pump'],_:['Small job','Normal job','Big job']};
+const crewFor=(w,sz)=>(CREW[w]||CREW._)[SIZE_IX[sz||'M']];
+const maxSize=sizes=>{const v=Object.values(sizes||{});return v.includes('L')?'L':v.includes('M')?'M':v.length?'S':'M'};
 const SMALLABLE=new Set(['makeover','irrfix','spray','lighting','indoor','cleaning','cleanup']);
 const REMOVAL_NAME={soil:'cut to soil level',stump:'with stump & roots',crane:'crane-assisted'};
 const isSupply=p=>(p.works||[]).length>0&&(p.works||[]).every(w=>w==='supply');
@@ -1107,6 +1127,7 @@ function migrate(o){
     (o.projects||[]).forEach(pr=>{if((pr.works||[]).includes('makeover')&&pr.waste==null)pr.waste=true});
     o.jobsV37=true;
   }
+  (o.projects||[]).forEach(pr=>{if(!pr.sizes){pr.sizes={};(pr.works||[]).forEach(w=>pr.sizes[w]=pr.size||'M')}});
   if(!o.clients){o.clients=clone(SEED_CLIENTS);o.clientsInfo={source:'Starting list from the roster app file',loaded:'2026-10-19'}}
   if(!o.updatedAt)o.updatedAt=0;
   const fixT=ts=>ts&&ts.forEach(t=>{if(!t.job)t.job=t.kind==='newwork'?'landscape':'maint';delete t.kind;if(t.desc==null)t.desc='';if(!t.members)t.members=[]});
@@ -1361,7 +1382,7 @@ const weight=t=>problems(t).reduce((a,p)=>a+(p.kind==='lead'?10:p.kind==='skill'
    who they work well with, and not taking a scarce skill another job still needs. Maintenance teams only give
    people they can spare without breaking their own needs. */
 /* How many people a team should have: maintenance = a full car; a job = its minimum for Small, +1 for Medium, a full car for Large; delivery = driver only. */
-function crewWant(t){const p=t.projectId&&projById(t.projectId);if(!p)return maxTeam();if(isSupply(p))return 1;const mn=Math.min(jobOf(t).min||2,maxTeam());return Math.min(maxTeam(),{S:mn,M:mn+1,L:maxTeam()}[p.size||'M']||mn+1)}
+function crewWant(t){const p=t.projectId&&projById(t.projectId);if(!p)return maxTeam();if(isSupply(p))return 1;const ws=p.works||[];if(!ws.length)return Math.min(maxTeam(),jobOf(t).min||3);return Math.min(maxTeam(),Math.max(...ws.map(w=>crewFor(w,(p.sizes||{})[w]||p.size||'M'))))}
 const pace=()=>capPts()/maxTeam();
 function suggest(date){
   learnHistory();
@@ -2135,7 +2156,7 @@ function swapPeople(a,b){
   else if(A){learnManualMove(ctx,b,A.id);put(A,a,b)}
   save();
 }
-function worksText(p){return (p.works||[]).map(w=>((WORKS.find(x=>x.id===w)||{}).name||w)+(w==='treeremoval'&&p.removal?` (${REMOVAL_NAME[p.removal]})`:'')).join(' + ')||jobOfId(p.type).name}
+function worksText(p){return (p.works||[]).map(w=>((WORKS.find(x=>x.id===w)||{}).name||w)+(p.sizes&&p.sizes[w]?` · ${SZL[p.sizes[w]]}`:'')+(w==='treeremoval'&&p.removal?` (${REMOVAL_NAME[p.removal]})`:'')).join(' + ')||jobOfId(p.type).name}
 const jobFlags=p=>[p.small?'small job':'',needsTruck(p)?'truck':'',needsSub(p)?'machinery / subcontractor':''].filter(Boolean);
 function jobState(p){if(p.done||TODAY>p.to)return 'fin';if(TODAY<p.from)return 'up';return 'run'}
 function allJobsHtml(f){
@@ -2449,6 +2470,8 @@ function saveLeave(){
   else{l={id:'l'+uid(),name:modal.name,type:modal.type,from:modal.from,to:modal.to};S.leaves.push(l)}
   applyLeaves();save();modal=null;delArm=null;renderModal();toast(`${dn(l.name)}: ${l.type.toLowerCase()} ${rangeText(l.from,l.to)}`);render();
 }
+/* Job size = the biggest work size; team size = the biggest crew for the chosen sizes. */
+function applySizes(){modal.size=maxSize(modal.sizes);modal.min=modal.works.length?Math.min(maxTeam(),Math.max(...modal.works.map(w=>crewFor(w,modal.sizes[w]||'M')))):2}
 function openProj(id,from){
   maintOpen=false;
   const p=id?projById(id):null;
@@ -2456,6 +2479,7 @@ function openProj(id,from){
   const calc=needsForWorks(works);
   modal={kind:'job',id:p?p.id:null,title:p?p.title:'',works,from:p?p.from:(from||cur),to:p?p.to:(from||cur),
     need:clone((p&&p.need)||calc.need),min:(p&&p.min)||calc.min,heavy:p&&p.heavy!=null?p.heavy:calc.heavy,addOpen:false,pins:p?[...(p.pins||[])]:[],urgent:!!(p&&p.urgent),size:(p&&p.size)||'M',pinOpen:false,works0:works.join(','),
+    sizes:Object.assign({},...works.map(w=>({[w]:((p&&p.sizes)||{})[w]||(p&&p.size)||'M'}))),
     value:(p&&p.value)||'',small:!!(p&&p.small),smallSet:!!p,waste:p&&p.waste!=null?p.waste:true,removal:(p&&p.removal)||'soil',sub:!!(p&&p.sub)};
   sel=null;villaSel=null;renderMenu();renderModal();
   setTimeout(()=>{const i=$('pm-title');if(i&&!p)i.focus()},30);
@@ -2475,23 +2499,24 @@ function workPicker(){
   const picked=SKILLS.filter(s=>on[s.id]&&s.id!=='lead');
   const notPicked=SKILL_GROUPS.filter(g=>g.name!=='Maintenance').map(g=>({...g,ids:g.ids.filter(id=>id!=='lead'&&!on[id])})).filter(g=>g.ids.length);
   return `<div class="field"><span class="lbl">1 · What work is it? <span class="muted">(tap one or more)</span></span>
-      <div class="worktiles">${WORKS.map(w=>`<button type="button" class="wtile ${modal.works.includes(w.id)?'on':''}" data-pmwork="${w.id}"><span class="wtick">${modal.works.includes(w.id)?'✓':''}</span><span><b>${w.name}</b>${w.heavy?'<em>heavy</em>':''}</span></button>`).join('')}</div></div>
-    <div class="field"><span class="lbl">2 · Skills the team needs</span>
+      <div class="worktiles">${WORKS.map(w=>`<button type="button" class="wtile ${modal.works.includes(w.id)?'on':''}" data-pmwork="${w.id}"><span class="wtick">${modal.works.includes(w.id)?'✓':''}</span><span><b>${w.name}</b>${w.sub?`<small class="wsub">${w.sub}</small>`:''}${w.heavy?'<em>heavy</em>':''}</span></button>`).join('')}</div></div>
+    ${modal.works.length?`<div class="field"><span class="lbl">2 · How big is ${modal.works.length>1?'each work':'it'}?</span>${modal.works.map(w=>{const nm=(WORKS.find(x=>x.id===w)||{}).name||w,hp=SIZE_HELP[w]||SIZE_HELP._,cur=modal.sizes[w]||'M';
+      return `${modal.works.length>1?`<span class="szwork">${esc(nm)}</span>`:''}<div class="szcards">${['S','M','L'].map((k,i)=>`<button type="button" class="szcard ${cur===k?'on':''}" data-pmwsize="${w}:${k}" aria-pressed="${cur===k}"><b>${cur===k?'✓ ':''}${SZL[k]}</b><span>${esc(hp[i])}</span><span class="szn"><b>${crewFor(w,k)}</b> ${crewFor(w,k)===1?'person':'people'}</span><em>${SZLEAD[k]}</em></button>`).join('')}</div>`}).join('')}
+      <span class="muted small">Every new job starts on Medium. The biggest size decides who leads; the team gets the biggest crew.</span></div>`:''}
+    <div class="field"><span class="lbl">3 · Skills the team needs</span>
       ${picked.length?`<div class="needlist">${picked.map(s=>{const a=avail(s.id),c=on[s.id];return `<div class="needrow ${a<c?'short':''}"><span class="nl"><b>${s.label}</b><em>${a} available${a<c?' — not enough':''}</em></span><span class="wcnt"><button type="button" data-pmcount="${s.id}" data-delta="-1" aria-label="Fewer">−</button><b>${c}</b><button type="button" data-pmcount="${s.id}" data-delta="1" aria-label="More">+</button></span><button type="button" class="iconbtn sm" data-pmtoggle="${s.id}" aria-label="Remove ${s.label}">×</button></div>`}).join('')}</div>`:'<p class="muted small">Tap the work above and the skills it needs appear here.</p>'}
       <button type="button" class="link" data-pmaddskill>${modal.addOpen?'Hide other skills':'+ Add another skill'}</button>
       ${modal.addOpen?notPicked.map(g=>`<div class="tgroup"><span class="lbl">${g.name}</span><div class="tchips">${g.ids.map(id=>`<button type="button" class="tchip" data-pmtoggle="${id}">${SK[id]}<em>${avail(id)} available</em></button>`).join('')}</div></div>`).join(''):''}
       <div class="row"><label class="field" style="max-width:200px"><span class="lbl">Team size (at least)</span><input class="textin" type="number" min="1" max="20" id="pm-min" value="${modal.min}"></label>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}</div>
       <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p></div>
-    <div class="field"><span class="lbl">3 · Options (optional)</span>
+    <div class="field"><span class="lbl">4 · Options (optional)</span>
       <label class="field" style="max-width:260px"><span class="lbl">Quote value (AED)</span><input class="textin" type="number" min="0" step="50" id="pm-value" value="${modal.value||''}" placeholder="e.g. 4500" inputmode="decimal"></label>
-      <p class="muted small" style="margin-top:-4px">Sets the job size: under 5,000 Small · 5,000–25,000 Medium · above 25,000 Large.</p>
+      <p class="muted small" style="margin-top:-4px">Sets the size of every work: under 5,000 Small · 5,000–25,000 Medium · above 25,000 Large. You can still change each card.</p>
       ${modal.works.includes('makeover')?`<div class="tchips"><button type="button" class="tchip ${modal.waste?'on':''}" data-pmwaste>${modal.waste?'✓ ':''}We remove the green waste<em>${modal.waste?'needs the truck':'waste left on site for the client'}</em></button></div>`:''}
       ${modal.works.includes('treeremoval')?`<span class="lbl">Tree removal</span><div class="tchips">${Object.entries(REMOVAL_NAME).map(([k,l])=>`<button type="button" class="tchip ${modal.removal===k?'on':''}" data-pmremoval="${k}">${modal.removal===k?'✓ ':''}${l[0].toUpperCase()+l.slice(1)}${k==='crane'?'<em>crane is hired (subcontract)</em>':''}</button>`).join('')}</div>`:''}
       ${modal.works.includes('hard')?`<span class="lbl">Masonry includes</span><div class="tchips">${[['tiling','Tiling'],['waterproof','Waterproofing']].map(([k,l])=>`<button type="button" class="tchip ${modal.need[k]?'on':''}" data-pmtoggle="${k}">${modal.need[k]?'✓ ':''}${l}</button>`).join('')}</div>`:''}
       <div class="tchips"><button type="button" class="tchip ${modal.small?'on':''}" data-pmsmall>${modal.small?'✓ ':''}Small job<em>a maintenance team does it on its route — no extra car, maintenance stays as normal</em></button>
       <button type="button" class="tchip ${modal.sub?'on':''}" data-pmsub>${modal.sub?'✓ ':''}Needs machinery / subcontractor<em>crane, excavator, painter… your staff supervise and help</em></button></div>
-      <span class="lbl">Job size</span>
-      <div class="tchips">${[['L','Large','senior supervisor leads it'],['M','Medium','supervisor leads it'],['S','Small','any team leader']].map(([k,l,d])=>`<button type="button" class="tchip ${modal.size===k?'on':''}" data-pmsize="${k}">${modal.size===k?'✓ ':''}${l}<em>${d}</em></button>`).join('')}</div>
       <div class="tchips"><button type="button" class="tchip ${modal.urgent?'on':''}" data-pmurgent>${modal.urgent?'✓ ':''}Urgent<em>gets people first if two jobs need the same skills</em></button></div>
       <span class="lbl" style="margin-top:6px">Must be on this job</span>
       ${modal.pins.length?`<div class="picked">${modal.pins.map(n=>`<span class="pk"><b>${esc(n)}</b><button type="button" class="iconbtn sm" data-pmpin="${esc(n)}" aria-label="Remove">×</button></span>`).join('')}</div>`:'<p class="muted small">Nobody fixed — the builder picks the best people. Add someone if the client asked for them.</p>'}
@@ -2519,7 +2544,7 @@ function saveProj(){
   let p=modal.id?projById(modal.id):null;
   if(!modal.works.length){toast('Tap what work it is first');return}
   const type=(WORKS.find(w=>w.id===modal.works[0])||{}).job||'landscape';
-  const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M',value:modal.value||null,small:!!modal.small,waste:modal.works.includes('makeover')?!!modal.waste:undefined,removal:modal.works.includes('treeremoval')?modal.removal:undefined,sub:!!modal.sub};
+  const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M',value:modal.value||null,sizes:Object.assign({},modal.sizes),small:!!modal.small,waste:modal.works.includes('makeover')?!!modal.waste:undefined,removal:modal.works.includes('treeremoval')?modal.removal:undefined,sub:!!modal.sub};
   if(p&&modal.works.join(',')!==modal.works0)p.crewOk=false;
   if(p)Object.assign(p,{title,type,from:modal.from,to:modal.to},extra);
   else{
@@ -2573,7 +2598,8 @@ document.addEventListener('click',e=>{
   if(d.delstaff){const n=d.delstaff;if(delArm!=='ds:'+n){delArm='ds:'+n;render();return}removeStaff(n);delArm=null;toast(dn(n)+' deleted');render();return}
   if('closemodal' in d){modal=null;delArm=null;renderModal();return}
   if('closemenu' in d){sel=null;villaSel=null;menuMode=null;renderMenu();render();return}
-  if(d.pmwork){readModal();const w=d.pmwork,i=modal.works.indexOf(w);if(i>=0)modal.works.splice(i,1);else modal.works.push(w);const c=needsForWorks(modal.works);modal.need=c.need;modal.min=c.min;modal.heavy=c.heavy;renderModal();return}
+  if(d.pmwork){readModal();const w=d.pmwork,i=modal.works.indexOf(w);if(i>=0){modal.works.splice(i,1);delete modal.sizes[w]}else{modal.works.push(w);modal.sizes[w]=modal.sizes[w]||'M'}const c=needsForWorks(modal.works);modal.need=c.need;modal.heavy=c.heavy;applySizes();renderModal();return}
+  if(d.pmwsize){readModal();const [w,k]=d.pmwsize.split(':');modal.sizes[w]=k;applySizes();if(!modal.smallSet){modal.small=modal.works.length>0&&modal.works.every(x=>SMALLABLE.has(x)&&modal.sizes[x]==='S')}renderModal();return}
   if(d.pmsize){readModal();modal.size=d.pmsize;renderModal();return}
   if('pmurgent' in d){readModal();modal.urgent=!modal.urgent;renderModal();return}
   if('pmwaste' in d){readModal();modal.waste=!modal.waste;renderModal();return}
@@ -2692,7 +2718,7 @@ document.addEventListener('change',e=>{
   if(modal&&modal.kind==='job'&&t.dataset.pmskill){readModal();const s=t.dataset.pmskill;if(t.checked)modal.need[s]=modal.need[s]||1;else delete modal.need[s];renderModal();return}
   if(modal&&modal.kind==='job'&&t.id==='pm-heavy'){readModal();if(modal.heavy){modal.need.heavy=modal.need.heavy||2}else delete modal.need.heavy;renderModal();return}
   if(modal&&modal.kind==='job'&&t.id==='pm-min'){readModal();return}
-  if(t.id==='pm-value'&&modal&&modal.kind==='job'){readModal();if(modal.value){modal.size=sizeFromValue(modal.value);if(modal.value<3000&&!modal.smallSet&&modal.works.length&&modal.works.every(w=>SMALLABLE.has(w)))modal.small=true}setTimeout(()=>{if(modal&&modal.kind==='job')renderModal()},0);return}
+  if(t.id==='pm-value'&&modal&&modal.kind==='job'){readModal();if(modal.value){const z=sizeFromValue(modal.value);modal.works.forEach(w=>modal.sizes[w]=z);applySizes();if(modal.value<3000&&!modal.smallSet&&modal.works.length&&modal.works.every(w=>SMALLABLE.has(w)))modal.small=true}setTimeout(()=>{if(modal&&modal.kind==='job')renderModal()},0);return}
   if(modal&&modal.kind==='job'){if(t.id==='pm-from'){readModal();if(modal.to<modal.from)modal.to=modal.from;renderModal()}else if(t.id==='pm-to'){readModal();renderModal()}return}
   if(d.rename){const x=ctxTeams(JSON.parse(d.ctx),true).find(x=>x.id===d.rename);if(x)x.name=t.value.trim()||'Team';save();render();return}
   if(d.job){const ctx=JSON.parse(d.ctx),x=ctxTeams(ctx,false).find(x=>x.id===d.job);
