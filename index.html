@@ -350,6 +350,8 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .arow .textin.sm{min-height:38px;padding:6px 8px}
 @media (max-width:600px){.arow{grid-template-columns:1fr 1fr}.arow .an{grid-column:1/-1}}
 .wsub{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.worktiles{grid-auto-flow:row dense}
+.szinline{grid-column:1/-1;background:#f3f6f1;border:1.5px solid #e0a170;border-radius:14px;padding:10px;margin:-2px 0 4px}
 .szwork{display:block;font-size:13px;font-weight:700;margin:6px 0 4px}
 .szcards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .szcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--surface,#fff);font:inherit;color:inherit;min-height:120px;cursor:pointer}
@@ -2584,17 +2586,16 @@ function workPicker(){
   const picked=SKILLS.filter(s=>on[s.id]&&s.id!=='lead');
   const notPicked=SKILL_GROUPS.filter(g=>g.name!=='Maintenance').map(g=>({...g,ids:g.ids.filter(id=>id!=='lead'&&!on[id])})).filter(g=>g.ids.length);
   return `<div class="field"><span class="lbl">1 · What work is it? <span class="muted">(tap one or more)</span></span>
-      <div class="worktiles">${WORKS.map(w=>`<button type="button" class="wtile ${modal.works.includes(w.id)?'on':''}" data-pmwork="${w.id}"><span class="wtick">${modal.works.includes(w.id)?'✓':''}</span><span><b>${w.name}</b>${w.sub?`<small class="wsub">${w.sub}</small>`:''}${w.heavy?'<em>heavy</em>':''}</span></button>`).join('')}</div></div>
-    ${modal.works.length?`<div class="field"><span class="lbl">2 · How big is ${modal.works.length>1?'each work':'it'}?</span>${modal.works.map(w=>{const nm=(WORKS.find(x=>x.id===w)||{}).name||w,hp=SIZE_HELP[w]||SIZE_HELP._,cur=modal.sizes[w]||'M';
-      return `${modal.works.length>1?`<span class="szwork">${esc(nm)}</span>`:''}<div class="szcards">${['S','M','L'].map((k,i)=>`<button type="button" class="szcard ${cur===k?'on':''}" data-pmwsize="${w}:${k}" aria-pressed="${cur===k}"><b>${cur===k?'✓ ':''}${SZL[k]}</b><span>${esc(hp[i])}</span><span class="szn"><b>${crewFor(w,k)}</b> ${crewFor(w,k)===1?'person':'people'}</span><em>${SZLEAD[k]}</em></button>`).join('')}</div>`}).join('')}
-      <span class="muted small">Every new job starts on Medium. The biggest size decides who leads; the team gets the biggest crew.</span></div>`:''}
-    <div class="field"><span class="lbl">3 · Skills the team needs</span>
+      <div class="worktiles">${WORKS.map(w=>{const on=modal.works.includes(w.id),hp=SIZE_HELP[w.id]||SIZE_HELP._,cur=modal.sizes[w.id]||'M';
+        return `<button type="button" class="wtile ${on?'on':''}" data-pmwork="${w.id}"><span class="wtick">${on?'✓':''}</span><span><b>${w.name}</b>${w.sub?`<small class="wsub">${w.sub}</small>`:''}${w.heavy?'<em>heavy</em>':''}</span></button>${on?`<div class="szinline"><span class="szwork">How big is the ${esc(w.name.toLowerCase())}?</span><div class="szcards">${['S','M','L'].map((k,i)=>`<button type="button" class="szcard ${cur===k?'on':''}" data-pmwsize="${w.id}:${k}" aria-pressed="${cur===k}"><b>${cur===k?'✓ ':''}${SZL[k]}</b><span>${esc(hp[i])}</span><span class="szn"><b>${crewFor(w.id,k)}</b> ${crewFor(w.id,k)===1?'person':'people'}</span><em>${SZLEAD[k]}</em></button>`).join('')}</div></div>`:''}`}).join('')}</div>
+      ${modal.works.length?'<span class="muted small">Every new job starts on Medium. The biggest size decides who leads; the team gets the biggest crew.</span>':''}</div>
+    <div class="field"><span class="lbl">2 · Skills the team needs</span>
       ${picked.length?`<div class="needlist">${picked.map(s=>{const a=avail(s.id),c=on[s.id];return `<div class="needrow ${a<c?'short':''}"><span class="nl"><b>${s.label}</b><em>${a} available${a<c?' — not enough':''}</em></span><span class="wcnt"><button type="button" data-pmcount="${s.id}" data-delta="-1" aria-label="Fewer">−</button><b>${c}</b><button type="button" data-pmcount="${s.id}" data-delta="1" aria-label="More">+</button></span><button type="button" class="iconbtn sm" data-pmtoggle="${s.id}" aria-label="Remove ${s.label}">×</button></div>`}).join('')}</div>`:'<p class="muted small">Tap the work above and the skills it needs appear here.</p>'}
       <button type="button" class="link" data-pmaddskill>${modal.addOpen?'Hide other skills':'+ Add another skill'}</button>
       ${modal.addOpen?notPicked.map(g=>`<div class="tgroup"><span class="lbl">${g.name}</span><div class="tchips">${g.ids.map(id=>`<button type="button" class="tchip" data-pmtoggle="${id}">${SK[id]}<em>${avail(id)} available</em></button>`).join('')}</div></div>`).join(''):''}
       <div class="row"><label class="field" style="max-width:200px"><span class="lbl">Team size (at least)</span><input class="textin" type="number" min="1" max="20" id="pm-min" value="${modal.min}"></label>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}</div>
       <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p></div>
-    <div class="field"><span class="lbl">4 · Options (optional)</span>
+    <div class="field"><span class="lbl">3 · Options (optional)</span>
       <label class="field" style="max-width:260px"><span class="lbl">Quote value (AED)</span><input class="textin" type="number" min="0" step="50" id="pm-value" value="${modal.value||''}" placeholder="e.g. 4500" inputmode="decimal"></label>
       <p class="muted small" style="margin-top:-4px">Sets the size of every work: under 5,000 Small · 5,000–25,000 Medium · above 25,000 Large. You can still change each card.</p>
       ${modal.works.includes('makeover')?`<div class="tchips"><button type="button" class="tchip ${modal.waste?'on':''}" data-pmwaste>${modal.waste?'✓ ':''}We remove the green waste<em>${modal.waste?'needs the truck':'waste left on site for the client'}</em></button></div>`:''}
@@ -2885,7 +2886,6 @@ render();
 if(syncUrl())pull();
 
 </script>
-<script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
-</script>
+<script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
