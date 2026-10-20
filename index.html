@@ -408,6 +408,13 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .vbtxt .vsz{margin:0 2px}
 .pt .tag.sz{background:#eef1ec;color:#1d2a20}
 
+.taphint{font-size:.8rem;color:var(--muted);margin:2px 0 6px;font-weight:600}
+.addp.full,.addp[disabled]{color:var(--muted);border-style:solid;cursor:default;background:var(--bg,transparent)}
+.slist{display:grid;gap:6px;margin-top:6px}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;cursor:pointer;min-height:48px}
+.srow b{font-weight:700}.srow em{font-style:normal;color:var(--muted);font-size:.84rem}.srow i{font-style:normal;color:var(--green);font-weight:800;font-size:.82rem;white-space:nowrap}
+.qacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.tundo{margin-left:8px;border:0;background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-weight:800;cursor:pointer}
 .addp{border:1.5px dashed var(--line);background:transparent;color:var(--green);font-weight:700;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;font:inherit;font-weight:700}
 .addp:hover{border-color:var(--green);background:var(--green-soft)}
 .prow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;margin-bottom:6px;cursor:pointer;font:inherit;color:var(--ink)}
@@ -1975,14 +1982,24 @@ function mergeSet(b,l,r){
   return clone(out);
 }
 function keepBeforeSync(){try{if(!S.isSeed&&richness(S)>0)localStorage.setItem(KEY+'_beforeSync',JSON.stringify({at:Date.now(),state:S}))}catch(e){}}
+/* Did the other device change something you would care about? Days the app built by itself (and what it learned)
+   are combined quietly; the note only shows when real edits from both devices were combined. */
+function realEdits(l,r){
+  const J=JSON.stringify, skip=new Set(['days','learn','updatedAt','rev','syncedAt','isSeed']);
+  for(const k of new Set([...Object.keys(l||{}),...Object.keys(r||{})])){if(skip.has(k))continue;if(J(l[k])!==J(r[k]))return true}
+  const ld=(l&&l.days)||{}, rd=(r&&r.days)||{}, pick=d=>d?{a:[...(d.absent||[])].sort(),n:d.note||'',vm:d.villaMove||{},vs:d.villaSkip||[],vx:d.villaExtra||[],t:d.manual?d.teams:null}:null;
+  for(const k of new Set([...Object.keys(ld),...Object.keys(rd)]))if(J(pick(ld[k]))!==J(pick(rd[k])))return true;
+  return false;
+}
 function mergeIn(remote){
   keepBeforeSync();
+  const loud=realEdits(stripMeta(S),stripMeta(remote));
   const m=merge3(getBase(),stripMeta(S),stripMeta(remote));
   const upd=Math.max(Date.now(),(S.updatedAt||0)+1,(remote.updatedAt||0)+1);
   S=migrate(m); S.rev=revOf(remote); S.syncedAt=remote.updatedAt||0; S.updatedAt=upd;
   setBase(stripMeta(remote)); applyLeaves(); reconcileAll(); localSave(); rebaseDraft();
-  showNote('merge','Changes from another device were <b>combined with yours</b> — nothing was lost. <button class="btn small" data-undosync>Put back my version only</button>');
-  setTimeout(()=>hideNote('merge'),5*60000);
+  /* Combined quietly: no message. A copy of this device from just before is kept — Setup → Sheet & backup can put it back. */
+  void loud;
   if(!modal){sel=null;menuMode=null;render()}
 }
 let firstPullDone=false, lastReadable=0, readableT=null;
@@ -2242,7 +2259,8 @@ function teamCard(t,ctx,vp){
       ${ticks?`<div class="ticks">${ticks}</div>`:''}
       ${ctx.type==='day'?[...miss].map(k=>skillHint(k,t,ctx.date,allT)).join(''):''}
       ${sm.map(p=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(p.title)}<em>${esc(worksText(p))}${jobFlags(p).filter(f=>f!=='small job').length?' · '+jobFlags(p).filter(f=>f!=='small job').join(' · '):''}</em></span><span class="row"><select class="textin sm" data-smallteam="${p.id}" aria-label="Team doing ${esc(p.title)}">${mts.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><button class="link small" data-editproj="${p.id}">Edit</button></span></div>`).join('')}
-      <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader — tap a name to make one leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button></div>
+      ${ctx.type==='day'&&n?'<p class="taphint">👆 Tap a name to swap</p>':''}
+      <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader — tap a name to make one leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${ctx.type==='day'?(n>=maxTeam()?`<button class="addp full" disabled>Car full (${n}/${maxTeam()}) — tap a name to swap</button>`:`<button class="addp" data-addto="${t.id}">＋ Add person</button>`):`<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button>`}</div>
       ${vl?`<div class="vwrap">${villaList(t,vp,ctx)}</div>`:''}
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):''}
     </div>
@@ -2394,33 +2412,47 @@ function pickRow(n,from,need,act){
   const sk=SKILLS.filter(s=>has(n,s.id)&&s.id!=='lead').map(s=>s.short), fills=need.filter(k=>has(n,k));
   return `<button class="prow" ${act}><span><b>${esc(dn(n))}</b>${isSup(n)?' <span class="sup">sup</span>':''}<em>${from}${sk.length?' · '+sk.slice(0,5).map(esc).join(', '):''}</em></span>${fills.length?`<i>has ${fills.map(k=>esc((SKILLS.find(s=>s.id===k)||{}).short||k)).join(', ')} ✓</i>`:''}</button>`;
 }
+/* Simple list of people to bring in: best first (has a skill the team misses), then free, nursery, other teams. */
+function simpleRows(t,out,act){
+  const teams=effTeams(cur), tmp=out?{...t,leader:t.leader===out?null:t.leader,members:t.members.filter(m=>m!==out)}:t; if(out)VN.set(tmp,VN.get(t));
+  const need=problems(tmp).filter(p=>p.kind==='skill').map(p=>p.skill).concat(out?Object.keys(jobNeeds(jobOf(t))).filter(k=>has(out,k)&&!people(tmp).some(x=>has(x,k))):[]);
+  const rows=[];
+  available({type:'day',date:cur}).forEach(n=>rows.push({n,where:'Free',r:0}));
+  nurseryOf(cur).filter(n=>S.staff.includes(n)).forEach(n=>rows.push({n,where:'Nursery',r:1}));
+  teams.filter(x=>x!==t).forEach(x=>people(x).forEach(n=>rows.push({n,where:esc(x.name)+(x.leader===n?' · leader':''),r:x.leader===n||isSup(n)?3:2})));
+  rows.forEach(o=>{o.f=[...new Set(need)].filter(k=>has(o.n,k))});
+  rows.sort((a,b)=>b.f.length-a.f.length||a.r-b.r||dn(a.n).localeCompare(dn(b.n)));
+  return rows.map(o=>`<button class="srow" ${act}="${esc(o.n)}"><span><b>${esc(dn(o.n))}</b><em> · ${o.where}</em></span>${o.f.length?`<i>✓ ${o.f.map(k=>esc((SKILLS.find(x=>x.id===k)||{}).short||SK[k]||k)).join(', ')}</i>`:''}</button>`).join('')||'<p class="muted small">Nobody else is working today.</p>';
+}
 function addToHtml(){
-  const ctx={type:'day',date:cur}, teams=effTeams(cur), t=teams.find(x=>x.id===modal.team); if(!t)return '';
-  const need=problems(t).filter(p=>p.kind==='skill').map(p=>p.skill), un=available(ctx);
-  const score=n=>need.filter(k=>has(n,k)).length;
-  const others=teams.filter(x=>x!==t).flatMap(x=>people(x).map(n=>({n,x}))).sort((a,b)=>score(b.n)-score(a.n));
-  const full=people(t).length>=maxTeam();
-  return `<div class="mhead"><div><b>Add to ${esc(t.name)}</b><span>${full?`<b class="warntxt">Car is full (${people(t).length}/${maxTeam()} with the driver) — swap someone instead of adding.</b> `:''}${need.length?'Team needs: '+need.map(k=>esc(SK[k])).join(', '):'Tap a person to bring them into this team'}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-    ${t.members.length?`<div class="msec">Swap someone in ${esc(t.name)}</div><div class="pills">${people(t).map(n=>`<button class="pill" data-swapfrom="${esc(n)}">⇄ ${esc(dn(n))}</button>`).join('')}</div>`:''}
-    <div class="msec">Available · ${un.length}</div>${un.sort((a,b)=>score(b)-score(a)).map(n=>pickRow(n,'Not in a team',need,`data-pickadd="${esc(n)}"`)).join('')||'<p class="muted small">Nobody is free — take someone from another team below.</p>'}
-    <div class="msec">From another team</div>${others.map(({n,x})=>pickRow(n,(x.leader===n?'Leader of ':'In ')+esc(x.name),need,`data-pickadd="${esc(n)}"`)).join('')}`;
+  const t=effTeams(cur).find(x=>x.id===modal.team); if(!t)return '';
+  const n=people(t).length, full=n>=maxTeam();
+  return `<div class="mhead"><div><b>Add to ${esc(t.name)}</b><span>${full?`<b class="warntxt">Car full (${n}/${maxTeam()}) — close this and tap a name to swap.</b>`:`${n}/${maxTeam()} seats · tap a name to add`}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+    ${full?'':`<div class="slist">${simpleRows(t,null,'data-pickadd')}</div>`}`;
 }
 function swapHtml(){
   const teams=effTeams(cur), a=modal.name, A=teams.find(x=>people(x).includes(a)); if(!A)return '';
-  const need=[...new Set(teams.filter(x=>x!==A).flatMap(x=>problems(x).filter(p=>p.kind==='skill').map(p=>p.skill)))];
-  const un=available({type:'day',date:cur});
-  return `<div class="mhead"><div><b>Swap ${esc(dn(a))}</b><span>${A.leader===a?'Leader of ':'In '}${esc(A.name)} — choose who takes their place</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-    ${un.length?`<div class="msec">Available</div>${un.map(n=>pickRow(n,'Not in a team',[],`data-swapwith="${esc(n)}"`)).join('')}`:''}
-    ${teams.filter(x=>x!==A).map(x=>`<div class="msec">${esc(x.name)}</div>${people(x).map(n=>pickRow(n,x.leader===n?'Leader':'Member',need,`data-swapwith="${esc(n)}"`)).join('')}`).join('')}`;
+  return `<div class="mhead"><div><b>Swap ${esc(dn(a))} with…</b><span>${A.leader===a?'Leader of ':'In '}${esc(A.name)} · tap a name — they change places</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+    <div class="slist">${simpleRows(A,a,'data-swapwith')}</div>
+    <div class="qacts">${A.leader!==a?'<button class="btn small" data-qlead>Make leader</button>':''}<button class="btn small" data-qoff>Off today</button><button class="btn small" data-qnursery>Nursery</button><button class="btn small" data-qmore>More…</button></div>`;
 }
+let lastUndo=null;
+function keepUndo(){const r=ensureDay(cur);lastUndo={date:cur,teams:clone(r.teams||defaultTeams(cur)),nursery:[...(r.nursery||[])],absent:[...(r.absent||[])],manual:!!r.manual}}
+function undoLast(){if(!lastUndo)return;const r=ensureDay(lastUndo.date);r.teams=lastUndo.teams;r.nursery=lastUndo.nursery;r.absent=lastUndo.absent;r.manual=lastUndo.manual;lastUndo=null;save();toast('Undone');render()}
+function toastUndo(m){const el=$('toast');el.innerHTML=`${esc(m)} <button class="tundo" data-undolast>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,6000)}
 function swapPeople(a,b){
+  const ctx0={type:'day',date:cur}, r0=ensureDay(cur), inN=(r0.nursery||[]).includes(b), T0=ctxTeams(ctx0,true).find(x=>people(x).includes(a));
+  if(inN&&T0){markManual(ctx0);r0.nursery=r0.nursery.map(x=>x===b?a:x);if(T0.leader===a)T0.leader=b;else T0.members=T0.members.map(m=>m===a?b:m);learnManualMove(ctx0,b,T0.id);fixLeads(ctx0,[a,b]);save();return}
   markManual({type:'day',date:cur});
   const ctx={type:'day',date:cur}, teams=ctxTeams(ctx,true), A=teams.find(x=>people(x).includes(a)), B=teams.find(x=>people(x).includes(b));
   const put=(T,out,inn)=>{if(!T)return;if(T.leader===out)T.leader=inn;else T.members=T.members.map(m=>m===out?inn:m)};
   if(A&&B){learnManualMove(ctx,a,B.id);learnManualMove(ctx,b,A.id);put(A,a,'\u0000');put(B,b,a);put(A,'\u0000',b)}
   else if(A){learnManualMove(ctx,b,A.id);put(A,a,b)}
+  fixLeads(ctx,[a,b]);
   save();
 }
+/* Someone who can't lead landed in a leader's place: they join as crew and the team picks a new leader from its people. */
+function fixLeads(ctx,names){ctxTeams(ctx,true).forEach(T=>{if(T.leader&&names.includes(T.leader)&&!has(T.leader,'lead')){const x=T.leader,c=T.members.find(m=>has(m,'lead'));T.leader=c||null;T.members=T.members.filter(m=>m!==c);T.members.push(x)}})}
 function worksText(p){return (p.works||[]).map(w=>((WORKS.find(x=>x.id===w)||{}).name||w)+(p.sizes&&p.sizes[w]?` · ${SZL[p.sizes[w]]}`:'')+(w==='treeremoval'&&p.removal?` (${REMOVAL_NAME[p.removal]})`:'')).join(' + ')||jobOfId(p.type).name}
 const jobFlags=p=>[p.small?'small job':'',needsTruck(p)?'truck':'',needsSub(p)?'machinery / subcontractor':''].filter(Boolean);
 function jobState(p){if(p.done||TODAY>p.to)return 'fin';if(TODAY<p.from)return 'up';return 'run'}
@@ -2921,7 +2953,8 @@ document.addEventListener('click',e=>{
   if('monthopen' in d){monthOpen=!monthOpen;render();return}
   if(d.toggle){if(openTeams.has(d.toggle))openTeams.delete(d.toggle);else openTeams.add(d.toggle);render();return}
   /* people */
-  if(el.classList.contains('chip')){villaSel=null;const ctx=JSON.parse(d.ctx);menuMode=null;sel=(sel&&sel.name===d.name&&sameCtx(sel.ctx,ctx))?null:{name:d.name,ctx};render();return}
+  if(el.classList.contains('chip')){villaSel=null;const ctx=JSON.parse(d.ctx);
+    if(ctx.type==='day'&&effTeams(ctx.date).some(x=>people(x).includes(d.name))){cur=ctx.date;sel=null;menuMode=null;modal={kind:'swap',name:d.name};renderModal();renderMenu();return}menuMode=null;sel=(sel&&sel.name===d.name&&sameCtx(sel.ctx,ctx))?null:{name:d.name,ctx};render();return}
   if(d.to&&sel){if(!['absent','available','nursery'].includes(d.to))learnManualMove(sel.ctx,sel.name,d.to);moveTo(sel.ctx,sel.name,d.to);toast(`${sel.name} moved`);sel=null;menuMode=null;render();return}
   if('lead' in d&&sel){if(sel.ctx.type==='day'){const lt=effTeams(sel.ctx.date).find(t=>people(t).includes(sel.name));if(lt)learnLead(lt,sel.name,2)}makeLeader(sel.ctx,sel.name);toast(`${sel.name} is now leader`);sel=null;render();return}
   if(d.pskill&&sel){toggleSkill(sel.name,d.pskill);render();return}
@@ -2972,9 +3005,14 @@ document.addEventListener('click',e=>{
   if(d.apply!=null){const m=suggest(cur).moves[Number(d.apply)];if(m){applyMove(cur,m);toast('Done')}render();return}
   if('applyall' in d){const {moves}=suggest(cur);moves.forEach(m=>applyMove(cur,m));toast(`${plural(moves.length,'change')} made`);render();return}
   if(d.addto){modal={kind:'addto',team:d.addto};sel=null;renderModal();renderMenu();return}
-  if(d.pickadd){const ctx={type:'day',date:cur};learnManualMove(ctx,d.pickadd,modal.team);moveTo(ctx,d.pickadd,modal.team);toast(`${dn(d.pickadd)} added`);renderModal();render();return}
+  if(d.pickadd){const ctx={type:'day',date:cur},nm=d.pickadd,T=effTeams(cur).find(x=>x.id===modal.team);if(T&&people(T).length>=maxTeam()){toast('Car is full — tap a name to swap');return}keepUndo();learnManualMove(ctx,nm,modal.team);moveTo(ctx,nm,modal.team);toastUndo(`${dn(nm)} added to ${T?T.name:'the team'}`);const T2=effTeams(cur).find(x=>x.id===modal.team);if(!T2||people(T2).length>=maxTeam())modal=null;renderModal();render();return}
   if(d.swapfrom){modal={kind:'swap',name:d.swapfrom};renderModal();return}
-  if(d.swapwith){const a=modal.name,b=d.swapwith;swapPeople(a,b);modal=null;renderModal();toast(`Swapped ${dn(a)} ⇄ ${dn(b)}`);render();return}
+  if(d.swapwith){const a=modal.name,b=d.swapwith;keepUndo();swapPeople(a,b);modal=null;renderModal();const T=effTeams(cur).find(x=>people(x).includes(b));toastUndo(`${dn(a)} ⇄ ${dn(b)}${T&&!T.leader?' — pick a leader for '+T.name:''}`);render();return}
+  if('undolast' in d){$('toast').hidden=true;undoLast();return}
+  if('qlead' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();makeLeader({type:'day',date:cur},n);modal=null;renderModal();toastUndo(`${dn(n)} is the leader`);render();return}
+  if('qoff' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();moveTo({type:'day',date:cur},n,'absent');modal=null;renderModal();toastUndo(`${dn(n)} is off today`);render();return}
+  if('qnursery' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();moveTo({type:'day',date:cur},n,'nursery');modal=null;renderModal();toastUndo(`${dn(n)} → nursery`);render();return}
+  if('qmore' in d&&modal&&modal.kind==='swap'){const n=modal.name;modal=null;renderModal();sel={name:n,ctx:{type:'day',date:cur}};menuMode=null;render();return}
   if('pswap' in d&&sel){const n=sel.name;sel=null;renderMenu();modal={kind:'swap',name:n};renderModal();return}
   if('alljobs' in d){modal={kind:'alljobs',f:'up'};renderModal();return}
   if(d.jobsf){modal={kind:'alljobs',f:d.jobsf};renderModal();return}
