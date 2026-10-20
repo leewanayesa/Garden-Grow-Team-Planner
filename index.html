@@ -658,7 +658,9 @@ GRADES.forEach(g=>{SK[g.id]=g.label});
 const gradeIn=(arr)=>{const g=GRADES.filter(x=>(arr||[]).includes(x.id)).pop();return g?g.lv:0};
 const gradeOf=n=>gradeIn((S.skills||{})[n]);
 /* Work that wants gardeners, and work that is mostly labour. */
-const GARDEN_WORK=new Set(['planting','treeplant','indoor','makeover','turf']), LABOUR_WORK=new Set(['dig','cleanup','treeremoval','gravel','hard','artgrass','cleaning']);
+const GARDEN_WORK=new Set(['planting','treeplant','indoor','turf']), LABOUR_WORK=new Set(['makeover','dig','cleanup','treeremoval','gravel','hard','artgrass','cleaning']);
+/* General labour needed grows with the size: Small 1, Medium 2, Large 3 (garden makeover, dig-out, clean-up). */
+const LABOUR_BY_SIZE={makeover:[1,2,3],dig:[2,3,4],cleanup:[1,2,3]};
 const SKILL_GROUPS=[
   {name:'Roles',ids:['lead','driver','drawings']},
   {name:'Maintenance',ids:['lawn','hedge','irrfix','palm','spray']},
@@ -670,7 +672,7 @@ const WORKS=[
   {id:'planting',name:'Small plant & shrub planting',sub:'incl. soil prep',job:'landscape',min:3,need:{planting:2,general:1,driver:1}},
   {id:'treeplant',name:'Large tree & palm planting',sub:'incl. soil prep',job:'landscape',min:4,need:{treeplant:1,planting:1,heavy:2,general:1,driver:1}},
   {id:'indoor',name:'Pots & indoor plants',job:'landscape',min:2,need:{indoor:1,driver:1}},
-  {id:'makeover',name:'Garden makeover',job:'landscape',min:5,need:{makeover:1,planting:2,hedge:1,general:2,driver:1}},
+  {id:'makeover',name:'Garden makeover',job:'landscape',min:5,need:{makeover:1,planting:1,hedge:1,general:2,driver:1}},
   {id:'dig',name:'Dig-out & soil replacement',job:'cleanup',min:4,truck:true,need:{dig:1,general:3,machine:1,driver:1}},
   {id:'turf',name:'Natural grass laying',job:'turf',min:4,need:{turf:1,general:2,driver:1}},
   {id:'artgrass',name:'Artificial grass',job:'artgrass',min:3,need:{artgrass:1,machine:1,general:1,driver:1}},
@@ -1245,6 +1247,7 @@ function migrate(o){
   }
   if(!o.skillsV44){Object.keys(o.skills||{}).forEach(n=>{const a=o.skills[n]||[],h=k=>a.includes(k),add=k=>{if(!h(k))a.push(k)};
     if(h('planting')&&(h('heavy')||h('tree')))add('treeplant');if(h('planting')&&h('hedge'))add('makeover');if(h('general')&&(h('heavy')||h('machine')))add('dig');if(h('tools')&&(h('tree')||h('heavy')))add('treeremoval');if(h('machine'))add('cleaning');if(h('general'))add('cleanup');o.skills[n]=a});o.skillsV44=true}
+  if(!o.mkLab48){(o.projects||[]).forEach(p=>{if(p.done||!(p.works||[]).includes('makeover')||!p.need)return;const g=[1,2,3][({S:0,M:1,L:2})[(p.sizes||{}).makeover||p.size||'M']]||2;p.need.general=Math.max(p.need.general||0,g);if(p.need.planting>1)p.need.planting=1;p.need.makeover=p.need.makeover||1;if(p.to>=iso(new Date()))p.crewOk=false});o.mkLab48=true}
   if(!o.expert)o.expert={};
   Object.values(o.expert).forEach(a=>{const i=a.indexOf('sup');if(i>=0)a.splice(i,1,'sup3')});
   (o.projects||[]).forEach(pr=>{if(!pr.size)pr.size='M'});
@@ -1558,6 +1561,7 @@ function suggest(date){
       if(pj){const want=SIZE_WANT[pj.size||'M']||2;if(lv>=want){s+=5+(lv===want?1.5:0);why.push(`${SUP_NAME[lv]} for a ${SIZE_NAME[pj.size||'M'].toLowerCase()}`)}else if(lv){s+=lv*1.5;why.push(SUP_NAME[lv])}}
       else if(lv)s+=lv*0.5;const l=learnL(t,n);if(l){s+=Math.min(4,l*0.7);if(l>=2)why.push('often leads this work')}if(isSup(n))s+=1}
     else if(has(n,'lead'))s-=0.7;
+    if(mode!=='lead'&&isProj(t)&&isSup(n)){s-=2.5;why.push('supervisor (kept to lead)')}
     const pr=people(t).reduce((a,m)=>a+learnP(n,m),0); if(pr>0){s+=Math.min(2,pr*0.2);if(pr>=2)why.push('works well with this team')}
     const dem=demandElsewhere(t), scarce=Object.keys(dem).filter(k=>has(n,k)&&!need[k]); if(scarce.length)s-=1.2*scarce.length;
     const p=projOf(t); if(p&&!p.crewOk&&defCrew.has(n))s+=0.8;
@@ -1609,6 +1613,23 @@ function suggest(date){
     }
   });
   const holders=sk=>S.staff.filter(n=>!absent.has(n)&&has(n,sk)).length;
+  /* The job team is full but still misses a skill: send back the person it needs least (a supervisor who isn't leading,
+     a senior gardener on labour work, someone outside the core crew first) and bring in a person with that skill. */
+  function swapIn(t,sk){
+    const need=jobNeeds(jobOf(t)), pins=pinsOf(t), cnt=k=>people(t).filter(x=>has(x,k)).length, pj=projOf(t), lab=((pj&&pj.works)||[]).some(w=>LABOUR_WORK.has(w));
+    const free=t.members.filter(m=>!pins.includes(m)&&!has(m,sk)&&!Object.keys(need).some(k=>has(m,k)&&cnt(k)<=need[k]));
+    if(!free.length)return false;
+    const rank=m=>(isCoreIn(t,m)?10:0)-(isSup(m)?4:0)-(lab&&gradeOf(m)===3?2:0)+(has(m,'driver')?1:0);
+    const out=[...free].sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b))[0];
+    t.members=t.members.filter(m=>m!==out);
+    const c=pick(t,n=>n!==out&&has(n,sk),'skill',sk);
+    if(!c){t.members.push(out);return false}
+    const from=c.from;
+    doMove(c,t,`Needs ${SK[sk]} (in place of ${dn(out)})`);
+    if(from){from.members.push(out);moves.push({type:'move',name:out,fromName:t.name,to:from.id,toName:from.name,why:`Swapped with ${dn(c.name)} — ${t.name} needed ${SK[sk]}`})}
+    else{avail.push(out);moves.push({type:'move',name:out,fromName:t.name,to:'available',toName:'Available',why:`Made room for ${dn(c.name)} (${SK[sk]})`})}
+    return true;
+  }
   for(let guard=0;guard<150;guard++){
     let done=false;
     for(const t of order){
@@ -1622,6 +1643,7 @@ function suggest(date){
       for(const p of ps.filter(p=>p.kind==='skill').sort((a,b)=>holders(a.skill)-holders(b.skill))){
         const c=pick(t,n=>has(n,p.skill),'skill',p.skill); if(c){doMove(c,t,`Needs ${SK[p.skill]}`);did=true;break}
       }
+      if(!did&&isProj(t))for(const p of ps.filter(p=>p.kind==='skill')){if(swapIn(t,p.skill)){did=true;break}}
       if(did){done=true;break}
       if(ps.some(p=>p.kind==='size')){
         const c=(active('general')&&pick(t,n=>has(n,'general'),'size','general'))||pick(t,()=>true,'size');
@@ -2693,7 +2715,7 @@ function saveLeave(){
   applyLeaves();save();modal=null;delArm=null;renderModal();toast(`${dn(l.name)}: ${l.type.toLowerCase()} ${rangeText(l.from,l.to)}`);render();
 }
 /* Job size = the biggest work size; team size = the biggest crew for the chosen sizes. */
-function applySizes(){modal.size=maxSize(modal.sizes);modal.min=modal.works.length?Math.min(maxTeam(),Math.max(...modal.works.map(w=>crewFor(w,modal.sizes[w]||'M')))):2}
+function applySizes(){modal.size=maxSize(modal.sizes);if(modal.need){const g=Math.max(0,...modal.works.filter(w=>LABOUR_BY_SIZE[w]).map(w=>LABOUR_BY_SIZE[w][SIZE_IX[modal.sizes[w]||'M']]));if(g)modal.need.general=g}modal.min=modal.works.length?Math.min(maxTeam(),Math.max(...modal.works.map(w=>crewFor(w,modal.sizes[w]||'M')))):2}
 function openProj(id,from){
   maintOpen=false;
   const p=id?projById(id):null;
@@ -2766,7 +2788,7 @@ function saveProj(){
   if(!modal.works.length){toast('Tap what work it is first');return}
   const type=(WORKS.find(w=>w.id===modal.works[0])||{}).job||'landscape';
   const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M',value:modal.value||null,sizes:Object.assign({},modal.sizes),small:!!modal.small,waste:modal.works.includes('makeover')?!!modal.waste:undefined,removal:modal.works.includes('treeremoval')?modal.removal:undefined,sub:!!modal.sub};
-  if(p&&modal.works.join(',')!==modal.works0)p.crewOk=false;
+  if(p&&(modal.works.join(',')!==modal.works0||JSON.stringify(p.sizes||{})!==JSON.stringify(extra.sizes)||JSON.stringify(p.need||{})!==JSON.stringify(extra.need)))p.crewOk=false;
   if(p)Object.assign(p,{title,type,from:modal.from,to:modal.to},extra);
   else{
     const overlap=S.projects.some(q=>q.from<=modal.to&&q.to>=modal.from), def=S.layouts.newwork.find(t=>jobOf(t).group!=='maint');
