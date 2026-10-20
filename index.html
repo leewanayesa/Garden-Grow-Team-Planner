@@ -1652,6 +1652,17 @@ function suggest(date){
     }
     if(!done)break;
   }
+  /* Supervisors lead: a supervisor working as a plain member on a job changes places with the leader of a maintenance team
+     that is led by someone who is not a supervisor (or has no leader) — only when neither team ends up missing anything. */
+  if(building)sim.filter(isProj).forEach(J=>{[...J.members].forEach(n=>{
+    if(!isSup(n)||pinsOf(J).includes(n)||!J.members.includes(n))return;
+    const M=sim.filter(t=>!isProj(t)&&!(t.leader&&isSup(t.leader))&&!(t.leader&&pinsOf(t).includes(t.leader))).sort((a,b)=>(a.leader?1:0)-(b.leader?1:0)||a.name.localeCompare(b.name))[0];if(!M)return;
+    const old=M.leader,wJ=weight(J),wM=weight(M),keepJ=[...J.members],keepM=[...M.members];
+    J.members=J.members.filter(x=>x!==n);if(old)J.members.push(old);M.leader=n;
+    if(weight(J)>wJ||weight(M)>wM){J.members=keepJ;M.members=keepM;M.leader=old;return}
+    moves.push({type:'move',name:n,fromName:J.name,to:M.id,toName:M.name,why:'Supervisor — leads this team instead of working as crew on the job',makeLead:true});
+    if(old)moves.push({type:'move',name:old,fromName:M.name,to:J.id,toName:J.name,why:`Changed places with ${dn(n)}, so a supervisor leads ${M.name}`});
+  })});
   const SZR={L:2,M:1,S:0};
   for(const n of [...avail]){
     const vpS=villaPlan(date,sim), load=t=>ptsSum(vpS.byTeam[t.id]||[])/Math.max(1,people(t).length);
@@ -1686,8 +1697,27 @@ function buildDay_(date){
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t){t.leader=null;t.members=[]}});
   const {moves}=suggest(date); moves.forEach(m=>applyMove(date,m));
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t&&people(t).length){saveCrew(p,t,date);p.crewOk=true}});
+  r.sig=daySig(date);
   save();
   return {moves,left:suggest(date).left};
+}
+/* Automatic build: everything a day's teams depend on, as a short fingerprint. When it changes, the day is built
+   again by itself — unless you changed that day by hand or already sent it to the leaders (then a bar asks you). */
+function daySig(date){
+  const r=dayRec(date), wd=DNL[fromIso(date).getDay()], st=S.settings||{};
+  const ps=teamProjects(date).map(p=>[p.id,p.from,p.to,p.works,p.sizes,p.need,p.min,p.pins,p.small,p.urgent,p.removal,p.sub,p.waste]);
+  const vil=(S.clients||[]).filter(c=>c.status!=='paused'&&(c.days||[]).includes(wd)).map(c=>c.id+':'+(c.lat??'')+','+(c.lng??'')+':'+areaShort(c)+':'+(c.fee||'')+':'+(c.frequency||'')+':'+(c.weeks||'')+':'+(c.newFrom||''));
+  const txt=JSON.stringify([ps,[...(r.absent||[])].sort(),S.staff,S.skills,S.supervisors,S.expert,S.core||{},S.layouts,S.nicks||{},vil,
+    [st.cars,st.maxTeam,st.trucks,st.maxVillas,st.base,st.areaOwner,st.dayStart,st.dayHours,st.sizeS,st.sizeM,st.dayOff]]);
+  let h=5381;for(let i=0;i<txt.length;i++)h=((h<<5)+h+txt.charCodeAt(i))|0;return (h>>>0).toString(36)+txt.length.toString(36);
+}
+/* Build (or build again) a day that needs it. Returns 'built', 'stale' (changed, but kept for you to decide) or ''. */
+function ensureBuilt(date){
+  if(date<TODAY||isDayOff(date))return '';
+  const r=dayRec(date), sig=daySig(date);
+  if(r.teams&&r.sig===sig)return '';
+  if(r.teams&&(r.manual||r.sent))return 'stale';
+  buildDay(date);return 'built';
 }
 /* Save a job's crew so every day of the job uses it. Days already edited get the new crew too. */
 function saveCrew(p,t,fromDate){
@@ -1795,13 +1825,15 @@ function pdfLeaderPages(date){
     </div>`}).join('');
 }
 function setPageSize(css){let s=$('pagesize');if(!s){s=document.createElement('style');s.id='pagesize';document.head.appendChild(s)}s.textContent=`@media print{@page{${css}}}`}
-function printDay(){setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=pdfDayPage(cur);doPrint(`Garden Grow Daily Team Plan ${cur}`)}
+function markSent(date){const r=ensureDay(date);if(!r.teams)return;r.sent=true;r.sig=r.sig||daySig(date);const n=new Date();r.sentAt=pad(n.getHours())+':'+pad(n.getMinutes());save()}
+function printDay(){markSent(cur);setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=pdfDayPage(cur);doPrint(`Garden Grow Daily Team Plan ${cur}`)}
 function printWeek(){
+  [0,1,2,3,4,5,6].forEach(i=>ensureBuilt(addDays(weekStart(cur),i)));
   const ws=weekStart(cur), days=[0,1,2,3,4,5,6].map(i=>addDays(ws,i)).filter(s=>!isDayOff(s)&&(clientsOn(s).length||activeProjects(s).length));
   if(!days.length){toast('No working days with villas this week');return}
   setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=days.map(pdfDayPage).join('');doPrint(`Garden Grow Week Team Plan ${ws}`);
 }
-function printLeaders(){
+function printLeaders(){markSent(cur);
   const ps=$('printsheet');ps.innerHTML=pdfLeaderPages(cur);
   /* measure the longest team page so every page fits on one phone-length sheet */
   ps.style.cssText='display:block;position:absolute;left:-9999px;top:0';
@@ -2261,6 +2293,7 @@ function weekStrip(){
     return `<button class="wd ${s===cur?'sel':''} ${s===TODAY?'today':''} ${off?'off':''}" data-date="${s}" aria-label="${longDate(s)}"><span>${DN[d.getDay()]} ${d.getDate()}</span><b class="${bad?'redtxt':''}">${off?'—':v}${bad?' ●':''}</b>${nw?'<i class="nwdot">new work</i>':''}</button>`}).join('')}</div>`;
 }
 function renderDay(){
+  const auto=ensureBuilt(cur);
   const r=dayRec(cur), ctx={type:'day',date:cur}, teams=effTeams(cur), ps=activeProjects(cur), vp=villaPlan(cur,teams);
   const iss=issuesFor(cur), heavy=teams.filter(t=>!isProj(t)&&((vp.byTeam[t.id]||[]).length>maxV()||(vp.time&&vp.time[t.id]&&vp.time[t.id].over)));
   const placed=teams.reduce((a,t)=>a+people(t).length,0), off=r.absent||[], proj=teams.filter(isProj), maint=teams.filter(t=>!isProj(t));
@@ -2268,9 +2301,11 @@ function renderDay(){
   const built=!!r.teams, sug=suggest(cur), ideas=heavyIdeas(cur), un=available(ctx);
   const skillsSet=SKILLS.some(s=>s.id!=='lead'&&active(s.id));
   const kind=isDayOff(cur)?'Weekly day off':ps.length?`${TYPE_NW} · ${plural(ps.length,'job')}`:'Maintenance day';
-  const primary=built?`<button class="btn primary" data-send>${ICON.send}Send to leaders</button>`:`<button class="btn primary" data-build>${ICON.build}Build teams</button>`;
+  const primary=built||cur>=TODAY?`<button class="btn primary" data-send>${ICON.send}Send to leaders</button>`:`<button class="btn primary" data-build>${ICON.build}Build teams</button>`;
+  const stale=built&&cur>=TODAY&&!isDayOff(cur)&&r.sig!==daySig(cur);
+  const staleBar=stale?`<div class="ibox warn stalebar">${ICON.alert}<div><b>${r.sent?'Changed after you sent this day to the leaders':'Things changed since you edited this day by hand'}</b><span>${r.sent?`A job, who's off, skills or villas changed after sending${r.sentAt?' at '+esc(r.sentAt):''}. Rebuild, then send to the leaders again.`:'A job, who\'s off, skills or villas changed. Rebuild to let the app set the teams again (your hand changes are replaced), or keep your teams as they are.'}</span><div class="row"><button class="btn small primary" data-build>Rebuild teams</button><button class="btn small" data-keepday>Keep as it is</button></div></div></div>`:'';
   const more=`<details class="more"><summary class="btn">More ▾</summary><div class="morepop">
-      ${built?'<button class="btn" data-build>Rebuild teams</button><button class="btn" data-undo>Undo changes</button>':'<button class="btn" data-send>Send to leaders</button>'}
+      <button class="btn" data-build>Rebuild teams (start this day again)</button>
       <button class="btn" data-pdfleaders>Leader pages (phone PDF)</button><button class="btn" data-pdfweek>Week PDF (one page per day)</button><button class="btn" data-pdfroster>Roster PDF (villa list)</button><button class="btn" data-pdfroster="phone">Roster PDF for phone</button><button class="btn" data-noteopen>Note for the day</button><button class="btn" data-newleave>+ Annual leave</button><button class="btn" data-off>Change who's off</button><button class="btn" data-alljobs>All new work jobs</button>
     </div></details>`;
   const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
@@ -2278,7 +2313,7 @@ function renderDay(){
   const okBox=iss.length?`<div class="ibox bad">${ICON.alert}<div><b>${plural(iss.length,'thing')} to check</b>${sumTxt}<span>${esc(iss[0])}</span>${sug.moves.length?`<button class="btn small primary" data-applyall>Fix all (${sug.moves.length})</button>`:''}</div></div>`
     :heavy.length?`<div class="ibox warn">${ICON.alert}<div><b>Teams ready · busy day</b>${sumTxt}<span>${heavy.map(t=>esc(t.name)+' '+(vp.byTeam[t.id]||[]).length).join(', ')} villas — above ${maxV()}</span></div></div>`
     :`<div class="ibox ok">${ICON.ok}<div><b>All teams ready</b>${sumTxt}<span>Leaders, skills and sizes OK</span></div></div>`;
-  const fixes=(sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'';
+  const fixes=staleBar+((sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'');
   const tm=(S.toMatch||[]).filter(n=>S.staff.includes(n)).length;
   $('view').innerHTML=`<div class="day2">
     <section class="card dbar">
@@ -2321,6 +2356,7 @@ function renderDay(){
 const weekStartDays=ws=>[...Array(7)].map((_,i)=>addDays(ws,i));
 function renderWeek(){
   const ws=weekStart(cur), days=[...Array(7)].map((_,i)=>addDays(ws,i));
+  days.forEach(ensureBuilt);
   const info=days.map(s=>{const t=effTeams(s),vp=villaPlan(s,t);return {s,t,vp,maint:t.filter(x=>!isProj(x)),ps:activeProjects(s),off:dayRec(s).absent||[],iss:issuesFor(s).length}});
   const projs=S.projects.filter(p=>p.from<=days[6]&&p.to>=days[0]).sort((a,b)=>a.from<b.from?-1:1);
   const maxM=Math.max(...info.map(d=>d.maint.length));
@@ -2867,7 +2903,7 @@ document.addEventListener('click',e=>{
     else moveTo(dayCtx,n,'absent');
     renderModal();render();return}
   if('offbuild' in d){modal=null;renderModal();const b=buildDay(cur);toast(`Teams built — ${plural(b.moves.length,'change')}`);render();return}
-  if(d.copyteam!=null){const t=effTeams(cur)[Number(d.copyteam)];copyText(leaderText(t,cur),'Copied — paste in the leader\'s WhatsApp');modal.copied=Number(d.copyteam);renderModal();return}
+  if(d.copyteam!=null){markSent(cur);const t=effTeams(cur)[Number(d.copyteam)];copyText(leaderText(t,cur),'Copied — paste in the leader\'s WhatsApp');modal.copied=Number(d.copyteam);renderModal();return}
   if('addmember' in d){modal=null;renderModal();tab='setup';setupTab='staff';render();const i=$('newname');if(i)i.focus();return}
   /* navigation */
   if(d.tab){if(staffDraft&&tab==='setup'){toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save')}tab=d.tab;sel=null;villaSel=null;delArm=null;modal=null;renderModal();render();scrollTo(0,0);return}
@@ -2908,6 +2944,7 @@ document.addEventListener('click',e=>{
   if(d.pullname&&d.pullto){const n=d.pullname;learnManualMove({type:'day',date:cur},n,d.pullto);moveTo({type:'day',date:cur},n,d.pullto);toast(`${dn(n)} moved — check the team they left`);render();return}
   if(d.idea!=null){const x=heavyIdeas(cur)[Number(d.idea)];if(x&&x.kind==='small'){x.proj.small=true;reconcileAll(true);save();toast(`${x.proj.title} is now a small job`);render();return}if(x&&x.kind==='near'){learnAreaMove(cur,x.id,x.to);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[x.id]=x.to;save();toast(`${x.name} moved to ${x.toName} for today`);render();return}if(x&&x.kind==='villas'){moveVillasToDay(cur,x.ids,x.to);toast(`${plural(x.ids.length,'villa')} moved to ${shortDate(x.to)}`)}render();return}
   /* day actions */
+  if('keepday' in d){ensureDay(cur).sig=daySig(cur);save();toast('Kept as it is');render();return}
   if('build' in d){const b=buildDay(cur);toast(`Teams built — ${plural(b.moves.length,'change')}`);render();return}
   if('planweek' in d){const ws=weekStart(cur),days=[...Array(7)].map((_,i)=>addDays(ws,i)).filter(s=>s>=TODAY&&!isDayOff(s));
     const man=days.filter(s=>S.days[s]&&S.days[s].manual);let rebuildMan=true;
@@ -2922,7 +2959,7 @@ document.addEventListener('click',e=>{
   if('send' in d){modal={kind:'send'};sel=null;renderModal();return}
   if('off' in d){modal={kind:'off'};sel=null;renderModal();return}
   if('fab' in d){modal={kind:'add'};renderModal();return}
-  if('copy' in d){copyText(whatsappText(),'Copied — paste into the WhatsApp group');return}
+  if('copy' in d){markSent(cur);copyText(whatsappText(),'Copied — paste into the WhatsApp group');return}
   if('pdfday' in d){printDay();return}
   if('pdfweek' in d){printWeek();return}
   if('pdfleaders' in d){printLeaders();return}
