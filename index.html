@@ -670,7 +670,8 @@ const SKILLS=[
   {id:'irrigation',label:'New irrigation install',short:'Irr. new'},{id:'irrfix',label:'Irrigation repair',short:'Irr. repair'},
   {id:'hardscape',label:'Masonry & concrete',short:'Masonry'},{id:'tiling',label:'Tiling',short:'Tiling'},{id:'waterproof',label:'Waterproofing & drainage',short:'Waterproof'},{id:'wood',label:'Fencing (wood & metal)',short:'Fencing'},
   {id:'lighting',label:'Electrical, lights & pumps',short:'Electrical'},{id:'machine',label:'Machinery (compactor, loader, cleaning machine)',short:'Machinery'},{id:'drawings',label:'Reads drawings / set-out',short:'Drawings'},{id:'treeplant',label:'Large tree & palm planting',short:'Big trees'},{id:'makeover',label:'Garden makeover',short:'Makeover'},{id:'dig',label:'Dig-out & soil replacement',short:'Dig-out'},{id:'treeremoval',label:'Tree removal',short:'Tree removal'},{id:'cleaning',label:'Cleaning services',short:'Cleaning'},{id:'cleanup',label:'Clean-up & waste removal',short:'Clean-up'},
-  {id:'general',label:'General labour',short:'Labour'},{id:'heavy',label:'Heavy work',short:'Heavy'}
+  {id:'general',label:'General labour',short:'Labour'},{id:'heavy',label:'Heavy work',short:'Heavy'},
+  {id:'gr_sr',label:'Senior gardener',short:'Sr gardener',grade:true},{id:'gr_gar',label:'Gardener (senior counts too)',short:'Gardeners',grade:true}
 ];
 const SK=Object.fromEntries(SKILLS.map(s=>[s.id,s.label]));
 /* Grade: one per person — General labour, Gardener or Senior gardener. Saved with the skills. */
@@ -691,8 +692,8 @@ const SKILL_GROUPS=[
   {name:'General',ids:['general']}
 ];
 const WORKS=[
-  {id:'planting',name:'Small plant & shrub planting',sub:'incl. soil prep',job:'landscape',min:3,need:{planting:2,general:1,driver:1}},
-  {id:'treeplant',name:'Large tree & palm planting',sub:'incl. soil prep',job:'landscape',min:4,need:{treeplant:1,planting:1,heavy:2,general:1,driver:1}},
+  {id:'planting',name:'Small plant & shrub planting',sub:'incl. soil prep',job:'landscape',min:3,need:{planting:1,gr_sr:1,gr_gar:2,general:1,driver:1}},
+  {id:'treeplant',name:'Large tree & palm planting',sub:'incl. soil prep',job:'landscape',min:4,need:{treeplant:1,planting:1,gr_sr:1,gr_gar:2,heavy:2,general:1,driver:1}},
   {id:'indoor',name:'Pots & indoor plants',job:'landscape',min:2,need:{indoor:1,driver:1}},
   {id:'makeover',name:'Garden makeover',job:'landscape',min:5,need:{makeover:1,planting:1,hedge:1,general:2,driver:1}},
   {id:'dig',name:'Dig-out & soil replacement',job:'cleanup',min:4,truck:true,need:{dig:1,general:3,machine:1,driver:1}},
@@ -812,7 +813,7 @@ const jobOf=t=>{
 /* What a job needs: its ticked work, plus people able to do heavy work when the job is heavy. */
 function jobNeeds(j){const n={...(j.need||{})};if(j.heavy&&n.heavy==null)n.heavy=2;return n}
 const isProj=t=>!!t.projectId||jobOf(t).group!=='maint';
-const has=(n,sk)=>(S.skills[n]||[]).includes(sk)||(sk==='lead'&&isSup(n))||(sk==='general'&&(S.skills[n]||[]).includes('g_lab'));
+const has=(n,sk)=>sk==='gr_sr'?(S.skills[n]||[]).includes('g_sr'):sk==='gr_gar'?((S.skills[n]||[]).includes('g_sr')||(S.skills[n]||[]).includes('g_gar')):(S.skills[n]||[]).includes(sk)||(sk==='lead'&&isSup(n))||(sk==='general'&&(S.skills[n]||[]).includes('g_lab'));
 const isSup=n=>(S.supervisors||[]).includes(n);
 /* Supervisor level: 3 = Senior supervisor, 2 = Supervisor, 1 = Junior supervisor, 0 = not a supervisor */
 const supLevelIn=(sups,ex,n)=>!(sups||[]).includes(n)?0:((ex||{})[n]||[]).includes('sup3')?3:((ex||{})[n]||[]).includes('sup1')?1:2;
@@ -1269,6 +1270,7 @@ function migrate(o){
   }
   if(!o.skillsV44){Object.keys(o.skills||{}).forEach(n=>{const a=o.skills[n]||[],h=k=>a.includes(k),add=k=>{if(!h(k))a.push(k)};
     if(h('planting')&&(h('heavy')||h('tree')))add('treeplant');if(h('planting')&&h('hedge'))add('makeover');if(h('general')&&(h('heavy')||h('machine')))add('dig');if(h('tools')&&(h('tree')||h('heavy')))add('treeremoval');if(h('machine'))add('cleaning');if(h('general'))add('cleanup');o.skills[n]=a});o.skillsV44=true}
+  if(!o.grNeed62){(o.projects||[]).forEach(p=>{if(p.done||!p.need||!(p.works||[]).some(w=>w==='planting'||w==='treeplant'))return;if(p.need.planting>1)p.need.planting=1;p.need.gr_sr=p.need.gr_sr||1;p.need.gr_gar=Math.max(p.need.gr_gar||0,2);if(p.to>=iso(new Date()))p.crewOk=false});o.grNeed62=true}
   if(!o.mkLab48){(o.projects||[]).forEach(p=>{if(p.done||!(p.works||[]).includes('makeover')||!p.need)return;const g=[1,2,3][({S:0,M:1,L:2})[(p.sizes||{}).makeover||p.size||'M']]||2;p.need.general=Math.max(p.need.general||0,g);if(p.need.planting>1)p.need.planting=1;p.need.makeover=p.need.makeover||1;if(p.to>=iso(new Date()))p.crewOk=false});o.mkLab48=true}
   if(!o.expert)o.expert={};
   Object.values(o.expert).forEach(a=>{const i=a.indexOf('sup');if(i>=0)a.splice(i,1,'sup3')});
@@ -1546,7 +1548,7 @@ function problems(t){
   for(const [sk,n] of Object.entries(need)){
     if(!n||!active(sk))continue;
     const c=ppl.filter(p=>has(p,sk)).length;
-    if(c<n)out.push({kind:'skill',skill:sk,short:n-c,text:`Missing ${SK[sk]}${n-c>1?' ×'+(n-c):''}${vn[sk]&&!jobNeeds(j)[sk]?' (villas need it)':''}`});
+    if(c<n)out.push({kind:'skill',skill:sk,short:n-c,text:n>1&&c>0?`${SK[sk]}: has ${c} of ${n} — needs ${n-c} more`:`Missing ${SK[sk]}${n-c>1?' ×'+(n-c):''}${vn[sk]&&!jobNeeds(j)[sk]?' (villas need it)':''}`});
   }
   const mn=Math.min(j.min,maxTeam());
   if(ppl.length<mn){const s=mn-ppl.length;out.push({kind:'size',short:s,text:`Short by ${s} ${s===1?'person':'people'}`})}
@@ -2711,11 +2713,11 @@ function renderSetup(){
       ${leaveCard()}`;
   }else if(setupTab==='jobs'){
     body=`<div class="card"><h2>Job types</h2><p class="muted small">What each job needs. Min people includes the leader. Every team also needs a leader. Skill numbers are how many people with that skill the team needs.</p>
-      <div class="tablewrap"><table class="grid"><thead><tr><th>Job</th><th>Type</th><th>Min people</th>${SKILLS.filter(s=>s.id!=='lead').map(s=>`<th title="${s.label}">${s.short}</th>`).join('')}<th>Heavy</th><th></th></tr></thead>
+      <div class="tablewrap"><table class="grid"><thead><tr><th>Job</th><th>Type</th><th>Min people</th>${SKILLS.filter(s=>!s.grade&&s.id!=='lead').map(s=>`<th title="${s.label}">${s.short}</th>`).join('')}<th>Heavy</th><th></th></tr></thead>
       <tbody>${S.jobs.map(j=>`<tr><td><input class="jname" id="jn-${j.id}" data-jobfield="name" data-jobid="${j.id}" value="${esc(j.name)}" aria-label="Job name"></td>
         <td><select id="jg-${j.id}" data-jobfield="group" data-jobid="${j.id}" aria-label="Job type"><option value="maint" ${j.group==='maint'?'selected':''}>Maintenance</option><option value="project" ${j.group!=='maint'?'selected':''}>New work</option></select></td>
         <td><input class="num" type="number" min="1" max="20" id="jm-${j.id}" data-jobfield="min" data-jobid="${j.id}" value="${j.min}" aria-label="Minimum people"></td>
-        ${SKILLS.filter(s=>s.id!=='lead').map(s=>`<td><input class="num" type="number" min="0" max="9" id="jq-${j.id}-${s.id}" data-jobneed="${s.id}" data-jobid="${j.id}" value="${(j.need||{})[s.id]||0}" aria-label="${esc(j.name)}: ${s.label}"></td>`).join('')}
+        ${SKILLS.filter(s=>s.id!=='lead'&&!s.grade).map(s=>`<td><input class="num" type="number" min="0" max="9" id="jq-${j.id}-${s.id}" data-jobneed="${s.id}" data-jobid="${j.id}" value="${(j.need||{})[s.id]||0}" aria-label="${esc(j.name)}: ${s.label}"></td>`).join('')}
         <td><input type="checkbox" id="jh-${j.id}" data-jobfield="heavy" data-jobid="${j.id}" ${j.heavy?'checked':''} aria-label="Heavy work"></td>
         <td>${S.jobs.length>1?`<button class="btn small warn" data-deljob="${j.id}">${delArm==='j:'+j.id?'Delete?':'Delete'}</button>`:''}</td></tr>`).join('')}</tbody></table></div>
       <button class="btn small" data-addjob>+ Add job type</button></div>`;
@@ -2805,7 +2807,7 @@ function renderMenu(){
   const lvNow=leaveOn(n,ctx.type==='day'?ctx.date:TODAY);
   const leaveHtml=`<button class="mi" data-leavefor="${esc(n)}">${lvNow?`On ${esc(lvNow.type.toLowerCase())} until ${shortDate(lvNow.to)} — edit`:'Add annual leave…'}</button>`;
   const supHtml=`<button class="mi ${isSup(n)?'lead':''}" data-psup>${isSup(n)?'✓ Supervisor — tap to remove':'Make supervisor'}</button>`;
-  const skillsHtml=`<div class="msec">Skills</div><div class="pills">${SKILLS.map(s=>`<button class="pill ${has(n,s.id)?'on':''}" data-pskill="${s.id}" aria-pressed="${has(n,s.id)}">${s.label}</button>`).join('')}</div>`;
+  const skillsHtml=`<div class="msec">Skills</div><div class="pills">${SKILLS.filter(s=>!s.grade).map(s=>`<button class="pill ${has(n,s.id)?'on':''}" data-pskill="${s.id}" aria-pressed="${has(n,s.id)}">${s.label}</button>`).join('')}</div>`;
   const memberHtml=`<div class="mrow"><button class="btn" data-menurename>Rename</button><button class="btn warn ${menuMode==='remove'?'arm':''}" data-menuremove>${menuMode==='remove'?'Tap again to remove':'Remove from staff'}</button></div>`;
   if(menuMode==='rename')return show(`<div class="mhead"><div><b>Rename ${esc(dn(n))}</b><span>Full name as on payroll</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div><form class="mform" id="renameform"><input class="textin" id="rn-input" value="${esc(n)}" aria-label="New name"><div class="mrow"><button class="btn primary">Save</button><button type="button" class="btn" data-menuback>Back</button></div></form>`),focusRename();
   if(ctx.type==='staff')return show(`<div class="mhead"><div><b>${esc(dn(n))}</b><span>${esc(n)}${isSup(n)?' · Supervisor':''}</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div>${leaveHtml}${supHtml}${skillsHtml}${memberHtml}`);
