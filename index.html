@@ -1415,12 +1415,27 @@ function projectTeam(p,ab,taken){
 }
 /* Each team needs a car: maintenance teams = cars left after the jobs (at least one maintenance team). */
 function maintLayout(ps){const base=(ps.length?S.layouts.newwork:S.layouts.normal).filter(t=>jobOf(t).group==='maint');return base.slice(0,Math.max(1,carsN()-ps.length))}
+/* Home team of a person: the normal maintenance team they are in (Setup → Teams). */
+const homeOf=n=>{const t=S.layouts.normal.find(t=>jobOf(t).group==='maint'&&people(t).includes(n));return t?t.id:null};
+/* Fixed teams: every day starts from the normal teams. On a new-work day the team whose leader goes to the job
+   (Gul first, then Jawad) breaks up; if there are still more teams than cars, the team with the fewest people left
+   breaks up too. Everyone else stays with their usual teammates. */
+function maintLayoutFor(s,lp){
+  const normal=S.layouts.normal.filter(t=>jobOf(t).group==='maint');
+  if(!lp.length||!normal.length)return lp.length?maintLayout(lp):normal.slice(0,Math.max(1,carsN()));
+  const k=Math.max(1,carsN()-lp.length), ab=new Set(dayRec(s).absent||[]);
+  const L=nwLeaders().filter(n=>!ab.has(n)).slice(0,lp.length);
+  const fixed=new Set(lp.filter(p=>p.crewOk).flatMap(p=>[p.crew.leader,...p.crew.members]).filter(Boolean));
+  let keep=normal.filter(t=>!L.includes(t.leader));
+  while(keep.length>k){const left=t=>people(t).filter(n=>!ab.has(n)&&!fixed.has(n)).length;const out=[...keep].sort((a,b)=>left(a)-left(b)||normal.indexOf(b)-normal.indexOf(a))[0];keep=keep.filter(t=>t!==out)}
+  return keep;
+}
 function defaultTeams(s){
   const r=dayRec(s), ab=new Set(r.absent||[]), ps=teamProjects(s), lp=layoutProjects(s);
-  const taken=new Set(), pts=ps.map(p=>projectTeam(p,ab,taken));
+  const taken=new Set(), pts=ps.map(p=>p.crewOk?projectTeam(p,ab,taken):{id:'p-'+p.id,projectId:p.id,name:p.title,job:p.type,desc:'',leader:null,members:[]});
   let base;
-  if(!lp.length){const keep=new Set(maintLayout(lp).map(t=>t.id));base=clone(S.layouts.normal).filter(t=>jobOf(t).group!=='maint'||keep.has(t.id))}
-  else base=clone(maintLayout(lp));
+  if(!lp.length){const keep=new Set(maintLayoutFor(s,lp).map(t=>t.id));base=clone(S.layouts.normal).filter(t=>jobOf(t).group!=='maint'||keep.has(t.id))}
+  else base=clone(maintLayoutFor(s,lp));
   base.forEach(t=>{if(taken.has(t.leader))t.leader=null;t.members=t.members.filter(m=>!taken.has(m))});
   let teams=[...pts,...base];
   teams.forEach(t=>{if(ab.has(t.leader))t.leader=null;t.members=t.members.filter(m=>!ab.has(m))});
@@ -1430,7 +1445,7 @@ function effTeams(s){const r=dayRec(s);return r.teams||defaultTeams(s)}
 /* Keep an edited day in step with the jobs running on it. Other edits on that day are kept. */
 function needsRelayout(s){
   const r=S.days[s]; if(!r||!r.teams||s<TODAY)return false;
-  const ps=layoutProjects(s), want=maintLayout(ps).map(t=>t.id).sort().join(','), have=r.teams.filter(t=>!t.projectId).map(t=>t.id).sort().join(',');
+  const ps=layoutProjects(s), want=maintLayoutFor(s,ps).map(t=>t.id).sort().join(','), have=r.teams.filter(t=>!t.projectId).map(t=>t.id).sort().join(',');
   return want!==have;
 }
 function reconcile(s,rebuild){
@@ -1592,7 +1607,8 @@ function suggest(date){
       if(src&&!isProj(src)&&gd===3&&!people(src).some(m=>m!==n&&gradeOf(m)===3))s-=1.5}
     const covers=Object.keys(sh).filter(k=>k!==skill&&has(n,k)); if(covers.length){s+=2*covers.length;why.push('also '+covers.map(k=>SK[k]).join(', '))}
     const aff=affinity(t,n);
-    if(aff){s+=Math.max(-4,Math.min(4,aff*0.5));if(aff>=2)why.push(isProj(t)?'often on this kind of work':'usually in this team');if(aff<=-1)why.push('was moved off this work before')}
+    if(isProj(t)&&t.leader&&n!==t.leader&&homeOf(n)&&homeOf(n)===homeOf(t.leader)){s+=3;why.push(`from ${dn(t.leader)}'s usual team`)}
+    if(aff){s+=isProj(t)?Math.max(-4,Math.min(5,aff*0.8)):Math.max(-4,Math.min(4,aff*0.5));if(aff>=2)why.push(isProj(t)?'often on this kind of work':'usually in this team');if(aff<=-1)why.push('was moved off this work before')}
     if(mode==='lead'){if(expert(n,'lead')){s+=2;why.push('expert leader')}
       const pj=projOf(t), lv=supLevel(n);
       if(pj&&(pj.size||'M')==='S'&&S.layouts.normal.some(x=>x.leader===n)){s-=3;why.push('kept for maintenance')}
@@ -1747,6 +1763,12 @@ function suggest(date){
           moves.push({type:'move',name:n,fromName:J.name,to:M.id,toName:M.name,why:'Supervisor — kept for maintenance, not as crew on the job'});
           moves.push({type:'move',name:m,fromName:M.name,to:J.id,toName:J.name,why:`Changed places with ${dn(n)}`});}
         else{J.members=J.members.map(x=>x===m?n:x);M.members=M.members.map(x=>x===n?m:x)}})})})});
+  if(building){const running=new Set(sim.map(t=>t.id)),groups={};
+    avail.forEach(n=>{const h=homeOf(n);if(h&&!running.has(h))(groups[h]=groups[h]||[]).push(n)});
+    Object.entries(groups).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])).forEach(([h,g])=>{let left=[...g].sort((a,b)=>dn(a).localeCompare(dn(b)));const hn=(S.layouts.normal.find(t=>t.id===h)||{}).name||'their team';
+      while(left.length){const opts=sim.filter(t=>!isProj(t)&&people(t).length<maxTeam());if(!opts.length)break;
+        const free=t=>maxTeam()-people(t).length,T=[...opts].sort((a,b)=>(free(b)>=left.length)-(free(a)>=left.length)||free(b)-free(a)||a.name.localeCompare(b.name))[0];
+        const take=left.slice(0,free(T));take.forEach(n=>doMove({name:n,from:null,why:[]},T,`${hn} is not running today — stays together with ${take.length>1?'the rest of '+hn:'their team'}`));left=left.slice(take.length)}})}
   const SZR={L:2,M:1,S:0};
   for(const n of [...avail]){
     const vpS=villaPlan(date,sim), load=t=>ptsSum(vpS.byTeam[t.id]||[])/Math.max(1,people(t).length);
@@ -2708,7 +2730,7 @@ function renderSetup(){
   if(setupTab==='teams'){
     const sec=(mode,desc)=>{const ctx={type:'layout',mode};return `<div class="card"><div class="cardhead"><div><h2>${mode==='normal'?TYPE_REG:TYPE_NW}</h2><p class="muted small">${desc}</p></div><button class="btn small" data-addteam="${mode}">+ Add team</button></div>
       <div class="board">${S.layouts[mode].map(t=>setupTeamCard(t,ctx)).join('')}</div></div>${availableCard(ctx)}`};
-    body=`<div class="row spread"><p class="muted small">Your standard teams. Each day starts from one of these, depending on whether new work runs that day.</p><button class="btn" data-pdfsetup>Save setups as PDF</button></div>
+    body=`<div class="row spread"><p class="muted small">Your standard teams. Every day starts from your normal teams; only what a job needs changes.</p><button class="btn" data-pdfsetup>Save setups as PDF</button></div>
       <div class="card"><h2>Cars</h2><p class="muted small">Each team travels in one car. The builder never puts more people in a team than one car takes, and sends anyone extra to the nursery / farm to look after the plants.</p>
       <div class="row"><label class="field inline"><span class="lbl">Cars</span><input class="textin num" type="number" min="1" max="20" id="carsn" value="${carsN()}"></label>
       <label class="field inline"><span class="lbl">People per car (with driver)</span><input class="textin num" type="number" min="2" max="15" id="maxteam" value="${maxTeam()}"></label>
@@ -2723,7 +2745,7 @@ function renderSetup(){
       ${(()=>{const Ls=[...new Set(S.layouts.normal.filter(t=>jobOf(t).group==='maint').map(t=>t.leader).filter(Boolean))];return `<div class="card"><h2>Core crews — stay together</h2><p class="muted small">Tick the people who always work with each leader (2–3 is usual). The builder keeps them together every day, even on new-work days, and only moves the others ("floaters"). Leave and people fixed on a job come first.</p>
         ${Ls.map(L=>`<div class="tgroup"><span class="lbl">Team ${esc(dn(L).split(' ')[0])} · ${plural(coreOf(L).length,'core member')}</span><div class="tchips">${S.staff.filter(n=>n!==L&&!Ls.includes(n)).map(n=>{const on=coreOf(L).includes(n),other=!on&&isCoreAny(n);return `<button class="tchip ${on?'on':''}" data-coretoggle="${esc(L)}|${esc(n)}">${on?'★ ':''}${esc(dn(n))}${other?'<em>core elsewhere</em>':''}</button>`}).join('')}</div></div>`).join('')}</div>`})()}
       ${maintNeedsCard()}
-      ${sec('normal','Days with no new work.')}${sec('newwork','Days with new work. The orange team is the default crew for a new job; the green teams keep doing maintenance.')}`;
+      ${sec('normal','Everyone\'s <b>home team</b> — used every day. On a new-work day the team whose leader goes to the job (Gul first, then Jawad) takes the job, everyone else stays with their usual teammates, and anyone left over moves together into one team.')}${sec('newwork','Backup only — no longer used to set up new-work days. Kept in case you want to look back at it.')}`;
   }else if(setupTab==='staff'){
     const ctx={type:'staff'}, tm=(S.toMatch||[]).filter(n=>S.staff.includes(n));
     const freeFull=EMPLOYEES.filter(f=>S.staff.includes(f)&&!S.layouts.normal.concat(S.layouts.newwork).some(t=>people(t).includes(f)));
