@@ -5151,6 +5151,115 @@ async function generateRosterPdf(pdfOpts) {
     doc.text(fitOneLine(title, room), tx, cy + 1.9 * s);
   }
 
+  /* ★ NEW VILLAS THIS WEEK — a box at the top of page 1 with every new villa of the roster
+     (its day + stop number, name, area, phone only With Contacts, first visit / days left, a link to its day page,
+     MAP · CALL · WA With Contacts or MAP only Without Contacts). Not a separate page. */
+  const weekNew = (() => {
+    const seen = new Set(), out = [], keys = areaDriveOrderKeys();
+    grouped.forEach(([day, list]) => {
+      if (DAY_ORDER.indexOf(day) < 0) return;
+      const sorted = [...list].sort((a, b) => compareByDriveOrder(a, b, keys, dayMainOrderKeys(day)));
+      sorted.forEach((rv, i) => {
+        const c = rv.client, on = upcomingDateOf(day);
+        const nv = newVillaInfo(c, on);
+        if (!nv) return;
+        out.push({ rv, day, stopN: i + 1, nv, on });
+      });
+    });
+    /* one line per villa: the day of its first visit, else its next visit day; then in date order */
+    const best = new Map();
+    out.forEach((it) => { const c = it.rv.client, o = best.get(c), first = it.nv.isFirst || it.on === it.nv.first;
+      if (!o || (first && !o.first) || (first === o.first && it.on < o.it.on)) best.set(c, { it, first }); });
+    void seen;
+    return [...best.values()].map((x) => x.it).sort((a, b) => (a.on < b.on ? -1 : a.on > b.on ? 1 : a.stopN - b.stopN));
+  })();
+  const weekLinks = [];
+  let weekBoxDone = false;
+  function weekTag(it) {
+    if (it.nv.isFirst || it.nv.before) {
+      const d = new Date(`${it.nv.first}T00:00:00`);
+      return `FIRST VISIT  ·  ${["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][d.getDay()]} ${d.getDate()} ${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getMonth()]}`;
+    }
+    return newLongTag(it.rv.client, it.day);
+  }
+  /** Draws (or with dry only measures) one villa of the week box. Returns its height. */
+  function weekLine(x, y, w, it, dry) {
+    const c = it.rv.client, s = phoneMode ? 0.9 : 1;
+    const tile = 11, pad = 1.6, namePt = phoneMode ? 10 : 10.5, subPt = 8, tagPt = 6.8;
+    const ct = pdfContactInfo(c, includeContacts);
+    const mapUrl = includeContacts ? it.rv.mapHref || null : pdfSafeMapHref(it.rv.mapHref);
+    const b = R.btn * s, gap = R.btnGap * s;
+    const nBtn = includeContacts ? 3 : mapUrl ? 1 : 0;
+    const btnW = nBtn ? nBtn * b + (nBtn - 1) * gap : 0;
+    const btnsBelow = includeContacts && phoneMode;
+    const tx = x + pad + tile + 3;
+    const textW = x + w - pad - tx - (btnsBelow || !btnW ? 0 : btnW + 3);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(namePt);
+    const names = wrapMax(pdfText(clientDisplayNick(c)) || "—", textW, 2);
+    const vl = pdfText(villaLabel(c) || "");
+    const area = pdfText(subAreaOf(c)) || pdfText(mainAreaOf(c));
+    const phone = includeContacts ? [ct.phoneText, ct.waText ? `WhatsApp ${ct.waText}` : ""].filter(Boolean).join("  ·  ") : "";
+    const nameStep = namePt * 0.42, subStep = subPt * 0.43, tagH = tagPt * 0.62;
+    let h = pad + names.length * nameStep + (vl ? subStep : 0) + (area ? subStep : 0) + (phone ? subStep : 0) + 1.2 + tagH + pad;
+    if (btnsBelow) h += b + 1.6;
+    h = Math.max(h, tile + pad * 2, !btnsBelow && btnW ? b + pad * 2 : 0);
+    if (dry) return h;
+    /* day tile */
+    setFill(NV.bar);
+    doc.roundedRect(x + pad, y + pad, tile, tile * 0.86, 1.4, 1.4, "F");
+    doc.setFont("helvetica", "bold"); setTxt([255, 255, 255]);
+    doc.setFontSize(7.6); doc.text(String(it.day).slice(0, 3).toUpperCase(), x + pad + tile / 2, y + pad + 3.8, { align: "center" });
+    doc.setFontSize(7); doc.text(String(it.stopN).padStart(2, "0"), x + pad + tile / 2, y + pad + 7.6, { align: "center" });
+    let ly = y + pad;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(namePt); setTxt(PAL.ink);
+    names.forEach((t) => { ly += nameStep; doc.text(t, tx, ly - nameStep * 0.18); });
+    doc.setFontSize(subPt);
+    if (vl) { ly += subStep; doc.setFont("helvetica", "bold"); setTxt(NV.softTxt); doc.text(fitOneLine(vl, textW), tx, ly - subStep * 0.18); }
+    doc.setFont("helvetica", "normal"); setTxt(PAL.text2);
+    if (area) { ly += subStep; drawPin(tx + 0.2, ly - subStep * 0.18 - 2.5, 0.85, PAL.pin); doc.text(fitOneLine(area, textW - 2.6), tx + 2.6, ly - subStep * 0.18); }
+    if (phone) { ly += subStep; doc.text(fitOneLine(phone, textW), tx, ly - subStep * 0.18); }
+    const tag = weekTag(it), cy = ly + 1.2;
+    const cw = drawChip(tx, cy, tag, tagPt, tag.startsWith("FIRST"));
+    weekLinks.push({ x: tx + cw + 2, y: cy, h: tagH, day: it.day });
+    if (nBtn) {
+      if (btnsBelow) {
+        if (includeContacts) drawPdfActionRow(tx, cy + tagH + 1.6, btnW, s, ct, mapUrl, waIconBytes);
+      } else {
+        const bx = x + w - pad - btnW, by = y + h / 2 - b / 2;
+        if (includeContacts) drawPdfActionRow(bx, by, btnW, s, ct, mapUrl, waIconBytes);
+        else drawPdfMapOnly(bx, by, s, mapUrl);
+      }
+    }
+    return h;
+  }
+  /** Draws the week box under the logo on page 1 and returns where the day header starts. */
+  function drawWeekBox(y0) {
+    if (!weekNew.length) return y0;
+    const bx = margin, bw = contentW, innerX = bx + 3, innerW = bw - 6, titleH = 11;
+    const hs = weekNew.map((it) => weekLine(innerX, 0, innerW, it, true));
+    const room = (pageH - footerH - 4 - y0) * 0.62;
+    let shown = weekNew.length, hsum = hs.reduce((a, v) => a + v, 0);
+    while (shown > 1 && titleH + hsum + 6 > room) { shown--; hsum -= hs[shown]; }
+    const more = weekNew.length - shown, h = titleH + hsum + 2 + (more ? 6 : 0);
+    setFill(NV.boxFill); setDraw(NV.boxBorder); doc.setLineWidth(0.45);
+    doc.roundedRect(bx, y0, bw, h, 2.2, 2.2, "FD");
+    drawStar(bx + 5, y0 + 4.6, 1.8, NV.title);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.4); setTxt(NV.title);
+    doc.text("NEW VILLAS THIS WEEK", bx + 8.2, y0 + 5.6);
+    const firstN = weekNew.filter((it) => it.nv.isFirst || it.nv.before).length;
+    const cnt = `${weekNew.length} NEW${firstN ? `  ·  ${firstN} FIRST VISIT` : ""}`;
+    const cw = chipW(cnt, 7); setFill(NV.tag); doc.roundedRect(bx + bw - 3 - cw, y0 + 2.2, cw, 4.6, 1.3, 1.3, "F");
+    setTxt([255, 255, 255]); doc.text(cnt, bx + bw - 3 - cw / 2, y0 + 5.4, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7); setTxt(NV.softTxt);
+    doc.text(includeContacts ? "Tap a villa's buttons to open the map, call or WhatsApp · tap the page number to go to its day" : "Tap MAP to open the location · tap the page number to go to its day", bx + 4, y0 + 9.4);
+    let ly = y0 + titleH;
+    weekNew.slice(0, shown).forEach((it, i) => {
+      if (i > 0) { setDraw([235, 211, 174]); doc.setLineWidth(0.25); doc.setLineDashPattern([0.8, 0.8], 0); doc.line(innerX + 1, ly, innerX + innerW - 1, ly); doc.setLineDashPattern([], 0); }
+      ly += weekLine(innerX, ly, innerW, it, false);
+    });
+    if (more) { doc.setFont("helvetica", "bold"); doc.setFontSize(8); setTxt(NV.title); doc.text(`+ ${more} more new villa${more === 1 ? "" : "s"} — marked NEW on their day`, innerX + 2, ly + 4); }
+    return y0 + h + 3;
+  }
   const pageDayLabels = [];
   const usableBottom = pageH - footerH - 4;
   const orderKeys = areaDriveOrderKeys();
@@ -5185,8 +5294,9 @@ async function generateRosterPdf(pdfOpts) {
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, pageW, pageH, "F");
       pageDayLabels.push(String(day));
-      const logoBottom = drawPdfPageBrandingLogo(logoBytes, phoneMode ? 4 : 5);
+      let logoBottom = drawPdfPageBrandingLogo(logoBytes, phoneMode ? 4 : 5);
       const showCo = !(logoBytes && logoBytes.length);
+      if (!weekBoxDone) { weekBoxDone = true; logoBottom = drawWeekBox(logoBottom + (showCo ? 6 : 1)); }
       contentStartY = drawPdfGridDayHeader(day, logoBottom, cont, list.length, showCo, groups);
       if (!cont) {
         const nvItems = groups.flatMap((g) => g.items).filter((it) => newTagOf(it.rv.client, day));
@@ -5273,6 +5383,18 @@ async function generateRosterPdf(pdfOpts) {
     /* Same full size on every day (standard and phone) — a busy day simply continues on the next page. */
     flow(1, false);
   });
+  /* page numbers in the week box: "→ page N" jumps to that villa's day */
+  if (weekLinks.length) {
+    doc.setPage(1);
+    weekLinks.forEach((L) => {
+      const pg = pageDayLabels.indexOf(String(L.day)) + 1;
+      if (pg < 1) return;
+      const t = `page ${pg} \u203a`;
+      doc.setFont("helvetica", "bold"); doc.setFontSize(7); setTxt(NV.title);
+      doc.text(t, L.x, L.y + L.h * 0.72);
+      doc.link(L.x - 0.5, L.y - 0.5, textWidthMm(t) + 1, L.h + 1, { pageNumber: pg });
+    });
+  }
   const totalPages = doc.internal.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
