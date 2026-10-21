@@ -1342,7 +1342,8 @@ function showNote(id,html,kind){notes[id]={html,kind:kind||'info'};renderNotes()
 function hideNote(id){if(notes[id]){delete notes[id];renderNotes()}}
 function renderNotes(){const el=document.getElementById('notebar');if(!el)return;const ks=Object.keys(notes);el.hidden=!ks.length;el.innerHTML=ks.map(k=>`<div class="note ${notes[k].kind}"><span>${notes[k].html}</span><button class="btn small" data-notex="${k}" aria-label="Close">✕</button></div>`).join('')}
 /* The time of a change only ever moves forward on this device, even if the phone's clock is wrong. */
-function save(){snapToday();S.updatedAt=Math.max(Date.now(),(S.updatedAt||0)+1);localSave();schedulePush()}
+let batching=false; /* while a day is being built, its many small steps are saved once at the end */
+function save(){if(batching)return;snapToday();S.updatedAt=Math.max(Date.now(),(S.updatedAt||0)+1);localSave();schedulePush()}
 
 /* ---------- expertise + learning ---------- */
 const expert=(n,sk)=>((S.expert||{})[n]||[]).includes(sk);
@@ -1555,7 +1556,7 @@ function problems(t){
   if(ppl.length>maxTeam()){const s=ppl.length-maxTeam();out.push({kind:'car',short:s,text:`${ppl.length} people — one car takes ${maxTeam()} with the driver`})}
   return out;
 }
-const weight=t=>problems(t).reduce((a,p)=>a+(p.kind==='lead'?10:p.kind==='skill'?3*p.short:p.kind==='car'?4*p.short:p.short),0);
+const weight=t=>problems(t).reduce((a,p)=>a+(p.kind==='lead'?10:p.kind==='skill'?(p.skill==='driver'?8:3)*p.short:p.kind==='car'?4*p.short:p.short),0);
 /* Smart builder. Works on a copy of the day and returns the moves with the reason for each:
    1. people who must be on a job, 2. urgent and bigger jobs first, 3. leader, 4. the scarcest skills first,
    5. team size (labour first), 6. everyone left goes to the maintenance team they usually work in.
@@ -1640,6 +1641,7 @@ function suggest(date){
   function bringCore(t){if(!building||!t.leader)return;coreOf(t.leader).forEach(n=>{
     if(absent.has(n)||people(t).includes(n))return;
     if(isProj(t)&&(isSup(n)||nwLeaders().includes(n))&&!pinsOf(t).includes(n))return; /* supervisors lead; they don't ride along as crew */
+    if(isProj(t)&&jobNeeds(jobOf(t)).driver&&!people(t).some(x=>has(x,'driver'))&&!has(n,'driver')&&people(t).length>=Math.max(crewWant(t),jobOf(t).min||0)-1)return; /* keep a seat for the driver */
     const from=sim.find(x=>people(x).includes(n));if(from&&(from.leader===n||pinsOf(from).includes(n)||(from!==t&&isCoreIn(from,n))))return;
     if(people(t).length>=(isProj(t)?Math.max(crewWant(t),jobOf(t).min||0):maxTeam())){ /* full: a floater makes room for the core member */
       const fl=t.members.find(m=>!isCoreIn(t,m)&&!pinsOf(t).includes(m));if(!fl)return;
@@ -1661,6 +1663,26 @@ function suggest(date){
   const holders=sk=>S.staff.filter(n=>!absent.has(n)&&has(n,sk)).length;
   /* The job team is full but still misses a skill: send back the person it needs least (a supervisor who isn't leading,
      a senior gardener on labour work, someone outside the core crew first) and bring in a person with that skill. */
+  /* The job is full and every member covers something: try changing one member for someone who covers more
+     (for example a driver who can also do labour). Kept only when the job gains more than the other team loses. */
+  function swapBest(t){
+    const pins=pinsOf(t), base=weight(t); let best=null;
+    const cands=[...avail.map(n=>({n,from:null})),...sim.filter(d=>d!==t).flatMap(d=>d.members.filter(m=>!pinsOf(d).includes(m)&&!(isProj(d)&&isCoreIn(d,m))).map(m=>({n:m,from:d})))];
+    t.members.filter(m=>!pins.includes(m)).forEach(m=>cands.forEach(c=>{
+      t.members=t.members.map(x=>x===m?c.n:x);let w0=0,w1=0;
+      if(c.from){w0=weight(c.from);c.from.members=c.from.members.map(x=>x===c.n?m:x);w1=weight(c.from)}
+      const gain=(base-weight(t))-(w1-w0)-(isSup(c.n)?1:0)-(isCoreIn(t,m)?0.5:0);
+      if(c.from)c.from.members=c.from.members.map(x=>x===m?c.n:x);
+      t.members=t.members.map(x=>x===c.n?m:x);
+      if(gain>0.5&&(!best||gain>best.gain+1e-9))best={m,c,gain}}));
+    if(!best)return false;
+    const {m,c}=best;
+    t.members=t.members.map(x=>x===m?c.n:x);
+    if(c.from){c.from.members=c.from.members.map(x=>x===c.n?m:x)}else{avail=avail.filter(x=>x!==c.n);avail.push(m)}
+    moves.push({type:'move',name:c.n,fromName:c.from?c.from.name:'Available',to:t.id,toName:t.name,why:`Covers more of what ${t.name} needs (in place of ${dn(m)})`});
+    moves.push(c.from?{type:'move',name:m,fromName:t.name,to:c.from.id,toName:c.from.name,why:`Changed places with ${dn(c.n)}`}:{type:'move',name:m,fromName:t.name,to:'available',toName:'Available',why:`Made room for ${dn(c.n)}`});
+    return true;
+  }
   function swapIn(t,sk){
     const need=jobNeeds(jobOf(t)), pins=pinsOf(t), cnt=k=>people(t).filter(x=>has(x,k)).length, pj=projOf(t), lab=((pj&&pj.works)||[]).some(w=>LABOUR_WORK.has(w));
     const free=t.members.filter(m=>!pins.includes(m)&&!has(m,sk)&&!Object.keys(need).some(k=>has(m,k)&&cnt(k)<=need[k]));
@@ -1686,10 +1708,11 @@ function suggest(date){
         if(active('lead')){const c=pick(t,n=>has(n,'lead'),'lead');if(c){doMove(c,t,'Team has no leader',true);done=true;break}}
       }
       let did=false;
-      for(const p of ps.filter(p=>p.kind==='skill').sort((a,b)=>holders(a.skill)-holders(b.skill))){
+      for(const p of ps.filter(p=>p.kind==='skill').sort((a,b)=>(b.skill==='driver')-(a.skill==='driver')||holders(a.skill)-holders(b.skill))){
         const c=pick(t,n=>has(n,p.skill),'skill',p.skill); if(c){doMove(c,t,`Needs ${SK[p.skill]}`);did=true;break}
       }
       if(!did&&isProj(t))for(const p of ps.filter(p=>p.kind==='skill')){if(swapIn(t,p.skill)){did=true;break}}
+      if(!did&&isProj(t)&&ps.some(p=>p.kind==='skill')&&swapBest(t))did=true;
       if(did){done=true;break}
       if(ps.some(p=>p.kind==='size')){
         const c=(active('general')&&pick(t,n=>has(n,'general'),'size','general'))||pick(t,()=>true,'size');
@@ -1753,12 +1776,16 @@ function buildDay(date){
   building=true; try{return buildDay_(date)}finally{building=false}
 }
 function buildDay_(date){
+  const before=S.updatedAt; let moves=[]; batching=true; try{
   const r=ensureDay(date); r.teams=defaultTeams(date); r.manual=false; r.nursery=[]; /* a rebuild starts the nursery list again, so nobody is listed twice */
   const fresh=teamProjects(date).filter(p=>!p.crewOk);
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t){t.leader=null;t.members=[]}});
-  const {moves}=suggest(date); moves.forEach(m=>applyMove(date,m));
+  moves=suggest(date).moves; moves.forEach(m=>applyMove(date,m));
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t&&people(t).length){saveCrew(p,t,date);p.crewOk=true}});
   r.sig=daySig(date);
+  }finally{batching=false}
+  /* another window of the planner saved while this day was being built: take its data instead (the day is built again on the next screen) */
+  try{const cur=JSON.parse(localStorage.getItem(KEY)||'null');if(cur&&cur.updatedAt&&cur.updatedAt!==before&&cur.updatedAt>(before||0)){S=migrate(cur);return {moves:[],left:[]}}}catch(_){}
   save();
   return {moves,left:suggest(date).left};
 }
@@ -1778,7 +1805,7 @@ function daySig(date){
 }
 /* Build (or build again) a day that needs it. Returns 'built', 'stale' (changed, but kept for you to decide) or ''. */
 function ensureBuilt(date){
-  if(date<TODAY||isDayOff(date))return '';
+  if(date<TODAY||isDayOff(date)||document.hidden)return '';
   const r=dayRec(date), sig=daySig(date);
   if(r.teams&&r.sig===sig)return '';
   if(r.teams&&(r.manual||r.sent))return 'stale';
