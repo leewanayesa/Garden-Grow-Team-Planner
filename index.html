@@ -2065,7 +2065,7 @@ function readableRows(){
 }
 function schedulePush(){if(!syncUrl())return;clearTimeout(pushTimer);setSync('pending');pushTimer=setTimeout(push,1500)}
 /* Villas from the roster app: only names, areas, visit days and status are kept. */
-function mapRosterClients(arr){return (arr||[]).filter(Boolean).map((c,i)=>({fee:numVal(c.fee!=null?c.fee:c.amount),mapUrl:String(c.mapUrl||'').trim(),...(parseLatLng(c.lat!=null&&c.lng!=null?`${c.lat},${c.lng}`:'',c.mapUrl,c.location)||(c.pinLat!=null&&c.pinLng!=null&&(c.pinOf==null||String(c.pinOf).trim()===String(c.mapUrl||'').trim())&&+c.pinLat>22&&+c.pinLat<27&&+c.pinLng>51&&+c.pinLng<57?{lat:+c.pinLat,lng:+c.pinLng}:null)||{lat:null,lng:null}),pinErr:String(c.pinErr||''),pinOf:String(c.pinOf||''),id:String(c.id||('r'+i)),nick:String(c.nick||'').trim(),name:String(c.name||'').trim(),area:String(c.area||''),mainArea:String(c.mainArea||''),days:Array.isArray(c.days)?c.days:[],frequency:c.frequency||(String(c.monthlyVisits)==='2'?'twice_month':''),weeks:String(c.weeks||''),monthlyVisits:String(c.monthlyVisits??''),status:c.status||'active',newFrom:c.newFrom||'',routeOrder:c.routeOrder??null,needs:Array.isArray(c.needs)?c.needs.map(String):[],minutes:numVal(c.minutes)}))}
+function mapRosterClients(arr){return (arr||[]).filter(Boolean).map((c,i)=>({fee:numVal(c.fee!=null?c.fee:c.amount),mapUrl:String(c.mapUrl||'').trim(),...(parseLatLng(c.lat!=null&&c.lng!=null?`${c.lat},${c.lng}`:'',c.mapUrl,c.location)||(c.pinLat!=null&&c.pinLng!=null&&(c.pinOf==null||String(c.pinOf).trim()===String(c.mapUrl||'').trim())&&+c.pinLat>22&&+c.pinLat<27&&+c.pinLng>51&&+c.pinLng<57?{lat:+c.pinLat,lng:+c.pinLng}:null)||{lat:null,lng:null}),pinErr:String(c.pinErr||''),pinOf:String(c.pinOf||''),id:String(c.id||('r'+i)),nick:String(c.nick||'').trim(),name:String(c.name||'').trim(),area:String(c.area||''),mainArea:String(c.mainArea||''),days:Array.isArray(c.days)?c.days:[],frequency:c.frequency||(String(c.monthlyVisits)==='2'?'twice_month':''),weeks:String(c.weeks||''),monthlyVisits:String(c.monthlyVisits??''),status:c.status||'active',newFrom:c.newFrom||'',routeOrder:c.routeOrder??null,needs:Array.isArray(c.needs)?c.needs.map(String):[],minutes:numVal(c.minutes),phone:String(c.phone||''),whatsapp:String(c.whatsapp||''),whatsappSame:c.whatsappSame,phoneIntl:String(c.phoneIntl||''),villaNumber:String(c.villaNumber||'')}))}
 /* The roster app sends its villa list to the same Google Sheet; take it when it is newer than ours. */
 function takeRosterVillas(v){
   if(!v||!Array.isArray(v.clients)||!v.at)return false;
@@ -2484,12 +2484,14 @@ function renderDay(){
   const pdfMenu=`<details class="more pdfmenu"><summary class="btn">PDF ▾</summary><div class="morepop">
       <p class="mhead2">${cur===TODAY?"Today's teams":'Teams for this day'} — ${esc(shortDate(cur))}</p>
       <button class="btn pdfi" data-pdfday><b>Day plan (A4)</b><span>all teams, villas and jobs</span></button>
-      <button class="btn pdfi" data-pdfleaders><b>Leader pages (phone)</b><span>one page per leader</span></button>
       <p class="mhead2">This week — ${esc(shortDate(ws0))} to ${esc(shortDate(addDays(ws0,6)))}</p>
       <button class="btn pdfi" data-pdfweek><b>Week plan</b><span>one page per day</span></button>
-      <p class="mhead2">Villa roster — all villas, every day</p>
-      <button class="btn pdfi" data-pdfroster><b>Roster PDF</b><span>standard page</span></button>
-      <button class="btn pdfi" data-pdfroster="phone"><b>Roster PDF for phone</b><span>narrow page for the phone</span></button>
+      <p class="mhead2">Villa roster — standard PDF</p>
+      <button class="btn pdfi" data-pdfroster="std-with"><b>With contacts</b><span>map, call and WhatsApp buttons</span></button>
+      <button class="btn pdfi" data-pdfroster="std-without"><b>Without contacts</b><span>map only — no phone numbers</span></button>
+      <p class="mhead2">Villa roster — phone PDF</p>
+      <button class="btn pdfi" data-pdfroster="phone-with"><b>With contacts</b><span>map, call and WhatsApp buttons</span></button>
+      <button class="btn pdfi" data-pdfroster="phone-without"><b>Without contacts</b><span>map only — no phone numbers</span></button>
     </div></details>`;
   const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
   const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} villas today · ${off.length} off</span>`;
@@ -2806,8 +2808,8 @@ function renderSetup(){
       <p class="muted small">Villas are split between teams area by area. An area stays with one team even if that team gets more villas; it's only divided when it has more villas than this maximum.</p>
       <div class="kpis seven">${per.map(([d,n])=>`<div><b>${n}</b><span>${d.slice(0,3)}</span></div>`).join('')}</div>
       <p class="muted small">In the roster app tap Backup, then load that file here. Do it again whenever clients change.</p>
-      <div class="row"><button class="btn" data-pdfroster>Roster PDF (villa list)</button><button class="btn" data-pdfroster="phone">Roster PDF for phone</button></div>
-      <p class="muted small">Same layout as the roster app's Export PDF, without contacts (phone numbers stay in the roster app). Paused villas are left out.</p></div>
+      <div class="row"><button class="btn" data-pdfroster="std-with">Roster PDF with contacts</button><button class="btn" data-pdfroster="std-without">without contacts</button><button class="btn" data-pdfroster="phone-with">Phone PDF with contacts</button><button class="btn" data-pdfroster="phone-without">without contacts</button></div>
+      <p class="muted small">Same layout as the roster app's Export PDF. With contacts shows MAP, Call and WhatsApp; without contacts shows MAP only and no phone numbers. Paused villas are left out.${(S.clients||[]).some(c=>c.phone||c.whatsapp)?'':' <b>Phone numbers have not come from the Maintenance App yet</b> — until then "with contacts" shows MAP only.'}</p></div>
       ${pinsCard()}
       ${(()=>{const L=sizeLimits(), cl=(S.clients||[]).filter(c=>c.status!=='paused'), cnt=k=>cl.filter(c=>sizeOf(c)===k).length, noFee=cl.filter(c=>!c.fee), noPos=cl.filter(c=>!posOf(c));
         return `<div class="card"><h2>Villa sizes</h2><p class="muted small">Size = what the client pays <b>per visit</b> (monthly fee ÷ visits a month). The team builder balances teams by workload: Small = 1 point, Medium = 1.5, Large = 2. A team is "heavy" above ${maxV()} villas or ${capPts()} points.</p>
@@ -3197,7 +3199,7 @@ document.addEventListener('click',e=>{
   if('pdfday' in d){printDay();return}
   if('pdfweek' in d){printWeek();return}
   if('pdfleaders' in d){printLeaders();return}
-  if('pdfroster' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}toast('Making the roster PDF…');RosterPDF.make(S.clients,d.pdfroster==='phone').catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
+  if('pdfroster' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const v=d.pdfroster||'std-without',wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
   if('pdfsetup' in d){printSetup();return}
   if('reportpdf' in d){printReport();return}
   if('reportcsv' in d){reportCsv();return}
@@ -5266,7 +5268,7 @@ async function generateRosterPdf(pdfOpts) {
     const cw = chipW(cnt, 7); setFill(NV.tag); doc.roundedRect(bx + bw - 3 - cw, y0 + 2.2, cw, 4.6, 1.3, 1.3, "F");
     setTxt([255, 255, 255]); doc.text(cnt, bx + bw - 3 - cw / 2, y0 + 5.4, { align: "center" });
     doc.setFont("helvetica", "normal"); doc.setFontSize(7); setTxt(NV.softTxt);
-    doc.text(includeContacts ? "Tap a villa's buttons to open the map, call or WhatsApp · tap the page number to go to its day" : "Tap MAP to open the location · tap the page number to go to its day", bx + 4, y0 + 9.4);
+    doc.text(fitOneLine(phoneMode ? (includeContacts ? "Tap the buttons to open map, call or WhatsApp" : "Tap MAP to open the location") + " · page no. opens the day" : (includeContacts ? "Tap a villa's buttons to open the map, call or WhatsApp · tap the page number to go to its day" : "Tap MAP to open the location · tap the page number to go to its day"), bw - 8), bx + 4, y0 + 9.4);
     let ly = y0 + titleH;
     weekNew.slice(0, shown).forEach((it, i) => {
       if (i > 0) { setDraw([235, 211, 174]); doc.setLineWidth(0.25); doc.setLineDashPattern([0.8, 0.8], 0); doc.line(innerX + 1, ly, innerX + innerW - 1, ly); doc.setLineDashPattern([], 0); }
@@ -5427,8 +5429,9 @@ async function generateRosterPdf(pdfOpts) {
 const _origLoad=pdfLoadBrandingBytes;
 const logoPng=()=>new Promise(res=>{try{const im=new Image();im.onload=()=>{try{const w=480,h=Math.round(w*(im.naturalHeight||im.height||1)/(im.naturalWidth||im.width||1)),cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(im,0,0,w,h);const bin=atob(cv.toDataURL("image/png").split(",")[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);res(u)}catch(_){res(null)}};im.onerror=()=>res(null);im.src=LOGO}catch(_){res(null)}});
 pdfLoadBrandingBytes=async(fileName,fb)=>{if(fileName==="logo.png"&&typeof LOGO==="string"&&LOGO.startsWith("data:")){const u=await logoPng();if(u)return u}return _origLoad(fileName,fb)};
-const adapt=c=>({id:c.id,nick:c.nick||"",name:c.name||"",area:c.area||"",mainArea:c.mainArea||"",days:[...(c.days||[])],frequency:c.frequency||"",weeks:c.weeks||"",monthlyVisits:c.monthlyVisits||"",status:c.status||"active",newFrom:c.newFrom||"",routeOrder:c.routeOrder??null,mapUrl:c.mapUrl||"",phone:"",whatsapp:"",landmark:"",notes:""});
-return {make(clients,phone){state.clients=(clients||[]).map(adapt);return generateRosterPdf({phone:!!phone,includeContacts:false})}};
+const adapt=(c,wc)=>({id:c.id,nick:c.nick||"",name:c.name||"",area:c.area||"",mainArea:c.mainArea||"",days:[...(c.days||[])],frequency:c.frequency||"",weeks:c.weeks||"",monthlyVisits:c.monthlyVisits||"",status:c.status||"active",newFrom:c.newFrom||"",routeOrder:c.routeOrder??null,mapUrl:c.mapUrl||"",villaNumber:c.villaNumber||"",
+  phone:wc?String(c.phone||""):"",whatsapp:wc?String(c.whatsapp||""):"",whatsappSame:wc?c.whatsappSame:undefined,phoneIntl:wc?String(c.phoneIntl||""):"",landmark:"",notes:""});
+return {make(clients,phone,withContacts){const wc=!!withContacts;state.clients=(clients||[]).map(c=>adapt(c,wc));return generateRosterPdf({phone:!!phone,includeContacts:wc})}};
 })();
 </script>
 <script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
