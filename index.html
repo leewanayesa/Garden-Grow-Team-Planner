@@ -462,6 +462,8 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .mrow{display:flex;gap:16px;justify-content:center}
 .dacts{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .more{position:relative}
+.mhead2{margin:6px 4px 0;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.mhead2:first-child{margin-top:2px}
+.pdfi{display:grid;text-align:left;gap:1px;min-width:250px}.pdfi span{font-size:.78rem;font-weight:500;color:var(--muted)}
 .more summary{list-style:none;cursor:pointer} .more summary::-webkit-details-marker{display:none}
 .morepop{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:8px;display:grid;gap:6px;min-width:220px}
 .morepop .btn{justify-content:flex-start;width:100%}
@@ -2476,7 +2478,18 @@ function renderDay(){
   const staleBar=stale?`<div class="ibox warn stalebar">${ICON.alert}<div><b>${r.sent?'Changed after you sent this day to the leaders':'Things changed since you edited this day by hand'}</b><span>${r.sent?`A job, who's off, skills or villas changed after sending${r.sentAt?' at '+esc(r.sentAt):''}. Rebuild, then send to the leaders again.`:'A job, who\'s off, skills or villas changed. Rebuild to let the app set the teams again (your hand changes are replaced), or keep your teams as they are.'}</span><div class="row"><button class="btn small primary" data-build>Rebuild teams</button><button class="btn small" data-keepday>Keep as it is</button></div></div></div>`:'';
   const more=`<details class="more"><summary class="btn">More ▾</summary><div class="morepop">
       <button class="btn" data-build>Rebuild teams (start this day again)</button>
-      <button class="btn" data-pdfleaders>Leader pages (phone PDF)</button><button class="btn" data-pdfweek>Week PDF (one page per day)</button><button class="btn" data-pdfroster>Roster PDF (villa list)</button><button class="btn" data-pdfroster="phone">Roster PDF for phone</button><button class="btn" data-noteopen>Note for the day</button><button class="btn" data-newleave>+ Annual leave</button><button class="btn" data-off>Change who's off</button><button class="btn" data-alljobs>All new work jobs</button>
+<button class="btn" data-noteopen>Note for the day</button><button class="btn" data-newleave>+ Annual leave</button><button class="btn" data-off>Change who's off</button><button class="btn" data-alljobs>All new work jobs</button>
+    </div></details>`;
+  const ws0=weekStart(cur);
+  const pdfMenu=`<details class="more pdfmenu"><summary class="btn">PDF ▾</summary><div class="morepop">
+      <p class="mhead2">${cur===TODAY?"Today's teams":'Teams for this day'} — ${esc(shortDate(cur))}</p>
+      <button class="btn pdfi" data-pdfday><b>Day plan (A4)</b><span>all teams, villas and jobs</span></button>
+      <button class="btn pdfi" data-pdfleaders><b>Leader pages (phone)</b><span>one page per leader</span></button>
+      <p class="mhead2">This week — ${esc(shortDate(ws0))} to ${esc(shortDate(addDays(ws0,6)))}</p>
+      <button class="btn pdfi" data-pdfweek><b>Week plan</b><span>one page per day</span></button>
+      <p class="mhead2">Villa roster — all villas, every day</p>
+      <button class="btn pdfi" data-pdfroster><b>Roster PDF</b><span>standard page</span></button>
+      <button class="btn pdfi" data-pdfroster="phone"><b>Roster PDF for phone</b><span>narrow page for the phone</span></button>
     </div></details>`;
   const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
   const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} villas today · ${off.length} off</span>`;
@@ -2493,7 +2506,7 @@ function renderDay(){
         <div class="dtxt"><span class="eyebrow ${cur===TODAY?'g':''}">${dayLabel(cur)} · ${kind}</span><h2>${longDate(cur).replace(/ \d{4}$/,'')}</h2></div>
         <button class="iconbtn lg" data-shiftday="1" aria-label="Next day">${ICON.right}</button></div>
       ${weekStrip()}
-      <div class="dacts desk-flex"><button class="btn" data-monthopen>${monthOpen?'Hide month':'Month'}</button><button class="btn" data-pdfday>PDF</button>${more}<button class="btn nwbtn" data-newproj>＋ New work</button>${primary}</div>
+      <div class="dacts desk-flex"><button class="btn" data-monthopen>${monthOpen?'Hide month':'Month'}</button>${pdfMenu}${more}<button class="btn nwbtn" data-newproj>＋ New work</button>${primary}</div>
       <div class="phone-only mrow"><button class="link" data-monthopen>${monthOpen?'Hide month':'Month view'}</button>${cur!==TODAY?'<button class="link" data-gototoday>Back to today</button>':''}</div>
       ${cur!==TODAY?'<button class="link desk-only" data-gototoday>Back to today</button>':''}
       ${monthOpen?`<div class="monthpop">${calendarHtml()}</div>`:''}
@@ -2521,7 +2534,7 @@ function renderDay(){
     
     <p class="muted small desk-only">Drag a name or villa to another team. Click a name for leader, off today, skills and rename.</p>
   </div>
-    <div class="mbar phone-only">${primary}<button class="btn" data-pdfday>PDF</button>${more.replace('More ▾','⋯')}</div>`;
+    <div class="mbar phone-only">${primary}${pdfMenu.replace('PDF ▾','PDF')}${more.replace('More ▾','⋯')}</div>`;
 }
 
 /* ---------- Week ---------- */
@@ -3057,12 +3070,14 @@ function render(){
 function applyBackup(o){if(!o||!o.staff||!o.layouts)throw 0;S=migrate(o);save();toast('Backup loaded');tab='day';sel=null;render()}
 function closeAll(){sel=null;villaSel=null;menuMode=null;modal=null;delArm=null;renderModal();render()}
 function goDay(s){cur=s;tab='day';sel=null;villaSel=null;noteOpen=false;render();scrollTo(0,0)}
+document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.matches&&t.matches('details.more')&&t.open)document.querySelectorAll('details.more[open]').forEach(x=>{if(x!==t)x.open=false})},true);
 document.addEventListener('click',e=>{
   const el=e.target.closest('button,[data-overlay]');
   if(e.target.id==='overlay'){closeAll();return}
   if((sel||villaSel)&&!e.target.closest('#menu')&&!e.target.closest('.chip')&&!e.target.closest('.vchip')&&!e.target.closest('#modalroot')){sel=null;villaSel=null;menuMode=null;render();if(!el)return}
   if(!el)return;
   const d=el.dataset, dayCtx={type:'day',date:cur};
+  {const dm=el.closest('details.more');if(dm&&el.tagName==='BUTTON')dm.open=false}
   /* dialogs */
   if('lvdelete' in d){const id=modal.id;if(delArm!=='lv:'+id){delArm='lv:'+id;readLeave();renderModal();return}S.leaves=S.leaves.filter(x=>x.id!==id);applyLeaves();save();delArm=null;modal=null;renderModal();toast('Leave deleted');render();return}
   if('newleave' in d){openLeave(null);return}
