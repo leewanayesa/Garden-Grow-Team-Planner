@@ -147,8 +147,10 @@ main#view{max-width:1480px;margin:0 auto;padding-inline:16px;padding-block:16px 
 @media (max-width:560px){.matchrow{grid-template-columns:1fr 1fr}.matchrow select{grid-column:1/-1}}
 .nickin{width:130px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:6px 8px}
 .fulln{font-size:.72rem;margin-top:2px;white-space:normal;max-width:220px}
-.sup.drv{background:#1565c0}
-.sup.sgr{background:#9a5b16}
+.sup.drv,.chip .sup.drv,.srow .sup.drv{background:#3d6a9e}
+.sup.sgr,.chip .sup.sgr,.srow .sup.sgr{background:#9a5b16}
+.sup.jgr,.chip .sup.jgr,.srow .sup.jgr{background:#5c7a3a}
+.sup.lab,.chip .sup.lab,.srow .sup.lab{background:#7a746b}
 .srow .sup{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--forest);color:#fff;border-radius:4px;padding:1px 4px;font-style:normal}
 .chip .sup{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--forest);color:#fff;border-radius:4px;padding:1px 4px}
 .chip .lv{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 4px}
@@ -2320,8 +2322,8 @@ function putVillaBack(date,id){
 
 /* ---------- small pieces ---------- */
 /* Small tag after a name: SUP, DRIVER, or SUP / DRIVER. */
-function roleTag(n){const sk=S.skills[n]||[],sp=sk.includes('drv_spare'),parts=[isSup(n)?'sup':'',gradeOf(n)===3?'sr gardener':'',sp?'spare driver':has(n,'driver')?'driver':''].filter(Boolean);if(!parts.length)return '';
-  const cls=isSup(n)?'':gradeOf(n)===3?'sgr':'drv';return `<span class="sup ${cls}">${parts.join(' / ')}${has(n,'driver')&&!sp?' 🔒':''}</span>`}
+function roleTag(n){const sk=S.skills[n]||[],sp=sk.includes('drv_spare'),g=gradeOf(n),parts=[isSup(n)?'sup':'',['','labour','jr gardener','sr gardener'][g]||'',sp?'spare driver':has(n,'driver')?'driver':''].filter(Boolean);if(!parts.length)return '';
+  const cls=isSup(n)?'':g===3?'sgr':g===2?'jgr':g===1?'lab':'drv';return `<span class="sup ${cls}">${parts.join(' / ')}${has(n,'driver')&&!sp?' 🔒':''}</span>`}
 function chip(name,ctx,cls=''){
   const on=sel&&sel.name===name&&sameCtx(sel.ctx,ctx);
   return `<button class="chip ${cls} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}">${esc(dn(name))}${cls==='lead'?'<span class="lt">leader</span>':''}${roleTag(name)}${ctx.type==='day'&&leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</button>`;
