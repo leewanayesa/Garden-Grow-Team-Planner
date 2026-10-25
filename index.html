@@ -465,6 +465,9 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .mrow{display:flex;gap:16px;justify-content:center}
 .dacts{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .more{position:relative}
+.ntsum{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;display:grid;gap:6px}
+.ntrow{display:flex;gap:6px;align-items:center}.ntrow .srow{flex:1}.ntrow.on .srow{border-color:#2e7d32;background:#eef7ec}
+.mhead3{margin:8px 4px 0;font-weight:800;font-size:.9rem;color:var(--ink);border-top:1px solid var(--line);padding-top:8px}.mhead3:first-child{border-top:0;padding-top:0;margin-top:2px}
 .mhead2{margin:6px 4px 0;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.mhead2:first-child{margin-top:2px}
 .pdfi{display:grid;text-align:left;gap:1px;min-width:250px}.pdfi span{font-size:.78rem;font-weight:500;color:var(--muted)}
 .more summary{list-style:none;cursor:pointer} .more summary::-webkit-details-marker{display:none}
@@ -2488,18 +2491,19 @@ function renderDay(){
 <button class="btn" data-noteopen>Note for the day</button><button class="btn" data-newleave>+ Annual leave</button><button class="btn" data-off>Change who's off</button><button class="btn" data-alljobs>All new work jobs</button>
     </div></details>`;
   const ws0=weekStart(cur);
-  const pdfMenu=`<details class="more pdfmenu"><summary class="btn">PDF ▾</summary><div class="morepop">
-      <p class="mhead2">${cur===TODAY?"Today's teams":'Teams for this day'} — ${esc(shortDate(cur))}</p>
+  const teamItems=`<p class="mhead2">${cur===TODAY?"Today's teams":'Teams for this day'} — ${esc(shortDate(cur))}</p>
       <button class="btn pdfi" data-pdfday><b>Day plan (A4)</b><span>all teams, villas and jobs</span></button>
       <p class="mhead2">This week — ${esc(shortDate(ws0))} to ${esc(shortDate(addDays(ws0,6)))}</p>
-      <button class="btn pdfi" data-pdfweek><b>Week plan</b><span>one page per day</span></button>
-      <p class="mhead2">Villa roster — standard PDF</p>
+      <button class="btn pdfi" data-pdfweek><b>Week plan</b><span>one page per day</span></button>`;
+  const rosterItems=`<p class="mhead2">Standard page</p>
       <button class="btn pdfi" data-pdfroster="std-with"><b>With contacts</b><span>map, call and WhatsApp buttons</span></button>
       <button class="btn pdfi" data-pdfroster="std-without"><b>Without contacts</b><span>map only — no phone numbers</span></button>
-      <p class="mhead2">Villa roster — phone PDF</p>
+      <p class="mhead2">Phone page</p>
       <button class="btn pdfi" data-pdfroster="phone-with"><b>With contacts</b><span>map, call and WhatsApp buttons</span></button>
-      <button class="btn pdfi" data-pdfroster="phone-without"><b>Without contacts</b><span>map only — no phone numbers</span></button>
-    </div></details>`;
+      <button class="btn pdfi" data-pdfroster="phone-without"><b>Without contacts</b><span>map only — no phone numbers</span></button>`;
+  /* Two PDF buttons: the team plan (who works where) and the maintenance roster (all villas, every day) */
+  const pdfMenu=`<details class="more pdfmenu"><summary class="btn">Team Plan PDF ▾</summary><div class="morepop">${teamItems}</div></details><details class="more pdfmenu"><summary class="btn">Maintenance Roster PDF ▾</summary><div class="morepop">${rosterItems}</div></details>`;
+  const pdfMenuPhone=`<details class="more pdfmenu"><summary class="btn">PDF</summary><div class="morepop"><p class="mhead3">📋 Team Plan PDF</p>${teamItems}<p class="mhead3">🏡 Maintenance Roster PDF</p>${rosterItems}</div></details>`;
   const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
   const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} villas today · ${off.length} off</span>`;
   const okBox=iss.length?`<div class="ibox bad">${ICON.alert}<div><b>${plural(iss.length,'thing')} to check</b>${sumTxt}<span>${esc(iss[0])}</span>${sug.moves.length?`<button class="btn small primary" data-applyall>Fix all (${sug.moves.length})</button>`:''}</div></div>`
@@ -2543,7 +2547,7 @@ function renderDay(){
     
     <p class="muted small desk-only">Drag a name or villa to another team. Click a name for leader, off today, skills and rename.</p>
   </div>
-    <div class="mbar phone-only">${primary}${pdfMenu.replace('PDF ▾','PDF')}${more.replace('More ▾','⋯')}</div>`;
+    <div class="mbar phone-only">${primary}${pdfMenuPhone}${more.replace('More ▾','⋯')}</div>`;
 }
 
 /* ---------- Week ---------- */
@@ -2610,6 +2614,18 @@ function addToHtml(){
 function fullTeam(date,id,incoming){const t=effTeams(date).find(x=>x.id===id);return !!(t&&people(t).length>=maxTeam()&&!people(t).includes(incoming))}
 function swapInto(a,b){const r=ensureDay(cur);if((r.absent||[]).includes(a)){r.absent=r.absent.filter(x=>x!==a)}
   const inTeam=effTeams(cur).some(t=>people(t).includes(a));if(inTeam)swapPeople(a,b);else swapPeople(b,a)}
+/* "+ Add a team": choose the people (free and nursery first, then from other teams), see the team's checks, then create it. */
+function newTeamHtml(){
+  const teams=effTeams(cur),off=new Set(dayRec(cur).absent||[]),sel=modal.sel,L=modal.leader;
+  const rows=[];S.staff.filter(n=>!off.has(n)).forEach(n=>{const t=teams.find(x=>people(x).includes(n));
+    rows.push({n,where:t?esc(t.name)+(t.leader===n?' · leader':''):nurseryOf(cur).includes(n)?'Nursery':'Free',r:t?(t.projectId?4:t.leader===n?3:2):nurseryOf(cur).includes(n)?1:0})});
+  rows.sort((a,b)=>a.r-b.r||dn(a.n).localeCompare(dn(b.n)));
+  const need=jobNeeds(jobOfId('maint')),checks=Object.keys(need).filter(k=>k!=='lead'&&active(k)).map(k=>{const ok=sel.filter(x=>has(x,k)).length>=need[k];return `<span class="tick ${ok?'':'no'}">${ok?'✓':'✗'} ${esc((SKILLS.find(s=>s.id===k)||{}).short||k)}</span>`}).join('');
+  return `<div class="mhead"><div><b>New team for ${esc(shortDate(cur))}</b><span>Tap the people for this team (up to ${maxTeam()} with the driver). Free people and the nursery are first.</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+    <div class="ntsum"><b>${sel.length}/${maxTeam()} people</b> · Leader: ${L?`<b>${esc(dn(L))}</b>`:'<span class="redtxt">tap ★ next to a chosen name</span>'}<div class="ticks">${checks}</div>${carsN()<=teams.length?`<p class="warntxt small">You have ${carsN()} cars and already ${teams.length} teams — this team needs another car.</p>`:''}</div>
+    <div class="slist">${rows.map(o=>{const on=sel.includes(o.n);return `<div class="ntrow ${on?'on':''}"><button class="srow" data-ntpick="${esc(o.n)}"><span><b>${on?'✓ ':''}${esc(dn(o.n))}</b> ${roleTag(o.n)}<em> · ${o.where}</em></span></button>${on&&has(o.n,'lead')?`<button class="btn small ${L===o.n?'primary':''}" data-ntlead="${esc(o.n)}" title="Make leader">★${L===o.n?' Leader':''}</button>`:''}</div>`}).join('')}</div>
+    <div class="mrow"><button class="btn primary" data-ntcreate ${sel.length?'':'disabled'}>Create team (${sel.length})</button><button class="btn" data-closemodal>Cancel</button></div>`;
+}
 function dropSwapHtml(){
   const t=effTeams(cur).find(x=>x.id===modal.team);if(!t)return '';const a=modal.incoming,from=effTeams(cur).find(x=>people(x).includes(a));
   const whereA=from?from.name:(nurseryOf(cur).includes(a)?'the nursery':'Available');
@@ -2940,6 +2956,7 @@ function renderModal(){
   else if(modal.kind==='swap')inner=swapHtml();
   else if(modal.kind==='check')inner=checkHtml();
   else if(modal.kind==='dropswap')inner=dropSwapHtml();
+  else if(modal.kind==='newteam')inner=newTeamHtml();
   else if(modal.kind==='off'){
     const off=dayRec(cur).absent||[];
     inner=`<div class="mhead"><div><b>Who's off?</b><span>${longDate(cur)}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
@@ -3255,7 +3272,16 @@ document.addEventListener('click',e=>{
   if(d.addopen){addOpen=d.addopen;sel=null;render();const i=$('newname');if(i)i.focus();return}
   if('addclose' in d){addOpen=null;render();return}
   if(d.delteam){if(delArm!==d.delteam){delArm=d.delteam;render();return}const ctx=JSON.parse(d.ctx),teams=ctxTeams(ctx,true),i=teams.findIndex(t=>t.id===d.delteam);if(i>=0)teams.splice(i,1);delArm=null;save();toast('Team removed');render();return}
-  if('addday' in d){const ctx={type:'day',date:cur};const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));const n=r.teams.filter(t=>!t.projectId).length+1;
+  if('addday' in d){modal={kind:'newteam',sel:[],leader:null};renderModal();return}
+  if(d.ntpick&&modal&&modal.kind==='newteam'){const n=d.ntpick,i=modal.sel.indexOf(n);if(i>=0){modal.sel.splice(i,1);if(modal.leader===n)modal.leader=null}else if(modal.sel.length<maxTeam())modal.sel.push(n);else toast(`A car takes ${maxTeam()} with the driver`);
+    if(!modal.leader||!modal.sel.includes(modal.leader))modal.leader=modal.sel.find(x=>has(x,'lead'))||null;renderModal();return}
+  if(d.ntlead&&modal&&modal.kind==='newteam'){modal.leader=d.ntlead;renderModal();return}
+  if('ntcreate' in d&&modal&&modal.kind==='newteam'){const sel=[...modal.sel];if(!sel.length){toast('Choose the people first');return}const ctx={type:'day',date:cur};keepUndo();const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));
+    const n=r.teams.filter(t=>!t.projectId).length+1,id='x'+uid(),L=modal.leader&&sel.includes(modal.leader)?modal.leader:null;
+    r.teams.push({id,name:'Team '+(L?dn(L).split(' ')[0]:n),job:'maint',desc:'',leader:null,members:[],extra:true});
+    sel.forEach(x=>moveTo(ctx,x,id));if(L)makeLeader(ctx,L);markManual(ctx);save();modal=null;renderModal();openTeams.add(id);
+    toastUndo(`New team: ${plural(sel.length,'person','people')}${r.teams.length>carsN()?` — ${r.teams.length} teams for ${carsN()} cars`:''}`);render();return}
+  if('addday_old' in d){const ctx={type:'day',date:cur};const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));const n=r.teams.filter(t=>!t.projectId).length+1;
     r.teams.push({id:'x'+uid(),name:'Team '+n,job:'maint',desc:'',leader:null,members:[],extra:true});markManual(ctx);save();
     const used=r.teams.length;toast(used>carsN()?`Team ${n} added — that is ${used} teams for ${carsN()} cars`:`Team ${n} added — tap "+ Add person" to fill it`);render();return}
   if(d.rmteam){const r=ensureDay(cur);const t=(r.teams||[]).find(x=>x.id===d.rmteam);if(t&&!people(t).length){r.teams=r.teams.filter(x=>x!==t);markManual({type:'day',date:cur});save();toast('Team removed');render()}else toast('Move the people out first');return}
