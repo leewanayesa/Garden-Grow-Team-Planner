@@ -500,7 +500,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .plist2 .chip{width:100%;justify-content:flex-start;border-radius:10px;text-align:left}
 .plist2 .chip.lead .lt{margin-left:auto}
 .vwrap{border-top:1px solid var(--line);padding-top:10px}
-.link.small{font-size:.84rem;min-height:30px;padding:2px 0}
+.link.small{font-size:.84rem;min-height:30px;padding:2px 0}.tbody>.link.rmteam{color:var(--red,#b42318);opacity:.85}.tbody>.link.rmteam:hover{opacity:1}
 .addnw{border:1px dashed var(--orange-bar);background:var(--surface);color:var(--orange);border-radius:14px;padding:14px;font-weight:700;font-size:.95rem;cursor:pointer}
 .mbar{position:fixed;left:0;right:0;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:29;background:var(--surface);border-top:1px solid var(--line);padding:8px 16px;display:flex;gap:8px}
 .mbar>.btn.primary{flex:1}
@@ -2424,9 +2424,9 @@ function teamCard(t,ctx,vp){
       ${sm.map(p=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(p.title)}<em>${esc(worksText(p))}${jobFlags(p).filter(f=>f!=='small job').length?' · '+jobFlags(p).filter(f=>f!=='small job').join(' · '):''}</em></span><span class="row"><select class="textin sm" data-smallteam="${p.id}" aria-label="Team doing ${esc(p.title)}">${mts.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><button class="link small" data-editproj="${p.id}">Edit</button></span></div>`).join('')}
       ${ctx.type==='day'&&n?(n>maxTeam()?`<p class="taphint over">👆 Too many people (${n}/${maxTeam()}) — tap a name, then <b>Remove from team</b></p>`:'<p class="taphint">👆 Tap a name to swap or remove</p>'):''}
       <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader — tap a name to make one leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${ctx.type==='day'?(n>=maxTeam()?`<button class="addp full" disabled>Car full (${n}/${maxTeam()}) — tap a name to swap</button>`:`<button class="addp" data-addto="${t.id}">＋ Add person</button>`):`<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button>`}</div>
-      ${t.extra&&ctx.type==='day'&&!n?`<button class="link small" data-rmteam="${t.id}">Remove this team</button>`:''}
       ${vl?`<div class="vwrap">${villaList(t,vp,ctx)}</div>`:''}
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):''}
+      ${ctx.type==='day'&&!p?`<button class="link small rmteam" data-rmteam="${t.id}">✕ Remove team</button>`:''}
     </div>
   </section>`;
 }
@@ -2640,8 +2640,28 @@ function swapHtml(){
     <div class="qacts"><button class="btn small ${people(A).length>maxTeam()?'primary':''}" data-qremove>Remove from team</button>${A.leader!==a?'<button class="btn small" data-qlead>Make leader</button>':''}<button class="btn small" data-qoff>Off today</button><button class="btn small" data-qnursery>Nursery</button><button class="btn small" data-qmore>More…</button></div>`;
 }
 let lastUndo=null, jobUndo=null;
-function keepUndo(){const r=ensureDay(cur);lastUndo={date:cur,teams:clone(r.teams||defaultTeams(cur)),nursery:[...(r.nursery||[])],absent:[...(r.absent||[])],manual:!!r.manual}}
-function undoLast(){if(!lastUndo)return;const r=ensureDay(lastUndo.date);r.teams=lastUndo.teams;r.nursery=lastUndo.nursery;r.absent=lastUndo.absent;r.manual=lastUndo.manual;lastUndo=null;save();toast('Undone');render()}
+function keepUndo(){const r=ensureDay(cur);lastUndo={date:cur,teams:clone(r.teams||defaultTeams(cur)),nursery:[...(r.nursery||[])],absent:[...(r.absent||[])],manual:!!r.manual,villaMove:clone(r.villaMove||{})}}
+function removeTeam(id){
+  const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));
+  const t=r.teams.find(x=>x.id===id);if(!t||isProj(t))return;
+  const others=r.teams.filter(x=>x!==t&&!isProj(x));
+  if(!others.length){toast('This is the only maintenance team — it can\'t be removed');return}
+  keepUndo();const ctx={type:'day',date:cur},ppl0=people(t),went=[],mx=maxTeam();
+  const before=[...r.teams];r.teams=r.teams.filter(x=>x!==t);
+  const nv=((villaPlan(cur,before).byTeam||{})[id]||[]).length,grp={};
+  ppl0.forEach(n=>{
+    const home=others.find(x=>x.id===homeOf(n)&&people(x).length<mx);
+    const room=others.filter(x=>people(x).length<mx).sort((a,b)=>people(a).length-people(b).length)[0];
+    const to=home||room,k=to?to.name:'Available';
+    if(to){if(!to.leader)to.leader=n;else to.members.push(n)}
+    (grp[k]=grp[k]||[]).push(dn(n).split(' ')[0]);
+  });
+  Object.entries(grp).forEach(([k,v])=>went.push(`${v.join(', ')} → ${k}`));
+  if(r.villaMove)Object.keys(r.villaMove).forEach(k=>{if(r.villaMove[k]===id)delete r.villaMove[k]});
+  openTeams.delete(id);markManual(ctx);save();
+  toastUndo(`${t.name} removed${went.length?': '+went.join(' · '):''}${nv?` · ${plural(nv,'villa')} shared to the other teams`:''}`);render();
+}
+function undoLast(){if(!lastUndo)return;const r=ensureDay(lastUndo.date);r.teams=lastUndo.teams;r.nursery=lastUndo.nursery;r.absent=lastUndo.absent;r.manual=lastUndo.manual;if(lastUndo.villaMove)r.villaMove=lastUndo.villaMove;lastUndo=null;save();toast('Undone');render()}
 function toastUndo(m){const el=$('toast');el.innerHTML=`${esc(m)} <button class="tundo" data-undolast>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,6000)}
 function swapPeople(a,b){
   const ctx0={type:'day',date:cur}, r0=ensureDay(cur), inN=(r0.nursery||[]).includes(b), T0=ctxTeams(ctx0,true).find(x=>people(x).includes(a));
@@ -3284,7 +3304,7 @@ document.addEventListener('click',e=>{
   if('addday_old' in d){const ctx={type:'day',date:cur};const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));const n=r.teams.filter(t=>!t.projectId).length+1;
     r.teams.push({id:'x'+uid(),name:'Team '+n,job:'maint',desc:'',leader:null,members:[],extra:true});markManual(ctx);save();
     const used=r.teams.length;toast(used>carsN()?`Team ${n} added — that is ${used} teams for ${carsN()} cars`:`Team ${n} added — tap "+ Add person" to fill it`);render();return}
-  if(d.rmteam){const r=ensureDay(cur);const t=(r.teams||[]).find(x=>x.id===d.rmteam);if(t&&!people(t).length){r.teams=r.teams.filter(x=>x!==t);markManual({type:'day',date:cur});save();toast('Team removed');render()}else toast('Move the people out first');return}
+  if(d.rmteam){removeTeam(d.rmteam);return}
   if(d.addteam){S.layouts[d.addteam].push({id:uid(),name:'New team',job:'maint',desc:'',leader:null,members:[]});save();render();return}
   if('addjob' in d){const id='j'+uid();S.jobs.push({id,name:'New job type',group:'project',min:3,heavy:false,need:{}});save();render();const i=$('jn-'+id);if(i){i.focus();i.select()}return}
   if(d.deljob){if(delArm!=='j:'+d.deljob){delArm='j:'+d.deljob;render();return}
