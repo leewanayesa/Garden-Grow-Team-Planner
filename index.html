@@ -2426,7 +2426,7 @@ function teamCard(t,ctx,vp){
       <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader — tap a name to make one leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${ctx.type==='day'?(n>=maxTeam()?`<button class="addp full" disabled>Car full (${n}/${maxTeam()}) — tap a name to swap</button>`:`<button class="addp" data-addto="${t.id}">＋ Add person</button>`):`<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button>`}</div>
       ${vl?`<div class="vwrap">${villaList(t,vp,ctx)}</div>`:''}
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):''}
-      ${ctx.type==='day'&&!p?`<button class="link small rmteam" data-rmteam="${t.id}">✕ Remove team</button>`:''}
+      ${ctx.type==='day'?(p?`<button class="link small rmteam" data-rmjobteam="${p.id}">✕ Remove team</button>`:`<button class="link small rmteam" data-rmteam="${t.id}">✕ Remove team</button>`):''}
     </div>
   </section>`;
 }
@@ -3180,6 +3180,14 @@ document.addEventListener('click',e=>{
   if('pmreopen' in d){const p=projById(modal.id);p.done=false;save();modal=null;renderModal();render();return}
   if('pmdelete' in d){const id=modal.id,pj=projById(id);jobUndo={projects:clone(S.projects),days:clone(S.days)};S.projects=S.projects.filter(p=>p.id!==id);reconcileAll(true);delArm=null;save();modal=null;renderModal();
     const el=$('toast');el.innerHTML=`${esc((pj&&pj.title)||'Job')} deleted <button class="tundo" data-undojob>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true;jobUndo=null},8000);render();return}
+  if(d.rmjobteam){const pj=projById(d.rmjobteam);if(!pj)return;
+    if(pj.from<cur&&cur<pj.to){toast(`${pj.title} runs ${shortDate(pj.from)} to ${shortDate(pj.to)} — tap Edit job to change its days`);return}
+    jobUndo={projects:clone(S.projects),days:clone(S.days)};let msg;
+    if(pj.from===pj.to){S.projects=S.projects.filter(x=>x!==pj);msg=`${pj.title} removed — the crew went back to maintenance`}
+    else if(cur===pj.from){pj.from=addDays(pj.from,1);msg=`${pj.title} removed today — it now starts ${shortDate(pj.from)}`}
+    else{pj.to=addDays(pj.to,-1);msg=`${pj.title} removed today — it now ends ${shortDate(pj.to)}`}
+    reconcileAll(true);save();
+    const el=$('toast');el.innerHTML=`${esc(msg)} <button class="tundo" data-undojob>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true;jobUndo=null},8000);render();return}
   if('undojob' in d){if(jobUndo){S.projects=jobUndo.projects;S.days=jobUndo.days;jobUndo=null;save();toast('Job is back');render()}return}
   if(d.offn){const n=d.offn,r=ensureDay(cur);
     if(r.absent.includes(n)){const def=defaultTeams(cur).find(t=>people(t).includes(n)),teams=ctxTeams(dayCtx,true),back=def&&teams.find(t=>t.id===def.id);moveTo(dayCtx,n,back?back.id:'available');if(back&&def.leader===n&&!back.leader){back.members=back.members.filter(m=>m!==n);back.leader=n;save()}}
