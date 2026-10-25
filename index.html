@@ -148,6 +148,7 @@ main#view{max-width:1480px;margin:0 auto;padding-inline:16px;padding-block:16px 
 .nickin{width:130px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:6px 8px}
 .fulln{font-size:.72rem;margin-top:2px;white-space:normal;max-width:220px}
 .sup.drv{background:#1565c0}
+.sup.sgr{background:#9a5b16}
 .srow .sup{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--forest);color:#fff;border-radius:4px;padding:1px 4px;font-style:normal}
 .chip .sup{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--forest);color:#fff;border-radius:4px;padding:1px 4px}
 .chip .lv{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 4px}
@@ -663,7 +664,7 @@ const $=id=>document.getElementById(id);
 
 /* ---------- skills and job types ---------- */
 const SKILLS=[
-  {id:'lead',label:'Can lead a team',short:'Lead'},{id:'driver',label:'Driver',short:'Driver'},
+  {id:'lead',label:'Can lead a team',short:'Lead'},{id:'driver',label:'Driver',short:'Driver'},{id:'drv_spare',label:'Spare driver (not tied to a team)',short:'Spare driver'},
   {id:'lawn',label:'Lawn care',short:'Lawn'},{id:'hedge',label:'Hedge & shrub pruning',short:'Hedge'},
   {id:'palm',label:'Palm care & climbing',short:'Palm'},{id:'spray',label:'Spraying & plant health',short:'Spray'},
   {id:'tree',label:'Tree climbing & cutting',short:'Tree climb'},{id:'tools',label:'Chainsaw & power tools',short:'Chainsaw'},
@@ -687,7 +688,7 @@ const GARDEN_WORK=new Set(['planting','treeplant','indoor','turf']), LABOUR_WORK
 /* General labour needed grows with the size: Small 1, Medium 2, Large 3 (garden makeover, dig-out, clean-up). */
 const LABOUR_BY_SIZE={makeover:[1,2,3],dig:[2,3,4],cleanup:[1,2,3]};
 const SKILL_GROUPS=[
-  {name:'Roles',ids:['lead','driver','drawings']},
+  {name:'Roles',ids:['lead','driver','drv_spare','drawings']},
   {name:'Maintenance',ids:['lawn','hedge','irrfix','palm','spray']},
   {name:'New work (same order as the job list)',ids:['planting','treeplant','indoor','makeover','dig','turf','artgrass','irrigation','gravel','hardscape','tiling','waterproof','wood','lighting','cleaning','cleanup','machine']},
   {name:'Heavy work',ids:['tree','treeremoval','tools','heavy']},
@@ -742,7 +743,7 @@ const smallJobs=s=>activeProjects(s).filter(p=>p.small);
 const WORK_BY_JOB={cleaning:'cleaning',supply:'supply',artgrass:'artgrass',treeremoval:'treeremoval',landscape:'planting',turf:'turf',irrigation:'irrnew',hardscape:'hard',paving:'hard',wood:'wood',lighting:'lighting',tree:'tree',palm:'palm',spray:'spray',cleanup:'cleanup'};
 /* Skills a job needs = the most each chosen work needs, plus a driver. */
 function needsForWorks(ids){const need={},ws=WORKS.filter(w=>ids.includes(w.id));ws.forEach(w=>Object.entries(w.need).forEach(([k,v])=>{need[k]=Math.max(need[k]||0,v)}));if(ws.length&&!need.driver)need.driver=1;return {need,min:ws.length?Math.max(2,...ws.map(w=>w.min)):2,heavy:ws.some(w=>w.heavy)}}
-const SKILL_HELP_NEW={tiling:'tiles, raised planter finish, re-laying tiles',waterproof:'planters, balconies, leaks, drains',machine:'plate compactor, mini loader, floor / grass cleaning machine',drawings:'reads a landscape drawing and sets out plants',g_lab:'lifting, loading, digging, clean-up',g_gar:'plants, trimming, lawn, normal garden care',g_sr:'experienced — plant care, shaping, guides the others',treeplant:'big trees and palms, deep pits, lifting',makeover:'full trim, cleanup, soil, pest control, handover',dig:'digging out old soil, loading, new soil',treeremoval:'cutting down trees, stumps and roots',cleaning:'floor / area cleaning, pressure washer, cleaning machine',cleanup:'collecting and removing green waste and debris'};
+const SKILL_HELP_NEW={tiling:'tiles, raised planter finish, re-laying tiles',waterproof:'planters, balconies, leaks, drains',machine:'plate compactor, mini loader, floor / grass cleaning machine',drawings:'reads a landscape drawing and sets out plants',drv_spare:'drives when a team has no driver or an extra team goes out',g_lab:'lifting, loading, digging, clean-up',g_gar:'plants, trimming, lawn, normal garden care',g_sr:'experienced — plant care, shaping, guides the others',treeplant:'big trees and palms, deep pits, lifting',makeover:'full trim, cleanup, soil, pest control, handover',dig:'digging out old soil, loading, new soil',treeremoval:'cutting down trees, stumps and roots',cleaning:'floor / area cleaning, pressure washer, cleaning machine',cleanup:'collecting and removing green waste and debris'};
 const SKILL_HELP={lead:'leads a team',driver:'drives the pickup',lawn:'mowing, edging, trimming grass',hedge:'hedge trimmer, shaping bushes',palm:'cleaning and pruning palms',spray:'pest control, fertiliser',tree:'big trees, working at height',tools:'chainsaw, hedge cutter, blower',heavy:'hard physical work, heavy lifting',planting:'digging, soil, outdoor plants',gravel:'gravel, pebbles, weed sheet, edging',indoor:'indoor pots, plant styling, office & home plants',turf:'laying natural grass (turf rolls)',artgrass:'cutting, joining and fixing artificial grass',irrigation:'laying new drip lines, sprinklers, timers',irrfix:'finding and fixing leaks, broken drippers, timers',hardscape:'concrete planters, kerbs, interlock, stepping stones',wood:'pergolas, wooden planters, fences',lighting:'garden lights, cables, sockets',general:'lifting, loading, cleanup, waste'};
 Object.assign(SKILL_HELP,SKILL_HELP_NEW);
 const DEFAULT_JOBS=[
@@ -815,7 +816,7 @@ const jobOf=t=>{
 /* What a job needs: its ticked work, plus people able to do heavy work when the job is heavy. */
 function jobNeeds(j){const n={...(j.need||{})};if(j.heavy&&n.heavy==null)n.heavy=2;return n}
 const isProj=t=>!!t.projectId||jobOf(t).group!=='maint';
-const has=(n,sk)=>sk==='gr_sr'?(S.skills[n]||[]).includes('g_sr'):sk==='gr_gar'?((S.skills[n]||[]).includes('g_sr')||(S.skills[n]||[]).includes('g_gar')):(S.skills[n]||[]).includes(sk)||(sk==='lead'&&isSup(n))||(sk==='general'&&(S.skills[n]||[]).includes('g_lab'));
+const has=(n,sk)=>sk==='gr_sr'?(S.skills[n]||[]).includes('g_sr'):sk==='gr_gar'?((S.skills[n]||[]).includes('g_sr')||(S.skills[n]||[]).includes('g_gar')):(S.skills[n]||[]).includes(sk)||(sk==='lead'&&isSup(n))||(sk==='general'&&(S.skills[n]||[]).includes('g_lab'))||(sk==='driver'&&(S.skills[n]||[]).includes('drv_spare'));
 const isSup=n=>(S.supervisors||[]).includes(n);
 /* Supervisor level: 3 = Senior supervisor, 2 = Supervisor, 1 = Junior supervisor, 0 = not a supervisor */
 const supLevelIn=(sups,ex,n)=>!(sups||[]).includes(n)?0:((ex||{})[n]||[]).includes('sup3')?3:((ex||{})[n]||[]).includes('sup1')?1:2;
@@ -1417,6 +1418,8 @@ function projectTeam(p,ab,taken){
 }
 /* Each team needs a car: maintenance teams = cars left after the jobs (at least one maintenance team). */
 function maintLayout(ps){const base=(ps.length?S.layouts.newwork:S.layouts.normal).filter(t=>jobOf(t).group==='maint');return base.slice(0,Math.max(1,carsN()-ps.length))}
+/* A driver stays with his own team's car: the builder never moves him out of his home team (a spare driver is free). */
+const driverLocked=(n,t)=>!!(t&&!t.projectId&&has(n,'driver')&&!(S.skills[n]||[]).includes('drv_spare')&&homeOf(n)===t.id);
 /* Home team of a person: the normal maintenance team they are in (Setup → Teams). */
 const homeOf=n=>{const t=S.layouts.normal.find(t=>jobOf(t).group==='maint'&&people(t).includes(n));return t?t.id:null};
 /* Fixed teams: every day starts from the normal teams. On a new-work day the team whose leader goes to the job
@@ -1595,7 +1598,7 @@ function suggest(date){
   const pinsOf=t=>{const p=projOf(t);return p?(p.pins||[]).filter(n=>S.staff.includes(n)&&!absent.has(n)):[]};
   const short=t=>{const m={};problems(t).forEach(p=>{if(p.kind==='skill')m[p.skill]=p.short});return m};
   const demandElsewhere=t=>{const m={};sim.forEach(x=>{if(x===t)return;Object.entries(short(x)).forEach(([k,v])=>m[k]=(m[k]||0)+v)});return m};
-  const canGive=(d,n)=>{if(d.leader===n||pinsOf(d).includes(n)||isCoreIn(d,n))return false;const before=weight(d),cp={...d,members:d.members.filter(m=>m!==n)};VN.set(cp,VN.get(d));return weight(cp)<=before};
+  const canGive=(d,n)=>{if(d.leader===n||pinsOf(d).includes(n)||isCoreIn(d,n)||driverLocked(n,d))return false;const before=weight(d),cp={...d,members:d.members.filter(m=>m!==n)};VN.set(cp,VN.get(d));return weight(cp)<=before};
   function score(n,t,src,mode,skill){
     let s=0; const why=[], need=jobNeeds(jobOf(t)), sh=short(t);
     if(skill){if(expert(n,skill)){s+=3;why.push('expert')}else s+=1}
@@ -1673,7 +1676,7 @@ function suggest(date){
     const lim=(building&&isProj(t))?Math.max(crewWant(t),pinsOf(t).length+1):maxTeam();
     while(people(t).length>lim){
       const need=jobNeeds(jobOf(t)), pins=pinsOf(t);
-      const val=m=>Object.keys(need).filter(k=>has(m,k)&&people(t).filter(x=>has(x,k)).length<=need[k]).length*3+(has(m,'driver')?2:0)+(pins.includes(m)?99:0)+(isCoreIn(t,m)?50:0);
+      const val=m=>Object.keys(need).filter(k=>has(m,k)&&people(t).filter(x=>has(x,k)).length<=need[k]).length*3+(has(m,'driver')?2:0)+(pins.includes(m)?99:0)+(isCoreIn(t,m)?50:0)+(driverLocked(m,t)?80:0);
       const out=[...t.members].sort((a,b)=>val(a)-val(b))[0]; if(!out)break;
       t.members=t.members.filter(m=>m!==out); avail.push(out);
     }
@@ -1685,7 +1688,7 @@ function suggest(date){
      (for example a driver who can also do labour). Kept only when the job gains more than the other team loses. */
   function swapBest(t){
     const pins=pinsOf(t), base=weight(t); let best=null;
-    const cands=[...avail.map(n=>({n,from:null})),...sim.filter(d=>d!==t).flatMap(d=>d.members.filter(m=>!pinsOf(d).includes(m)&&!(isProj(d)&&isCoreIn(d,m))).map(m=>({n:m,from:d})))];
+    const cands=[...avail.map(n=>({n,from:null})),...sim.filter(d=>d!==t).flatMap(d=>d.members.filter(m=>!driverLocked(m,d)&&!pinsOf(d).includes(m)&&!(isProj(d)&&isCoreIn(d,m))).map(m=>({n:m,from:d})))];
     t.members.filter(m=>!pins.includes(m)).forEach(m=>cands.forEach(c=>{
       t.members=t.members.map(x=>x===m?c.n:x);let w0=0,w1=0;
       if(c.from){w0=weight(c.from);c.from.members=c.from.members.map(x=>x===c.n?m:x);w1=weight(c.from)}
@@ -1759,7 +1762,7 @@ function suggest(date){
     if(!isSup(n)||pinsOf(J).includes(n)||!J.members.includes(n))return;
     const wJ=weight(J);let done=false;
     sim.filter(t=>!isProj(t)).forEach(M=>{if(done)return;const wM=weight(M);
-      [...M.members].filter(m=>!isSup(m)&&!isCoreIn(M,m)).sort((a,b)=>dn(a).localeCompare(dn(b))).forEach(m=>{if(done)return;
+      [...M.members].filter(m=>!isSup(m)&&!isCoreIn(M,m)&&!driverLocked(m,M)).sort((a,b)=>dn(a).localeCompare(dn(b))).forEach(m=>{if(done)return;
         J.members=J.members.map(x=>x===n?m:x);M.members=M.members.map(x=>x===m?n:x);
         if(weight(J)<=wJ&&weight(M)<=wM){done=true;
           moves.push({type:'move',name:n,fromName:J.name,to:M.id,toName:M.name,why:'Supervisor — kept for maintenance, not as crew on the job'});
@@ -2317,7 +2320,8 @@ function putVillaBack(date,id){
 
 /* ---------- small pieces ---------- */
 /* Small tag after a name: SUP, DRIVER, or SUP / DRIVER. */
-function roleTag(n){const s=isSup(n),d=has(n,'driver');return s&&d?'<span class="sup">sup / driver</span>':s?'<span class="sup">sup</span>':d?'<span class="sup drv">driver</span>':''}
+function roleTag(n){const sk=S.skills[n]||[],sp=sk.includes('drv_spare'),parts=[isSup(n)?'sup':'',gradeOf(n)===3?'sr gardener':'',sp?'spare driver':has(n,'driver')?'driver':''].filter(Boolean);if(!parts.length)return '';
+  const cls=isSup(n)?'':gradeOf(n)===3?'sgr':'drv';return `<span class="sup ${cls}">${parts.join(' / ')}${has(n,'driver')&&!sp?' 🔒':''}</span>`}
 function chip(name,ctx,cls=''){
   const on=sel&&sel.name===name&&sameCtx(sel.ctx,ctx);
   return `<button class="chip ${cls} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}">${esc(dn(name))}${cls==='lead'?'<span class="lt">leader</span>':''}${roleTag(name)}${ctx.type==='day'&&leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</button>`;
@@ -2415,6 +2419,7 @@ function teamCard(t,ctx,vp){
       ${sm.map(p=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(p.title)}<em>${esc(worksText(p))}${jobFlags(p).filter(f=>f!=='small job').length?' · '+jobFlags(p).filter(f=>f!=='small job').join(' · '):''}</em></span><span class="row"><select class="textin sm" data-smallteam="${p.id}" aria-label="Team doing ${esc(p.title)}">${mts.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><button class="link small" data-editproj="${p.id}">Edit</button></span></div>`).join('')}
       ${ctx.type==='day'&&n?(n>maxTeam()?`<p class="taphint over">👆 Too many people (${n}/${maxTeam()}) — tap a name, then <b>Remove from team</b></p>`:'<p class="taphint">👆 Tap a name to swap or remove</p>'):''}
       <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader — tap a name to make one leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${ctx.type==='day'?(n>=maxTeam()?`<button class="addp full" disabled>Car full (${n}/${maxTeam()}) — tap a name to swap</button>`:`<button class="addp" data-addto="${t.id}">＋ Add person</button>`):`<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button>`}</div>
+      ${t.extra&&ctx.type==='day'&&!n?`<button class="link small" data-rmteam="${t.id}">Remove this team</button>`:''}
       ${vl?`<div class="vwrap">${villaList(t,vp,ctx)}</div>`:''}
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):''}
     </div>
@@ -2529,7 +2534,7 @@ function renderDay(){
     ${!skillsSet?'<div class="card tip"><p>Tick each person\'s skills under <b>Setup → Staff &amp; skills</b> so the app can check every team has a driver, tree cutters and so on.</p></div>':''}
     ${!(S.clients||[]).length?'<div class="card tip"><p>Load your maintenance clients under <b>Setup → Villas</b> to see each team\'s villas.</p></div>':''}
     ${proj.length?`<div class="sechead"><h3>New work · ${plural(proj.length,'team')}</h3></div><div class="board">${proj.map(t=>teamCard(t,ctx,vp)).join('')}</div>`:''}
-    <div class="sechead"><h3>Maintenance · ${plural(maint.length,'team')}</h3></div>
+    <div class="sechead"><h3>Maintenance · ${plural(maint.length,'team')}</h3>${cur>=TODAY?'<button class="btn small" data-addday>+ Add a team</button>':''}</div>
     <div class="board">${maint.map(t=>teamCard(t,ctx,vp)).join('')}</div>
     <div class="card nursery" data-drop="nursery" data-ctx='${esc(JSON.stringify(ctx))}'><div class="cardhead"><h3>Nursery / farm · ${nurseryOf(cur).length}</h3><span class="muted small">${teams.filter(t=>{const p=t.projectId&&projById(t.projectId);return !(p&&isSupply(p))}).length} of ${carsN()} cars out · ${maxTeam()} seats per car</span></div><div class="chips">${nurseryOf(cur).map(n=>chip(n,ctx)).join('')||'<span class="muted small">Nobody at the nursery today. When every car is full, the extra people are placed here to look after the plants.</span>'}</div></div>
     ${vp.skipped.length?`<div class="card"><h3>Villas not today · ${vp.skipped.length}</h3><div class="chips">${vp.skipped.map(c=>{const to=(r.villaMovedTo||{})[c.id];return `<button class="vchip" data-unskip="${esc(c.id)}">${esc(villaName(c))}${to?' → '+shortDate(to):''} · put back</button>`}).join('')}</div></div>`:''}
@@ -2598,6 +2603,17 @@ function addToHtml(){
   const n=people(t).length, full=n>=maxTeam();
   return `<div class="mhead"><div><b>Add to ${esc(t.name)}</b><span>${full?`<b class="warntxt">Car full (${n}/${maxTeam()}) — close this and tap a name to swap.</b>`:`${n}/${maxTeam()} seats · tap a name to add`}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
     ${full?'':`<div class="slist">${simpleRows(t,null,'data-pickadd')}</div>`}`;
+}
+/* A full car never takes a 6th person: moving someone into a full team becomes a swap. */
+function fullTeam(date,id,incoming){const t=effTeams(date).find(x=>x.id===id);return !!(t&&people(t).length>=maxTeam()&&!people(t).includes(incoming))}
+function swapInto(a,b){const r=ensureDay(cur);if((r.absent||[]).includes(a)){r.absent=r.absent.filter(x=>x!==a)}
+  const inTeam=effTeams(cur).some(t=>people(t).includes(a));if(inTeam)swapPeople(a,b);else swapPeople(b,a)}
+function dropSwapHtml(){
+  const t=effTeams(cur).find(x=>x.id===modal.team);if(!t)return '';const a=modal.incoming,from=effTeams(cur).find(x=>people(x).includes(a));
+  const whereA=from?from.name:(nurseryOf(cur).includes(a)?'the nursery':'Available');
+  return `<div class="mhead"><div><b>${esc(t.name)} is full (${people(t).length}/${maxTeam()})</b><span>Who goes to ${esc(whereA)} in exchange for ${esc(dn(a))}?</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+    <div class="slist">${people(t).map(n=>`<button class="srow" data-dswap="${esc(n)}"><span><b>${esc(dn(n))}</b> ${roleTag(n)}<em> · ${t.leader===n?'leader':'member'}</em></span></button>`).join('')}</div>
+    <div class="mrow"><button class="btn" data-closemodal>Cancel</button></div>`;
 }
 function swapHtml(){
   const teams=effTeams(cur), a=modal.name, A=teams.find(x=>people(x).includes(a)); if(!A)return '';
@@ -2921,6 +2937,7 @@ function renderModal(){
   else if(modal.kind==='addto')inner=addToHtml();
   else if(modal.kind==='swap')inner=swapHtml();
   else if(modal.kind==='check')inner=checkHtml();
+  else if(modal.kind==='dropswap')inner=dropSwapHtml();
   else if(modal.kind==='off'){
     const off=dayRec(cur).absent||[];
     inner=`<div class="mhead"><div><b>Who's off?</b><span>${longDate(cur)}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
@@ -3150,6 +3167,7 @@ document.addEventListener('click',e=>{
   /* people */
   if(el.classList.contains('chip')){villaSel=null;const ctx=JSON.parse(d.ctx);
     if(ctx.type==='day'&&effTeams(ctx.date).some(x=>people(x).includes(d.name))){cur=ctx.date;sel=null;menuMode=null;modal={kind:'swap',name:d.name};renderModal();renderMenu();return}menuMode=null;sel=(sel&&sel.name===d.name&&sameCtx(sel.ctx,ctx))?null:{name:d.name,ctx};render();return}
+  if(d.to&&sel&&sel.ctx.type==='day'&&!['absent','available','nursery'].includes(d.to)&&fullTeam(sel.ctx.date,d.to,sel.name)){const n=sel.name;cur=sel.ctx.date;sel=null;menuMode=null;renderMenu();modal={kind:'dropswap',team:d.to,incoming:n};renderModal();return}
   if(d.to&&sel){if(!['absent','available','nursery'].includes(d.to))learnManualMove(sel.ctx,sel.name,d.to);moveTo(sel.ctx,sel.name,d.to);toast(`${sel.name} moved`);sel=null;menuMode=null;render();return}
   if('lead' in d&&sel){if(sel.ctx.type==='day'){const lt=effTeams(sel.ctx.date).find(t=>people(t).includes(sel.name));if(lt)learnLead(lt,sel.name,2)}makeLeader(sel.ctx,sel.name);toast(`${sel.name} is now leader`);sel=null;render();return}
   if(d.pskill&&sel){toggleSkill(sel.name,d.pskill);render();return}
@@ -3211,6 +3229,7 @@ document.addEventListener('click',e=>{
   if(d.pickadd){const ctx={type:'day',date:cur},nm=d.pickadd,T=effTeams(cur).find(x=>x.id===modal.team);if(T&&people(T).length>=maxTeam()){toast('Car is full — tap a name to swap');return}keepUndo();learnManualMove(ctx,nm,modal.team);moveTo(ctx,nm,modal.team);toastUndo(`${dn(nm)} added to ${T?T.name:'the team'}`);const T2=effTeams(cur).find(x=>x.id===modal.team);if(!T2||people(T2).length>=maxTeam())modal=null;renderModal();render();return}
   if(d.swapfrom){modal={kind:'swap',name:d.swapfrom};renderModal();return}
   if(d.swapwith){const a=modal.name,b=d.swapwith;keepUndo();swapPeople(a,b);modal=null;renderModal();const T=effTeams(cur).find(x=>people(x).includes(b));toastUndo(`${dn(a)} ⇄ ${dn(b)}${T&&!T.leader?' — pick a leader for '+T.name:''}`);render();return}
+  if(d.dswap&&modal&&modal.kind==='dropswap'){const a=modal.incoming,b=d.dswap;keepUndo();swapInto(a,b);modal=null;renderModal();toastUndo(`${dn(a)} ⇄ ${dn(b)}`);render();return}
   if('undolast' in d){$('toast').hidden=true;undoLast();return}
   if('qlead' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();makeLeader({type:'day',date:cur},n);modal=null;renderModal();toastUndo(`${dn(n)} is the leader`);render();return}
   if('qremove' in d&&modal&&modal.kind==='swap'){const n=modal.name,ctx={type:'day',date:cur};keepUndo();
@@ -3234,6 +3253,10 @@ document.addEventListener('click',e=>{
   if(d.addopen){addOpen=d.addopen;sel=null;render();const i=$('newname');if(i)i.focus();return}
   if('addclose' in d){addOpen=null;render();return}
   if(d.delteam){if(delArm!==d.delteam){delArm=d.delteam;render();return}const ctx=JSON.parse(d.ctx),teams=ctxTeams(ctx,true),i=teams.findIndex(t=>t.id===d.delteam);if(i>=0)teams.splice(i,1);delArm=null;save();toast('Team removed');render();return}
+  if('addday' in d){const ctx={type:'day',date:cur};const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));const n=r.teams.filter(t=>!t.projectId).length+1;
+    r.teams.push({id:'x'+uid(),name:'Team '+n,job:'maint',desc:'',leader:null,members:[],extra:true});markManual(ctx);save();
+    const used=r.teams.length;toast(used>carsN()?`Team ${n} added — that is ${used} teams for ${carsN()} cars`:`Team ${n} added — tap "+ Add person" to fill it`);render();return}
+  if(d.rmteam){const r=ensureDay(cur);const t=(r.teams||[]).find(x=>x.id===d.rmteam);if(t&&!people(t).length){r.teams=r.teams.filter(x=>x!==t);markManual({type:'day',date:cur});save();toast('Team removed');render()}else toast('Move the people out first');return}
   if(d.addteam){S.layouts[d.addteam].push({id:uid(),name:'New team',job:'maint',desc:'',leader:null,members:[]});save();render();return}
   if('addjob' in d){const id='j'+uid();S.jobs.push({id,name:'New job type',group:'project',min:3,heavy:false,need:{}});save();render();const i=$('jn-'+id);if(i){i.focus();i.select()}return}
   if(d.deljob){if(delArm!=='j:'+d.deljob){delArm='j:'+d.deljob;render();return}
@@ -3321,6 +3344,11 @@ document.addEventListener('dragleave',e=>{const z=e.target.closest('[data-drop]'
 document.addEventListener('drop',e=>{const z=e.target.closest('[data-drop]');if(!z||!drag)return;e.preventDefault();
   const ctx=JSON.parse(z.dataset.ctx);
   if(drag.villa){const t=effTeams(cur).find(x=>x.id===z.dataset.drop);if(t&&!isProj(t)&&ctx.type==='day'){learnAreaMove(cur,drag.villa,t.id);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[drag.villa]=t.id;save();toast('Villa moved for today')}}
+  else if(sameCtx(ctx,drag.ctx)&&ctx.type==='day'&&!['absent','available','nursery'].includes(z.dataset.drop)&&fullTeam(ctx.date,z.dataset.drop,drag.name)){
+    const a=drag.name,onChip=e.target.closest('.chip'),b=onChip&&onChip.dataset.name,T=effTeams(ctx.date).find(x=>x.id===z.dataset.drop);
+    cur=ctx.date;
+    if(b&&T&&people(T).includes(b)&&b!==a){keepUndo();swapInto(a,b);toastUndo(`${dn(a)} ⇄ ${dn(b)}`)}
+    else{drag=null;sel=null;villaSel=null;modal={kind:'dropswap',team:z.dataset.drop,incoming:a};renderModal();render();return}}
   else if(sameCtx(ctx,drag.ctx)){if(!['absent','available','nursery'].includes(z.dataset.drop))learnManualMove(ctx,drag.name,z.dataset.drop);moveTo(ctx,drag.name,z.dataset.drop);toast(drag.name+' moved')}
   drag=null;sel=null;villaSel=null;render()});
 async function copyText(txt,msg){
