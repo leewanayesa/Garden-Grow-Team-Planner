@@ -431,7 +431,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .slist{display:grid;gap:6px;margin-top:6px}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;cursor:pointer;min-height:48px}
 .srow b{font-weight:700}.srow em{font-style:normal;color:var(--muted);font-size:.84rem}.srow i{font-style:normal;color:var(--green);font-weight:800;font-size:.82rem;white-space:nowrap}
-.qacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.qacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.qacts.top{margin:2px 0 4px;padding:0;border-top:0}
 .tundo{margin-left:8px;border:0;background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-weight:800;cursor:pointer}
 .addp{border:1.5px dashed var(--line);background:transparent;color:var(--green);font-weight:700;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;font:inherit;font-weight:700}
 .addp:hover{border-color:var(--green);background:var(--green-soft)}
@@ -455,13 +455,15 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .dbar{display:grid;gap:12px}
 .dbar .datenav{justify-content:space-between}
 .wstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.wd{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;font:inherit;min-height:52px}
-.wd span{font-size:.7rem;font-weight:600;color:var(--muted)} .wd b{font-size:.92rem}
-.wd.off{background:var(--bg);color:var(--muted)}
+.wd{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:7px 2px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;cursor:pointer;font:inherit;min-height:60px;min-width:0}
+.wd .wdt{font-size:.8rem;font-weight:700;color:var(--ink);white-space:nowrap}.wd .wdv{font-size:.7rem;font-weight:500;color:var(--muted);white-space:nowrap}
+.wd .wdn{font-size:.6rem;font-weight:700;color:var(--orange);background:var(--orange-soft);border-radius:6px;padding:1px 4px;white-space:nowrap}
+.wd.bad .wdv{color:var(--red);font-weight:700}
+.wd.off{background:var(--bg);border-style:dashed}.wd.off .wdt,.wd.off .wdv{color:var(--faint)}
+.wd.sel{background:var(--green);border-color:var(--green)}.wd.sel .wdt{color:#fff}.wd.sel .wdv{color:#e6f2e5}.wd.sel .wdn{background:#fff}.wd.sel.bad .wdv{color:#ffd9d4}
+@media (max-width:520px){.wstrip{gap:3px}.wd{padding:6px 0 5px;border-radius:10px}.wd .wdt{font-size:.68rem}.wd .wdv{font-size:.58rem;letter-spacing:-.02em}.wd .wdn{font-size:.5rem;padding:1px 2px;letter-spacing:-.02em}}
+@media (max-width:380px){.wd .wdt{font-size:.62rem}.wd .wdv{font-size:.52rem}.wd .wdn{font-size:.46rem}}
 .wd.today{border-color:var(--green)}
-.wd.sel{background:var(--ink);border-color:var(--ink);color:var(--surface)} .wd.sel span{color:var(--surface)} .wd.sel b.redtxt{color:#ffb4ab}
-.wd .nwdot{font-style:normal;font-size:.6rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.04em}
-.wd.sel .nwdot{color:#ffd2b0}
 .mrow{display:flex;gap:16px;justify-content:center}
 .dacts{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .more{position:relative}
@@ -519,6 +521,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
   .board{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
   .tcard .tl2,.tcard.maint .tl3{display:none}
 }
+@media (min-width:900px){.dbar{grid-template-columns:1fr auto}.dbar .wstrip{grid-column:1/-1;order:3;max-width:860px;justify-self:start;width:100%}}
 @media (min-width:900px) and (max-width:1250px){.irow{grid-template-columns:repeat(6,minmax(0,1fr))}.irow>.ibox{grid-column:span 2}.irow>.offbox,.irow>.nwbox{grid-column:span 2}.dbar{grid-template-columns:1fr auto}.wstrip{grid-column:1/-1;max-width:none;order:3}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header.top,#tabbar,main#view,.fab,#menu,#modalroot,#overlay,.toast{display:none!important}}
@@ -723,7 +726,7 @@ const WORKS=[
 ];
 /* Work that can be done by a maintenance team on its route (when the quote is small). */
 /* Crew for each work by size [Small, Medium, Large] (leader included, driver counts as one). */
-const CREW={makeover:[3,4,5],irrfix:[2,2,3],planting:[2,3,5],treeplant:[3,4,5],turf:[3,4,5],artgrass:[3,4,5],irrnew:[2,3,4],supply:[1,1,1],_:[2,3,5]};
+const CREW={dig:[3,4,5],treeremoval:[3,4,5],tree:[3,4,5],cleanup:[2,3,4],makeover:[3,4,5],irrfix:[2,2,3],planting:[2,3,5],treeplant:[3,4,5],turf:[3,4,5],artgrass:[3,4,5],irrnew:[2,3,4],supply:[1,1,1],_:[2,3,5]};
 const SIZE_IX={S:0,M:1,L:2}, SZL={S:'Small',M:'Medium',L:'Large'}, SZLEAD={S:'Any team leader',M:'Supervisor leads',L:'Senior supervisor leads'};
 /* What each size means, shown on the size cards. */
 const SIZE_HELP={makeover:['Small garden, half day','Normal villa garden, one day','Big garden or compound + truck'],
@@ -850,11 +853,14 @@ const ZONES=[
   {name:'ICAD & Mussafah',k:['icad','mussafah','samha','sheleilah','rahba','shahama']}
 ];
 const areaShort=c=>String((c.mainArea||c.area||'')).split(',')[0].trim()||'Other area';
-function zoneOf(c){const a=String(c.area||c.mainArea||'').toLowerCase();for(let i=0;i<ZONES.length;i++)if(ZONES[i].k.some(k=>a.includes(k)))return i;return ZONES.length}
+function zoneOf(c){const a=String(c.area||c.mainArea||'').toLowerCase();let bi=ZONES.length,bl=0;for(let i=0;i<ZONES.length;i++)ZONES[i].k.forEach(k=>{if(a.includes(k)&&k.length>bl){bl=k.length;bi=i}});return bi}
 const villaName=c=>c.nick||c.name||'Villa';
 const FREQ_TAG={fortnightly:'every 2 wks',twice_month:'2×/month',monthly:'1×/month',alternate:'alt. days'};
 function weekOk(w,date){if(!w)return true;const wk=Math.ceil(fromIso(date).getDate()/7);return String(w).split('-').map(Number).includes(wk)}
 /* Villas due on a date, in drive order (area by area). */
+const dueNative=(c,date)=>c.status!=='paused'&&(c.days||[]).includes(DNL[fromIso(date).getDay()])&&weekOk(c.weeks,date)&&!(c.newFrom&&date<c.newFrom);
+/* Is this villa already being visited on that date (its own visit or one moved in, and not moved away)? */
+const visitOn=(id,date)=>{const r=S.days[date]||{};if((r.villaSkip||[]).includes(id))return false;if((r.villaExtra||[]).includes(id))return true;const c=(S.clients||[]).find(x=>x.id===id);return !!c&&dueNative(c,date)};
 function clientsOn(date){
   const dn=DNL[fromIso(date).getDay()];
   const extra=new Set((S.days[date]&&S.days[date].villaExtra)||[]);
@@ -939,6 +945,9 @@ const AREA_POS={
  'mohammed bin zayed city':[24.348,54.547],'mbz city':[24.348,54.547],'zayed city':[24.348,54.547],'musaffah':[24.360,54.500],'mussafah':[24.360,54.500],'icad':[24.330,54.480],
  'shawamekh':[24.335,54.660],'bani yas':[24.305,54.630],'baniyas':[24.305,54.630],'madinat al riyadh':[24.285,54.735],'riyadh city':[24.285,54.735],'riyadh':[24.285,54.735],
  'wathba':[24.250,54.615],'mafraq':[24.285,54.590],'bahia':[24.530,54.640],'shahama':[24.540,54.680],'rahba':[24.590,54.690],'samha':[24.680,54.740],
+ 'mbz':[24.348,54.547],'markaziyah':[24.492,54.360],'pineapple':[24.490,54.366],'embassies district':[24.455,54.322],'embassies':[24.455,54.322],'embassy':[24.455,54.322],
+ 'madinat zayed':[24.482,54.368],'mangrove village':[24.402,54.495],'bloom gardens':[24.418,54.567],'bloom':[24.418,54.567],'sheleilah':[24.330,54.520],
+ 'bain al jessrain':[24.410,54.490],'jessrain':[24.410,54.490],'jasrain':[24.410,54.490],'madinat al riyad':[24.285,54.735],'riyad':[24.285,54.735],
  'al ain':[24.207,55.744],'dubai':[25.204,55.270]
 };
 const normArea=s=>String(s||'').toLowerCase().replace(/[’'`]/g,'').replace(/[-_]/g,' ').replace(/\s+/g,' ').trim().replace(/^(al|el) /,'').replace(/,? ?abu dhabi$/,'');
@@ -1126,7 +1135,7 @@ function routeLinks(list){
 /* Which villas each maintenance team covers on a date. Manual moves and skips for that day are kept. */
 const _vpCache=new Map();
 function villaPlan(date,teams){
-  const r=dayRec(date), moved=r.villaMove||{}, skip=new Set(r.villaSkip||[]);
+  const r=dayRec(date), moved=r.vsnap?{...r.vsnap,...(r.villaMove||{})}:(r.villaMove||{}), skip=new Set(r.villaSkip||[]); /* a sent day, or a day where you moved a villa, keeps the other villas where they were */
   const maint=teams.filter(t=>!isProj(t)), ids=new Set(maint.map(t=>t.id));
   const ck=date+'|'+(S.updatedAt||0)+'|'+JSON.stringify(S.settings.areaOwner||{})+JSON.stringify(S.settings.base||'')+'|'+maint.map(t=>t.id+':'+people(t).join('+')).join(',')+'|'+JSON.stringify(moved)+'|'+[...skip].join(',')+'|'+(S.clients||[]).length;
   if(_vpCache.has(ck))return _vpCache.get(ck);
@@ -1240,6 +1249,9 @@ function applyEmployeeList(o){
 
 /* ---------- migration from earlier versions ---------- */
 function migrate(o){
+  if(o.days)Object.keys(o.days).forEach(k=>{const d=o.days[k];if(!d||typeof d!=='object'){delete o.days[k];return}if(d.teams&&!Array.isArray(d.teams))d.teams=null;(d.teams||[]).forEach(t=>{t.members=Array.isArray(t.members)?t.members.filter(Boolean):[]});if(!Array.isArray(d.absent))d.absent=[]});
+  if(Array.isArray(o.projects))o.projects=o.projects.filter(p=>p&&p.id&&p.from&&p.to).map(p=>{p.crew=p.crew&&typeof p.crew==='object'?p.crew:{leader:null,members:[]};p.crew.members=Array.isArray(p.crew.members)?p.crew.members:[];return p});
+  if(o.layouts&&typeof o.layouts==='object'){if(!Array.isArray(o.layouts.normal))o.layouts.normal=clone(DEFAULT.layouts.normal);if(!Array.isArray(o.layouts.newwork))o.layouts.newwork=clone(DEFAULT.layouts.newwork||DEFAULT.layouts.normal)}
   if(!o.skills)o.skills=clone(DEFAULT.skills);
   if(!o.jobs||!o.jobs.length)o.jobs=clone(DEFAULT_JOBS);
   if(!o.days)o.days={};
@@ -1330,10 +1342,12 @@ function migrate(o){
 }
 
 /* ---------- state + local save ---------- */
-let S;
-try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+let S, brokenLoad=false, rawSaved=null;
+try{rawSaved=localStorage.getItem(KEY);S=JSON.parse(rawSaved)}catch(e){S=null}
+if(rawSaved&&(!S||!S.staff||!S.layouts))brokenLoad=true;
 if(!S||!S.staff||!S.layouts){S=clone(DEFAULT);S.isSeed=true}
-migrate(S);
+try{migrate(S)}catch(e){console.error(e);brokenLoad=true;S=clone(DEFAULT);S.isSeed=true;migrate(S)}
+if(brokenLoad){try{localStorage.setItem(KEY+'_broken',rawSaved)}catch(_){}}
 /* Save on this device. If the phone's storage is full, free the old undo copy and try again; if it still fails, say so clearly. */
 let storageBad=false;
 function localSave(){
@@ -1351,7 +1365,7 @@ function hideNote(id){if(notes[id]){delete notes[id];renderNotes()}}
 function renderNotes(){const el=document.getElementById('notebar');if(!el)return;const ks=Object.keys(notes);el.hidden=!ks.length;el.innerHTML=ks.map(k=>`<div class="note ${notes[k].kind}"><span>${notes[k].html}</span><button class="btn small" data-notex="${k}" aria-label="Close">✕</button></div>`).join('')}
 /* The time of a change only ever moves forward on this device, even if the phone's clock is wrong. */
 let batching=false; /* while a day is being built, its many small steps are saved once at the end */
-function save(){if(batching)return;snapToday();S.updatedAt=Math.max(Date.now(),(S.updatedAt||0)+1);localSave();schedulePush()}
+function save(){if(batching)return;S.updatedAt=Math.max(Date.now(),(S.updatedAt||0)+1);snapToday();localSave();schedulePush()}
 
 /* ---------- expertise + learning ---------- */
 const expert=(n,sk)=>((S.expert||{})[n]||[]).includes(sk);
@@ -1367,6 +1381,7 @@ function learnDecay(){const L=LRN(),now=Date.now(),W=7*864e5;if(!L.at){L.at=now;
 /* L1: a past day teaches the planner only when it was your decision — you changed it by hand, sent it to the leaders,
    or confirmed it in the daily check. Days the app built by itself and nobody looked at teach nothing. */
 const learnable=r=>!!(r&&r.teams&&(r.manual||r.sent||(r.check&&r.check.done)));
+const workDay=s=>!!(clientsOn(s).length||activeProjects(s).length);
 const learnWeight=r=>r.manual?1:0.6;
 function bump(map,key,n,d){const m=map[key]||(map[key]={});m[n]=Math.round(Math.max(-10,Math.min(30,(m[n]||0)+d))*10)/10}
 const learnW=(w,n)=>((LRN().w[w]||{})[n]||0);
@@ -1381,15 +1396,19 @@ function learnPairs(t,d){const ppl=people(t);for(let i=0;i<ppl.length;i++)for(le
 const areaKey=t=>t.leader||('team:'+t.id);
 const learnA=(area,t)=>((LRN().a[area]||{})[areaKey(t)]||0);
 function learnAreaMove(date,villaId,toId){
+  return; /* moving one villa today must not reshuffle other days: area moves are learned later, from past days (learnHistory) */
   const c=(S.clients||[]).find(x=>x.id===villaId); if(!c)return;
   const teams=effTeams(date), vp=villaPlan(date,teams), from=teams.find(t=>(vp.byTeam[t.id]||[]).some(x=>x.id===villaId)), to=teams.find(t=>t.id===toId), a=areaShort(c);
   if(from&&from!==to)bump(LRN().a,a,areaKey(from),-1);
   if(to)bump(LRN().a,a,areaKey(to),2);
 }
 /* Past days you edited teach the planner who usually works where. Each day is read once. */
-function learnHistory(){learnDecay();Object.entries(S.days).forEach(([s,r])=>{if(s>=TODAY||!r.teams||r.learned)return;if(!learnable(r)){if(s<addDays(TODAY,-3))r.learned=true;return}
+function learnHistory(){learnDecay();const LD=LRN().done||(LRN().done={});Object.keys(LD).forEach(k=>{if(k<addDays(TODAY,-120))delete LD[k]});
+  Object.entries(S.days).forEach(([s,r])=>{if(s>=TODAY||!r.teams)return;if(r.learned||LD[s]){r.learned=true;LD[s]=1;return}
+  if(s>=addDays(TODAY,-4)&&!isDayOff(s)&&workDay(s)&&!r.check&&r.teams.some(t=>people(t).length))return; /* wait for the morning check */
+  if(!learnable(r)||!workDay(s)){r.learned=true;LD[s]=1;return}
   const wt=learnWeight(r), miss=new Set([].concat(...Object.values((r.check&&r.check.teams)||{}).map(x=>x.missing||[])));
-  r.teams.forEach(t0=>{const t={...t0,leader:miss.has(t0.leader)?null:t0.leader,members:t0.members.filter(m=>!miss.has(m))};people(t).forEach(n=>learnInTeam(t,n,0.5*wt));if(t.leader)learnLead(t,t.leader,0.5*wt);learnPairs(t,0.2*wt)});try{if(r.areaSnap&&r.areaSnap.a){r.teams.filter(t=>!isProj(t)).forEach(t=>{(r.areaSnap.a[t.id]||[]).forEach(a=>bump(LRN().a,a,areaKey(t),0.3));((r.areaSnap.m||{})[t.id]||[]).forEach(a=>bump(LRN().a,a,areaKey(t),0.5))})}else{const vp=villaPlan(s,r.teams);r.teams.filter(t=>!isProj(t)).forEach(t=>{const moved=r.villaMove||{};new Set((vp.byTeam[t.id]||[]).map(areaShort)).forEach(a=>bump(LRN().a,a,areaKey(t),0.3));(vp.byTeam[t.id]||[]).filter(c=>moved[c.id]===t.id).forEach(c=>bump(LRN().a,areaShort(c),areaKey(t),0.5))})}}catch(e){}r.learned=true})}
+  r.teams.forEach(t0=>{const t={...t0,leader:miss.has(t0.leader)?null:t0.leader,members:t0.members.filter(m=>!miss.has(m))};people(t).forEach(n=>learnInTeam(t,n,0.5*wt));if(t.leader)learnLead(t,t.leader,0.5*wt);learnPairs(t,0.2*wt)});try{if(r.areaSnap&&r.areaSnap.a){r.teams.filter(t=>!isProj(t)).forEach(t=>{(r.areaSnap.a[t.id]||[]).forEach(a=>bump(LRN().a,a,areaKey(t),0.3));((r.areaSnap.m||{})[t.id]||[]).forEach(a=>bump(LRN().a,a,areaKey(t),0.5))})}else{const vp=villaPlan(s,r.teams);r.teams.filter(t=>!isProj(t)).forEach(t=>{const moved=r.villaMove||{};new Set((vp.byTeam[t.id]||[]).map(areaShort)).forEach(a=>bump(LRN().a,a,areaKey(t),0.3));(vp.byTeam[t.id]||[]).filter(c=>moved[c.id]===t.id).forEach(c=>bump(LRN().a,areaShort(c),areaKey(t),0.5))})}}catch(e){}r.learned=true;LD[s]=1})}
 /* Remember which areas each team covered today, so learning later uses the villa list as it was on the day. */
 function snapToday(){try{const r=S.days[TODAY];if(!r||!r.teams)return;const vp=villaPlan(TODAY,r.teams),moved=r.villaMove||{},a={},m={},l={};r.teams.filter(t=>!isProj(t)).forEach(t=>{const L=vp.byTeam[t.id]||[];a[t.id]=[...new Set(L.map(areaShort))];m[t.id]=[...new Set(L.filter(c=>moved[c.id]===t.id).map(areaShort))];l[t.id]=t.leader||''});r.areaSnap={a,m,l}}catch(e){}}
 /* Who covered each area on the same weekday in the last 4 weeks (newer weeks count more). */
@@ -1416,7 +1435,7 @@ function learnedText(n){
 
 /* ---------- building a day's teams ---------- */
 function projectTeam(p,ab,taken){
-  const ok=n=>n&&!ab.has(n)&&!taken.has(n);
+  const ok=n=>n&&S.staff.includes(n)&&!ab.has(n)&&!taken.has(n);
   const t={id:'p-'+p.id,projectId:p.id,name:p.title,job:p.type,desc:'',leader:ok(p.crew.leader)?p.crew.leader:null,members:p.crew.members.filter(ok)};
   people(t).forEach(n=>taken.add(n));
   return t;
@@ -1436,8 +1455,10 @@ function maintLayoutFor(s,lp){
   const k=Math.max(1,carsN()-lp.length), ab=new Set(dayRec(s).absent||[]);
   const L=nwLeaders().filter(n=>!ab.has(n)).slice(0,lp.length);
   const fixed=new Set(lp.filter(p=>p.crewOk).flatMap(p=>[p.crew.leader,...p.crew.members]).filter(Boolean));
-  let keep=normal.filter(t=>!L.includes(t.leader));
-  while(keep.length>k){const left=t=>people(t).filter(n=>!ab.has(n)&&!fixed.has(n)).length;const out=[...keep].sort((a,b)=>left(a)-left(b)||normal.indexOf(b)-normal.indexOf(a))[0];keep=keep.filter(t=>t!==out)}
+  /* the teams that lose the most people to the jobs (job leader, saved crew) break up first */
+  let keep=[...normal];
+  const left=t=>people(t).filter(n=>!ab.has(n)&&!fixed.has(n)&&!L.includes(n)).length;
+  while(keep.length>k){const out=[...keep].sort((a,b)=>left(a)-left(b)||(L.includes(b.leader)?1:0)-(L.includes(a.leader)?1:0)||normal.indexOf(b)-normal.indexOf(a))[0];keep=keep.filter(t=>t!==out)}
   return keep;
 }
 function defaultTeams(s){
@@ -1464,7 +1485,7 @@ function reconcile(s,rebuild){
   /* New work started or ended on this day: maintenance teams follow the right standard setup
      (3 teams on a normal day, the new-work setup when a job runs), and the teams are built again. */
   if(needsRelayout(s)){
-    if(!r.manual||(rebuild&&rebuild.has(s))){if(ps.length)buildDay(s);else r.teams=null;return}
+    if((!r.manual&&!r.sent)||(rebuild&&rebuild.has(s))){if(ps.length)buildDay(s);else if(r.sent){buildDay(s)}else r.teams=null;return}
     /* You changed this day by hand and chose to keep it: a finished job's people go back to the maintenance teams. */
     if(!layoutProjects(s).length){
       const back=[];r.teams.filter(t=>t.projectId&&!ids.has(t.projectId)).forEach(t=>back.push(...people(t)));r.teams=r.teams.filter(t=>!t.projectId||ids.has(t.projectId));
@@ -1477,9 +1498,9 @@ function reconcile(s,rebuild){
   ps.forEach(p=>{
     let t=r.teams.find(t=>t.projectId===p.id);
     if(!t){
-      const crew=[p.crew.leader,...p.crew.members].filter(n=>n&&!ab.has(n)&&!taken.has(n));
+      const crew=p.crewOk?[p.crew.leader,...p.crew.members].filter(n=>n&&S.staff.includes(n)&&!ab.has(n)&&!taken.has(n)):[];
       r.teams.forEach(x=>{if(!x.projectId){if(crew.includes(x.leader))x.leader=null;x.members=x.members.filter(m=>!crew.includes(m))}});
-      t=projectTeam(p,ab,taken); r.teams.unshift(t);
+      t=p.crewOk?projectTeam(p,ab,taken):{id:'p-'+p.id,projectId:p.id,name:p.title,job:p.type,desc:'',leader:null,members:[]}; r.teams.unshift(t);
     }
     t.name=p.title; t.job=p.type;
   });
@@ -1488,9 +1509,9 @@ function reconcile(s,rebuild){
 /* ask = true when you just changed a job: days you changed by hand are listed and you choose to rebuild them or keep them. */
 function reconcileAll(ask){
   let rebuild=new Set();
-  if(ask){const hit=Object.keys(S.days).sort().filter(s=>S.days[s].manual&&needsRelayout(s));
+  if(ask){const hit=Object.keys(S.days).sort().filter(s=>(S.days[s].manual||S.days[s].sent)&&needsRelayout(s));
     if(hit.length){const list=hit.map(s=>DNL[fromIso(s).getDay()]+' '+shortDate(s)).join(', ');
-      if(confirm(`You changed the teams by hand on ${list}.\n\nThis new-work change needs the teams set up again on ${hit.length>1?'these days':'that day'}.\n\nOK = set up the teams again (your hand changes there are replaced)\nCancel = keep your teams and only add or remove the job team`))rebuild=new Set(hit)}}
+      if(confirm(`You changed the teams by hand or already sent them to the leaders on ${list}.\n\nThis new-work change needs the teams set up again on ${hit.length>1?'these days':'that day'}.\n\nOK = set up the teams again (your hand changes there are replaced)\nCancel = keep your teams and only add or remove the job team`))rebuild=new Set(hit)}}
   Object.keys(S.days).forEach(s=>reconcile(s,rebuild));
 }
 function ctxTeams(ctx,forEdit){
@@ -1509,7 +1530,7 @@ function strip(ctx,name){
   if(ctx.type==='day'){const r=ensureDay(ctx.date);r.absent=r.absent.filter(m=>m!==name);r.nursery=r.nursery.filter(m=>m!==name)}
 }
 let building=false;
-const markManual=ctx=>{if(ctx&&ctx.type==='day'&&!building)ensureDay(ctx.date).manual=true};
+const markManual=ctx=>{if(ctx&&ctx.type==='day'&&!building){const r=ensureDay(ctx.date);r.manual=true;r.editedAt=Date.now();if(r.sent)r.resend=true}};
 function moveTo(ctx,name,target){
   markManual(ctx);strip(ctx,name);
   if(target==='absent')ensureDay(ctx.date).absent.push(name);
@@ -1549,7 +1570,8 @@ function applyLeaves(){
       const [k,id]=[where.slice(0,1),where.slice(2)];
       if(k==='N'){(r.nursery=r.nursery||[]).push(n);return}
       const t=(r.teams||[]).find(t=>t.id===id); if(!t)return;
-      if(k==='L'&&!t.leader)t.leader=n; else if(people(t).length<maxTeam())t.members.push(n);
+      if(k==='L'){if(t.leader){t.members.unshift(t.leader)}t.leader=n}else t.members.push(n);
+      while(people(t).length>maxTeam()){const out=[...t.members].reverse().find(m=>m!==n&&!driverLocked(m,t));if(!out)break;t.members=t.members.filter(m=>m!==out);(r.nursery=r.nursery||[]).push(out)}
     });
     if(!Object.keys(r.leaveFrom).length)delete r.leaveFrom;
   });
@@ -1640,7 +1662,7 @@ function suggest(date){
     sim.forEach(d=>{if(d===t)return;d.members.forEach(m=>{if(pred(m)&&canGive(d,m))cs.push({name:m,from:d})})});
     /* a large or medium job may take the supervisor leading a maintenance team, if that team has someone else who can lead */
     const pj=projOf(t);
-    if(mode==='lead'&&pj&&(pj.size||'M')!=='S')sim.forEach(d=>{if(d===t||isProj(d)||!d.leader||!pred(d.leader))return;if(supLevel(d.leader)<(SIZE_WANT[pj.size||'M']||2))return;if(d.members.some(m=>has(m,'lead')))cs.push({name:d.leader,from:d})});
+    if(mode==='lead'&&pj&&!isSupply(pj)&&(pj.size||'M')!=='S')sim.forEach(d=>{if(d===t||isProj(d)||!d.leader||!pred(d.leader))return;if(supLevel(d.leader)<(SIZE_WANT[pj.size||'M']||2))return;if(d.members.some(m=>has(m,'lead')))cs.push({name:d.leader,from:d})});
     if(!cs.length)return null;
     cs.forEach(c=>Object.assign(c,score(c.name,t,c.from,mode,skill)));
     cs.sort((a,b)=>b.s-a.s||a.name.localeCompare(b.name));
@@ -1668,9 +1690,9 @@ function suggest(date){
     if(absent.has(n)||people(t).includes(n))return;
     if(isProj(t)&&(isSup(n)||nwLeaders().includes(n))&&!pinsOf(t).includes(n))return; /* supervisors lead; they don't ride along as crew */
     if(isProj(t)&&jobNeeds(jobOf(t)).driver&&!people(t).some(x=>has(x,'driver'))&&!has(n,'driver')&&people(t).length>=Math.max(crewWant(t),jobOf(t).min||0)-1)return; /* keep a seat for the driver */
-    const from=sim.find(x=>people(x).includes(n));if(from&&(from.leader===n||pinsOf(from).includes(n)||(from!==t&&isCoreIn(from,n))))return;
+    const from=sim.find(x=>people(x).includes(n));if(from&&(from.leader===n||pinsOf(from).includes(n)||driverLocked(n,from)||(from!==t&&isCoreIn(from,n))))return;
     if(people(t).length>=(isProj(t)?Math.max(crewWant(t),jobOf(t).min||0):maxTeam())){ /* full: a floater makes room for the core member */
-      const fl=t.members.find(m=>!isCoreIn(t,m)&&!pinsOf(t).includes(m));if(!fl)return;
+      const fl=[...t.members].reverse().find(m=>!isCoreIn(t,m)&&!pinsOf(t).includes(m)&&!driverLocked(m,t)&&!(isProj(t)&&has(m,'driver')&&people(t).filter(x=>has(x,'driver')).length<=1));if(!fl)return;
       t.members=t.members.filter(m=>m!==fl);avail.push(fl)}
     if(from)from.members=from.members.filter(m=>m!==n);else avail=avail.filter(x=>x!==n);
     t.members.push(n);moves.push({type:'move',name:n,fromName:from?from.name:'Available',to:t.id,toName:t.name,why:'Core crew of '+dn(t.leader)});
@@ -1678,10 +1700,11 @@ function suggest(date){
   sim.forEach(bringCore);
   /* A car takes ${maxTeam()} people with the driver: take the least-needed people out of any over-full team first. */
   sim.forEach(t=>{
-    const lim=(building&&isProj(t))?Math.max(crewWant(t),pinsOf(t).length+1):maxTeam();
+    const pj0=projOf(t), saved=pj0&&pj0.crewOk?new Set([pj0.crew.leader,...pj0.crew.members]):new Set();
+    const lim=(building&&isProj(t))?Math.min(maxTeam(),Math.max(crewWant(t),pinsOf(t).length+1,people(t).filter(m=>saved.has(m)).length)):maxTeam();
     while(people(t).length>lim){
       const need=jobNeeds(jobOf(t)), pins=pinsOf(t);
-      const val=m=>Object.keys(need).filter(k=>has(m,k)&&people(t).filter(x=>has(x,k)).length<=need[k]).length*3+(has(m,'driver')?2:0)+(pins.includes(m)?99:0)+(isCoreIn(t,m)?50:0)+(driverLocked(m,t)?80:0);
+      const val=m=>Object.keys(need).filter(k=>has(m,k)&&people(t).filter(x=>has(x,k)).length<=need[k]).length*3+(has(m,'driver')?2:0)+(pins.includes(m)?99:0)+(isCoreIn(t,m)?50:0)+(driverLocked(m,t)?80:0)+(saved.has(m)?60:0);
       const out=[...t.members].sort((a,b)=>val(a)-val(b))[0]; if(!out)break;
       t.members=t.members.filter(m=>m!==out); avail.push(out);
     }
@@ -1729,9 +1752,10 @@ function suggest(date){
     for(const t of order){
       const ps=problems(t);
       if(ps.some(p=>p.kind==='lead')){
-        const inTeam=t.members.filter(x=>has(x,'lead')).map(x=>({name:x,...score(x,t,null,'lead')})).sort((a,b)=>b.s-a.s)[0];
+        const sup=isProj(t)&&isSupply(projOf(t)), lk=sup?'driver':'lead';
+        const inTeam=t.members.filter(x=>has(x,lk)).map(x=>({name:x,...score(x,t,null,'lead')})).sort((a,b)=>b.s-a.s)[0];
         if(inTeam){t.members=t.members.filter(x=>x!==inTeam.name);t.leader=inTeam.name;moves.push({type:'lead',name:inTeam.name,to:t.id,toName:t.name,why:['Team has no leader',...inTeam.why].join(' · ')});done=true;break}
-        if(active('lead')){const c=pick(t,n=>has(n,'lead'),'lead');if(c){doMove(c,t,'Team has no leader',true);done=true;break}}
+        if(active('lead')||sup){const c=pick(t,n=>has(n,lk)&&(!sup||!isSup(n)||(S.skills[n]||[]).includes('drv_spare')||!S.layouts.normal.some(x=>x.leader===n)),'lead');if(c){doMove(c,t,sup?'Delivery — the driver leads':'Team has no leader',true);done=true;break}}
       }
       let did=false;
       for(const p of ps.filter(p=>p.kind==='skill').sort((a,b)=>(b.skill==='driver')-(a.skill==='driver')||holders(a.skill)-holders(b.skill))){
@@ -1809,17 +1833,22 @@ function buildDay(date){
 }
 function buildDay_(date){
   const before=S.updatedAt; let moves=[]; batching=true; try{
-  const r=ensureDay(date); r.teams=defaultTeams(date); r.manual=false; r.nursery=[]; /* a rebuild starts the nursery list again, so nobody is listed twice */
+  const r=ensureDay(date); if(r.sent&&r.teams)r.resend=true; delete r.vsnap; r.teams=defaultTeams(date); r.manual=false; r.nursery=[]; /* a rebuild starts the nursery list again, so nobody is listed twice */
   const fresh=teamProjects(date).filter(p=>!p.crewOk);
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t){t.leader=null;t.members=[]}});
   moves=suggest(date).moves; moves.forEach(m=>applyMove(date,m));
+  /* a second look: people placed late in the first pass can still fill a gap (kept only when it really fixes something) */
+  const probs=()=>{setVillaNeeds(r.teams,villaPlan(date,r.teams));return r.teams.reduce((a,t)=>a+weight(t),0)};
+  for(let pass=0,w0=probs();pass<2&&w0>0;pass++){const keepT=clone(r.teams),keepN=[...(r.nursery||[])],mv=suggest(date).moves;if(!mv.length)break;
+    mv.forEach(m=>applyMove(date,m));const w1=probs();if(w1<w0){w0=w1;moves=moves.concat(mv)}else{r.teams=keepT;r.nursery=keepN;break}}
   fresh.forEach(p=>{const t=r.teams.find(t=>t.projectId===p.id);if(t&&people(t).length){saveCrew(p,t,date);p.crewOk=true}});
   r.sig=daySig(date);
   }finally{batching=false}
   /* another window of the planner saved while this day was being built: take its data instead (the day is built again on the next screen) */
   try{const cur=JSON.parse(localStorage.getItem(KEY)||'null');if(cur&&cur.updatedAt&&cur.updatedAt!==before&&cur.updatedAt>(before||0)){S=migrate(cur);return {moves:[],left:[]}}}catch(_){}
   save();
-  return {moves,left:suggest(date).left};
+  const R=ensureDay(date);setVillaNeeds(R.teams||[],villaPlan(date,R.teams||[]));const left=[];(R.teams||[]).forEach(t=>problems(t).forEach(p=>left.push(`${t.name}: ${p.text}`)));
+  return {moves,left};
 }
 /* New work leaders in order of preference (default: Gul Badshah, then Jawad). */
 function nwLeaders(){const st=S.settings||{};let L=Array.isArray(st.nwLeaders)?st.nwLeaders:null;
@@ -1838,20 +1867,21 @@ function daySig(date){
 /* Build (or build again) a day that needs it. Returns 'built', 'stale' (changed, but kept for you to decide) or ''. */
 function ensureBuilt(date){
   if(date<TODAY||isDayOff(date)||document.hidden)return '';
+  if(S.isSeed&&syncUrl()&&!firstPullDone&&pulling){waitBuild=true;return ''} /* a new device loads the Sheet before building anything */
   const r=dayRec(date), sig=daySig(date);
   if(r.teams&&r.sig===sig)return '';
   if(r.teams&&(r.manual||r.sent))return 'stale';
   buildDay(date);return 'built';
 }
 /* L5 daily check: the last working day before today that had teams and was not checked yet (up to 3 days back). */
-function dayToCheck(){for(let k=1;k<=4;k++){const s=addDays(TODAY,-k);if(isDayOff(s))continue;const r=S.days[s];if(r&&r.teams&&!r.check&&r.teams.some(t=>people(t).length))return s;if(r&&r.check)return null}return null}
+function dayToCheck(){for(let k=1;k<=4;k++){const s=addDays(TODAY,-k);if(isDayOff(s)||(!clientsOn(s).length&&!activeProjects(s).length))continue;const r=S.days[s];if(r&&r.teams&&!r.check&&r.teams.some(t=>people(t).length))return s;if(r&&r.check)return null}return null}
 const nextWorkDay=from=>{let d=from<TODAY?TODAY:from;for(let i=0;i<10&&isDayOff(d);i++)d=addDays(d,1);return d};
 function hmMin(t){const m=String(t||'').match(/(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null}
 /* Save the check: villas not done go to the next working day, people who didn't come are marked off, finish times teach
    the real time per villa, and job answers extend or finish the job. */
 function saveCheck(date,res){
   const r=ensureDay(date), teams=r.teams||[], vp=villaPlan(date,teams), L=LRN();
-  r.check={done:true,at:Date.now(),teams:res||{}};
+  r.check={done:true,at:Date.now(),teams:res||{}};r.editedAt=Date.now();
   const carry=[];
   Object.entries(res||{}).forEach(([tid,x])=>{const t=teams.find(q=>q.id===tid);if(!t)return;
     (x.missing||[]).forEach(n=>{if(!(r.absent||[]).includes(n))(r.absent=r.absent||[]).push(n)});
@@ -1992,7 +2022,9 @@ function pdfLeaderPages(date){
     </div>`}).join('');
 }
 function setPageSize(css){let s=$('pagesize');if(!s){s=document.createElement('style');s.id='pagesize';document.head.appendChild(s)}s.textContent=`@media print{@page{${css}}}`}
-function markSent(date){const r=ensureDay(date);if(!r.teams)return;r.sent=true;r.sig=r.sig||daySig(date);const n=new Date();r.sentAt=pad(n.getHours())+':'+pad(n.getMinutes());save()}
+/* Before you move a villa by hand: the other villas stay with the team they have now. */
+function freezeVillas(date){const r=ensureDay(date);if(r.vsnap)return;try{const vp=villaPlan(date,effTeams(date)),m={};Object.entries(vp.byTeam).forEach(([tid,L])=>L.forEach(c=>m[c.id]=tid));r.vsnap=m}catch(_){}}
+function markSent(date){const r=ensureDay(date);if(!r.teams)return;try{const vp=villaPlan(date,r.teams),m={};Object.entries(vp.byTeam).forEach(([tid,L])=>L.forEach(c=>m[c.id]=tid));r.vsnap=m}catch(_){}r.sent=true;r.editedAt=Date.now();delete r.resend;r.sig=r.sig||daySig(date);const n=new Date();r.sentAt=pad(n.getHours())+':'+pad(n.getMinutes());save()}
 function printDay(){markSent(cur);setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=pdfDayPage(cur);doPrint(`Garden Grow Daily Team Plan ${cur}`)}
 function printWeek(){
   [0,1,2,3,4,5,6].forEach(i=>ensureBuilt(addDays(weekStart(cur),i)));
@@ -2112,6 +2144,7 @@ function merge3(b,l,r,path){
   if(b!==undefined&&J(l)===J(b))return clone(r);
   if(b!==undefined&&J(r)===J(b))return clone(l);
   if(l===undefined)return clone(r); if(r===undefined)return clone(l);
+  if(/^\.days\.[^.]+$/.test(path)&&isO(l)&&isO(r))return mergeDay(isO(b)?b:undefined,l,r,path);
   if(ATOMIC.test(path))return clone(l);
   if(Array.isArray(l)&&Array.isArray(r)){
     if((isIdArr(l)||isIdArr(r))&&(!l.length||isIdArr(l))&&(!r.length||isIdArr(r)))return mergeIds(Array.isArray(b)?b:undefined,l,r,path);
@@ -2121,6 +2154,19 @@ function merge3(b,l,r,path){
   if(isO(l)&&isO(r)){const bb=isO(b)?b:undefined,out={};
     new Set([...Object.keys(r),...Object.keys(l)]).forEach(k=>{const v=pick3(bb?bb[k]:undefined,l[k],r[k],!!bb&&k in bb,path+'.'+k);if(v!==undefined)out[k]=v});return out}
   return clone(l);
+}
+/* One day from two devices: the teams come as one piece from the side with the stronger version (edited by hand,
+   sent or checked beats built by the app; then the later edit wins). Note, who's off and villa moves combine field by field. */
+const DAY_TEAM_KEYS=['teams','manual','sent','sentAt','resend','sig','nursery','editedAt','leaveFrom','areaSnap','vsnap'];
+function mergeDay(b,l,r,path){
+  const J=JSON.stringify, part=d=>d?DAY_TEAM_KEYS.reduce((o,k)=>{if(d[k]!==undefined)o[k]=d[k];return o},{}):{};
+  const pl=part(l),pr=part(r),pb=b?part(b):undefined, rank=d=>d.teams?((d.manual||d.sent||(d.check&&d.check.done))?1:0):-1;
+  let win;
+  if(J(pl)===J(pr))win=pl; else if(pb&&J(pl)===J(pb))win=pr; else if(pb&&J(pr)===J(pb))win=pl;
+  else{const a=rank(l),c=rank(r);win=a!==c?(a>c?pl:pr):((r.editedAt||0)>(l.editedAt||0)?pr:pl)}
+  const rest=k=>!DAY_TEAM_KEYS.includes(k), strip=d=>{const o={};Object.keys(d||{}).filter(rest).forEach(k=>o[k]=d[k]);return o};
+  const out=merge3(b?strip(b):undefined,strip(l),strip(r),path+'.~');
+  return Object.assign(out,clone(win));
 }
 function pick3(bv,lv,rv,inBase,path){
   const J=JSON.stringify;
@@ -2162,7 +2208,7 @@ function mergeIn(remote){
   void loud;
   if(!modal){sel=null;menuMode=null;render()}
 }
-let firstPullDone=false, lastReadable=0, readableT=null;
+let waitBuild=false, firstPullDone=false, lastReadable=0, readableT=null;
 async function push(){
   const url=syncUrl(); if(!url)return;
   if(S.isSeed&&!firstPullDone){if(!pulling)pull();return} /* a new device never sends its starting data before it has loaded the Sheet */
@@ -2211,7 +2257,7 @@ async function pull(){
     else if(!remote||isDirty()){pulling=false;await push();return}
     lastSyncAt=new Date(); setSync('ok'); maybeArchive();
   }catch(e){setSync(navigator.onLine?'error':'offline',!navigator.onLine?'':e&&e.name==='AbortError'?'Google did not answer in time':e&&e.google?e.message:'could not reach the Google Sheet')}
-  finally{pulling=false}
+  finally{pulling=false;if(waitBuild){waitBuild=false;if(!modal)render()}}
 }
 function adoptRemote(st){
   keepBeforeSync();
@@ -2242,7 +2288,9 @@ addEventListener('storage',e=>{
 });
 setInterval(()=>{if(document.visibilityState==='visible'&&!modal)pull()},60000);
 let retryT=null;function retrySoon(){clearTimeout(retryT);retryT=setTimeout(()=>{if(syncStatus==='error')pull()},15000)}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')pull()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(iso(new Date())!==TODAY&&!modal&&!isDirtyLocalEdit()){location.reload();return}pull()}});
+setInterval(()=>{if(iso(new Date())!==TODAY&&!modal&&!isDirtyLocalEdit()&&!document.activeElement.matches('input,textarea,select'))location.reload()},60000);
+function isDirtyLocalEdit(){return !!document.querySelector('.savebar.dirty')}
 addEventListener('online',()=>{if(syncUrl())((S.updatedAt||0)>(S.syncedAt||0)?push:pull)()});
 
 
@@ -2286,9 +2334,9 @@ function issuesFor(date){
   return out;
 }
 const FLEX=new Set(['twice_month','fortnightly','monthly']);
-function lightestDay(from,days,withJob,excludeSelf){
+function lightestDay(from,days,withJob,ids){
   let best=null;
-  for(let i=1;i<=days;i++){const s=addDays(from,i);if(isDayOff(s))continue;const L=loadFor(s,withJob);if(!L.villas)continue;if(!best||L.per<best.per)best={s,...L}}
+  for(let i=1;i<=days;i++){const s=addDays(from,i);if(isDayOff(s))continue;if(ids&&ids.some(id=>visitOn(id,s)))continue;const L=loadFor(s,withJob);if(!L.villas)continue;if(!best||L.per<best.per)best={s,...L}}
   return best;
 }
 /* Ideas for teams above the villa limit: move flexible villas (2×/month etc.) to a lighter day, or move new work to a lighter day. */
@@ -2296,7 +2344,7 @@ function heavyIdeas(date){
   const teams=effTeams(date), vp=villaPlan(date,teams), ideas=[];
   teams.filter(t=>!isProj(t)&&(vp.byTeam[t.id]||[]).length>maxV()).forEach(t=>{
     const list=vp.byTeam[t.id], extra=list.length-maxV(), flex=list.filter(c=>FLEX.has(c.frequency)).slice(0,extra);
-    const target=lightestDay(date,6,null);
+    const target=flex.length&&lightestDay(date,6,null,flex.map(c=>c.id));
     if(flex.length&&target)ideas.push({kind:'villas',team:t.name,ids:flex.map(c=>c.id),names:flex.map(villaName),to:target.s});
   });
   const ps=activeProjects(date);
@@ -2309,17 +2357,31 @@ function heavyIdeas(date){
   nearIdeas(date).forEach(x=>ideas.push(x));
   return ideas;
 }
+/* Move visits to another day. A visit that was itself moved in is moved on (its home day now points to the new day),
+   and moving a visit back to its own day simply undoes the move — so no visit is ever lost or doubled. */
+const unlist=(r,k,id)=>{if(r&&r[k])r[k]=r[k].filter(x=>x!==id)};
 function moveVillasToDay(from,ids,to){
-  const a=ensureDay(from), b=ensureDay(to);
-  a.villaSkip=[...new Set([...(a.villaSkip||[]),...ids])];
-  a.villaMovedTo=Object.assign(a.villaMovedTo||{},Object.fromEntries(ids.map(id=>[id,to])));
-  b.villaExtra=[...new Set([...(b.villaExtra||[]),...ids])];
+  ids.forEach(id=>{
+    const a=ensureDay(from), b=ensureDay(to), c=(S.clients||[]).find(x=>x.id===id);
+    const movedIn=(a.villaExtra||[]).includes(id)&&!(c&&dueNative(c,from)&&!(a.villaSkip||[]).includes(id));
+    if(movedIn){
+      unlist(a,'villaExtra',id);
+      const home=Object.keys(S.days).find(d=>S.days[d].villaMovedTo&&S.days[d].villaMovedTo[id]===from);
+      if(home===to){const h=S.days[home];delete h.villaMovedTo[id];unlist(h,'villaSkip',id);return}
+      if(home)S.days[home].villaMovedTo[id]=to;
+    }else{
+      a.villaSkip=[...new Set([...(a.villaSkip||[]),id])];
+      a.villaMovedTo=Object.assign(a.villaMovedTo||{},{[id]:to});
+    }
+    if((b.villaSkip||[]).includes(id)&&c&&dueNative(c,to)){unlist(b,'villaSkip',id);const x=b.villaMovedTo&&b.villaMovedTo[id];if(x){delete b.villaMovedTo[id];if(x!==from)unlist(S.days[x],'villaExtra',id)}}
+    else b.villaExtra=[...new Set([...(b.villaExtra||[]),id])];
+  });
   save();
 }
 function putVillaBack(date,id){
-  const r=ensureDay(date), to=r.villaMovedTo&&r.villaMovedTo[id];
-  r.villaSkip=(r.villaSkip||[]).filter(x=>x!==id);
-  if(to){delete r.villaMovedTo[id];const b=S.days[to];if(b&&b.villaExtra)b.villaExtra=b.villaExtra.filter(x=>x!==id)}
+  const r=ensureDay(date);let to=r.villaMovedTo&&r.villaMovedTo[id],guard=0;
+  unlist(r,'villaSkip',id);if(r.villaMovedTo)delete r.villaMovedTo[id];
+  while(to&&guard++<20){const b=S.days[to];if(!b)break;unlist(b,'villaExtra',id);const nx=b.villaMovedTo&&b.villaMovedTo[id];if(nx){delete b.villaMovedTo[id];unlist(b,'villaSkip',id)}to=nx}
   save();
 }
 
@@ -2358,6 +2420,7 @@ function pinsCard(){
     ${box('failed','links could not be read',g.failed,'Open the villa in the Maintenance App and paste the Google Maps link again (Share → Copy link). Then tap Try again.')}
     ${box('waiting','links waiting to be read',g.waiting,'Tap "Read map links now". The Google Sheet opens each link once.')}
     ${box('area','by area (no map link)',g.area,'Placed at the centre of their area. Add a Google Maps link in the Maintenance App to put them on their exact spot.')}
+    ${box('weeks','visited 2×/month or less but no weeks set — planned every week',cl.filter(c=>FLEX.has(c.frequency)&&!c.weeks),'These villas have no "Which weeks" set, so the planner puts them on every week and the teams look busier than they are. Set the weeks in the Maintenance App (Week 1 & 3, or 2 & 4).')}
     ${box('unknown','area not known (no map link)',g.unknown,'The planner does not know where this area is. Add a map link in the Maintenance App, or set the area position in Setup → Teams.')}
   </div>`;
 }
@@ -2472,7 +2535,8 @@ const moveText=m=>m.type==='nursery'?`Send <b>${esc(dn(m.name))}</b> to the nurs
 function weekStrip(){
   const ws=weekStart(cur);
   return `<div class="wstrip" aria-label="This week">${[0,1,2,3,4,5,6].map(i=>{const s=addDays(ws,i),d=fromIso(s),nw=activeProjects(s).length,v=clientsOn(s).length,off=isDayOff(s)||(!v&&!nw),bad=s>=TODAY&&!off&&issuesFor(s).length;
-    return `<button class="wd ${s===cur?'sel':''} ${s===TODAY?'today':''} ${off?'off':''}" data-date="${s}" aria-label="${longDate(s)}"><span>${DN[d.getDay()]} ${d.getDate()}</span><b class="${bad?'redtxt':''}">${off?'—':v}${bad?' ●':''}</b>${nw?'<i class="nwdot">new work</i>':''}</button>`}).join('')}</div>`;
+    const dayoff=isDayOff(s), vt=dayoff?'Day off':v?plural(v,'villa'):'No villas';
+    return `<button class="wd ${s===cur?'sel':''} ${s===TODAY?'today':''} ${dayoff?'off':''} ${bad?'bad':''}" data-date="${s}" aria-label="${longDate(s)}: ${vt}${nw?', new work':''}${bad?', needs a check':''}"><span class="wdt">${DN[d.getDay()]} ${d.getDate()}</span><span class="wdv">${vt}</span>${nw?'<span class="wdn">New work</span>':''}</button>`}).join('')}</div>`;
 }
 function renderDay(){
   const auto=ensureBuilt(cur);
@@ -2511,7 +2575,8 @@ function renderDay(){
     :`<div class="ibox ok">${ICON.ok}<div><b>All teams ready</b>${sumTxt}<span>Leaders, skills and sizes OK</span></div></div>`;
   const ck=cur===TODAY?dayToCheck():null;
   const checkBar=ck?`<div class="ibox ok checkbar">${ICON.ok}<div><b>${dayLabel(ck)} (${shortDate(ck)}) — all done as planned?</b><span>One tap helps the planner learn real times and carry over anything not done.</span><div class="row"><button class="btn small primary" data-ckyes="${ck}">✓ Yes, all done</button><button class="btn small" data-ckopen="${ck}">Something changed</button><button class="link small" data-ckskip="${ck}">Skip</button></div></div></div>`:'';
-  const fixes=checkBar+staleBar+((sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'');
+  const resendBar=r.resend&&r.sent&&!stale&&cur>=TODAY?`<div class="ibox warn stalebar">${ICON.alert}<div><b>Teams changed after you sent them${r.sentAt?' at '+esc(r.sentAt):''}</b><span>The leaders still have the old plan. Send to the leaders again when you're happy with the teams.</span><div class="row"><button class="btn small primary" data-send>${ICON.send}Send to leaders</button></div></div></div>`:'';
+  const fixes=checkBar+staleBar+resendBar+((sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'');
   const tm=(S.toMatch||[]).filter(n=>S.staff.includes(n)).length;
   $('view').innerHTML=`<div class="day2">
     <section class="card dbar">
@@ -2636,8 +2701,8 @@ function dropSwapHtml(){
 function swapHtml(){
   const teams=effTeams(cur), a=modal.name, A=teams.find(x=>people(x).includes(a)); if(!A)return '';
   return `<div class="mhead"><div><b>Swap ${esc(dn(a))} with…</b><span>${A.leader===a?'Leader of ':'In '}${esc(A.name)} · tap a name — they change places</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-    <div class="slist">${simpleRows(A,a,'data-swapwith')}</div>
-    <div class="qacts"><button class="btn small ${people(A).length>maxTeam()?'primary':''}" data-qremove>Remove from team</button>${A.leader!==a?'<button class="btn small" data-qlead>Make leader</button>':''}<button class="btn small" data-qoff>Off today</button><button class="btn small" data-qnursery>Nursery</button><button class="btn small" data-qmore>More…</button></div>`;
+    <div class="qacts top"><button class="btn small ${people(A).length>maxTeam()?'primary':''}" data-qremove>Remove from team</button>${A.leader!==a?'<button class="btn small" data-qlead>Make leader</button>':''}<button class="btn small" data-qoff>Off today</button><button class="btn small" data-qnursery>Nursery</button><button class="btn small" data-qmore>More…</button></div>
+    <p class="mhead3">Or swap with</p><div class="slist">${simpleRows(A,a,'data-swapwith')}</div>`;
 }
 let lastUndo=null, jobUndo=null;
 function keepUndo(){const r=ensureDay(cur);lastUndo={date:cur,teams:clone(r.teams||defaultTeams(cur)),nursery:[...(r.nursery||[])],absent:[...(r.absent||[])],manual:!!r.manual,villaMove:clone(r.villaMove||{})}}
@@ -2647,13 +2712,13 @@ function removeTeam(id){
   const others=r.teams.filter(x=>x!==t&&!isProj(x));
   if(!others.length){toast('This is the only maintenance team — it can\'t be removed');return}
   keepUndo();const ctx={type:'day',date:cur},ppl0=people(t),went=[],mx=maxTeam();
-  const before=[...r.teams];r.teams=r.teams.filter(x=>x!==t);
+  const before=[...r.teams];r.teams=r.teams.filter(x=>x!==t);delete r.vsnap; /* teams changed: villas are shared out again */
   const nv=((villaPlan(cur,before).byTeam||{})[id]||[]).length,grp={};
   ppl0.forEach(n=>{
     const home=others.find(x=>x.id===homeOf(n)&&people(x).length<mx);
     const room=others.filter(x=>people(x).length<mx).sort((a,b)=>people(a).length-people(b).length)[0];
-    const to=home||room,k=to?to.name:'Available';
-    if(to){if(!to.leader)to.leader=n;else to.members.push(n)}
+    const to=home||room,k=to?to.name:'Nursery';
+    if(to){if(!to.leader)to.leader=n;else to.members.push(n)}else (r.nursery=r.nursery||[]).push(n);
     (grp[k]=grp[k]||[]).push(dn(n).split(' ')[0]);
   });
   Object.entries(grp).forEach(([k,v])=>went.push(`${v.join(', ')} → ${k}`));
@@ -2661,6 +2726,13 @@ function removeTeam(id){
   openTeams.delete(id);markManual(ctx);save();
   toastUndo(`${t.name} removed${went.length?': '+went.join(' · '):''}${nv?` · ${plural(nv,'villa')} shared to the other teams`:''}`);render();
 }
+/* Undo for a job change keeps only that job and its own days, so changes that came from the other device meanwhile are not lost. */
+function jobUndoKeep(p){const days={};if(p)for(let k=p.from;k<=p.to;k=addDays(k,1))days[k]=S.days[k]?clone(S.days[k]):null;return {proj:clone(p),days,after:{}}}
+const dayKey=d=>d?JSON.stringify({t:d.teams||null,m:!!d.manual,n:d.note||'',a:[...(d.absent||[])].sort(),vm:d.villaMove||{},vs:d.villaSkip||[],vx:d.villaExtra||[]}):'null';
+function jobUndoAfter(){if(!jobUndo)return;Object.keys(jobUndo.days).forEach(k=>jobUndo.after[k]=S.days[k]?clone(S.days[k]):null)}
+/* A team that just lost its leader: the best person left who can lead takes over (supervisor first). Returns the names. */
+function fillLeaders(ctx,ids){const out=[];ctxTeams(ctx,true).filter(t=>ids.includes(t.id)&&!t.leader&&t.members.length).forEach(t=>{
+  const c=[...t.members].filter(m=>isSup(m)||has(m,'lead')).sort((a,b)=>supLevel(b)-supLevel(a)||(has(b,'lead')?1:0)-(has(a,'lead')?1:0))[0];if(c){makeLeader(ctx,c);out.push(`${dn(c).split(' ')[0]} now leads ${t.name}`)}});return out}
 function undoLast(){if(!lastUndo)return;const r=ensureDay(lastUndo.date);r.teams=lastUndo.teams;r.nursery=lastUndo.nursery;r.absent=lastUndo.absent;r.manual=lastUndo.manual;if(lastUndo.villaMove)r.villaMove=lastUndo.villaMove;lastUndo=null;save();toast('Undone');render()}
 function toastUndo(m){const el=$('toast');el.innerHTML=`${esc(m)} <button class="tundo" data-undolast>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,6000)}
 function swapPeople(a,b){
@@ -2707,7 +2779,7 @@ function monthData(ym){
     const s=`${ym}-${pad(d)}`; if(s>TODAY)break; if(isDayOff(s))continue;
     counted++;
     (dayRec(s).absent||[]).forEach(n=>{if(!rows[n])return;if(leaveOn(n,s))rows[n].leave++;else rows[n].off++});
-    effTeams(s).forEach(t=>people(t).forEach(n=>{if(!rows[n])return;rows[n].worked++;if(isProj(t))rows[n].proj++;if(t.leader===n)rows[n].lead++}));
+    const abs=new Set(dayRec(s).absent||[]);effTeams(s).forEach(t=>people(t).forEach(n=>{if(!rows[n]||abs.has(n))return;rows[n].worked++;if(isProj(t))rows[n].proj++;if(t.leader===n)rows[n].lead++}));
   }
   const ms=`${ym}-01`, me=`${ym}-${pad(last)}`;
   const jobs=S.projects.filter(p=>p.from<=me&&p.to>=ms).sort((a,b)=>a.from<b.from?-1:1).map(p=>{let n=0;for(let s=p.from>ms?p.from:ms;s<=(p.to<me?p.to:me);s=addDays(s,1))if(!isDayOff(s))n++;return {p,n}});
@@ -2912,7 +2984,7 @@ function renderMenu(){
   const show=html=>{el.innerHTML=html;el.hidden=false;const sheet=isPhone();el.classList.toggle('sheet',sheet);ov.hidden=!sheet&&!modal;if(!sheet)positionMenu()};
   if(villaSel&&tab==='day'){
     const c=(S.clients||[]).find(x=>x.id===villaSel); if(!c){villaSel=null;return renderMenu()}
-    const teams=effTeams(cur), vp=villaPlan(cur,teams), inT=teams.find(t=>(vp.byTeam[t.id]||[]).some(x=>x.id===c.id)), moved=(dayRec(cur).villaMove||{})[c.id], next=lightestDay(cur,6,null);
+    const teams=effTeams(cur), vp=villaPlan(cur,teams), inT=teams.find(t=>(vp.byTeam[t.id]||[]).some(x=>x.id===c.id)), moved=(dayRec(cur).villaMove||{})[c.id], next=lightestDay(cur,6,null,[c.id]);
     return show(`<div class="mhead"><div><b>${esc(villaName(c))}</b><span>${esc(areaShort(c))}${inT?' · '+esc(inT.name):''}${FREQ_TAG[c.frequency]?' · '+FREQ_TAG[c.frequency]:''}</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div>
       <div class="msec">Move today to</div><div class="mgrid">${teams.filter(t=>!isProj(t)&&t!==inT).map(t=>`<button class="mbig" data-vto="${t.id}"><b>${esc(t.name)}</b><span>${plural((vp.byTeam[t.id]||[]).length,'villa')}</span></button>`).join('')}</div>
       ${moved?'<button class="mi" data-vauto>Back to automatic</button>':''}
@@ -3026,7 +3098,7 @@ function saveLeave(){
   applyLeaves();save();modal=null;delArm=null;renderModal();toast(`${dn(l.name)}: ${l.type.toLowerCase()} ${rangeText(l.from,l.to)}`);render();
 }
 /* Job size = the biggest work size; team size = the biggest crew for the chosen sizes. */
-function applySizes(){modal.size=maxSize(modal.sizes);if(modal.need){const g=Math.max(0,...modal.works.filter(w=>LABOUR_BY_SIZE[w]).map(w=>LABOUR_BY_SIZE[w][SIZE_IX[modal.sizes[w]||'M']]));if(g)modal.need.general=g}modal.min=modal.works.length?Math.min(maxTeam(),Math.max(...modal.works.map(w=>crewFor(w,modal.sizes[w]||'M')))):2}
+function applySizes(){modal.size=maxSize(modal.sizes);if(modal.need){const g=Math.max(0,...modal.works.filter(w=>LABOUR_BY_SIZE[w]).map(w=>LABOUR_BY_SIZE[w][SIZE_IX[modal.sizes[w]||'M']]),...modal.works.filter(w=>!LABOUR_BY_SIZE[w]).map(w=>((WORKS.find(x=>x.id===w)||{}).need||{}).general||0));if(g)modal.need.general=g}modal.min=modal.works.length?Math.min(maxTeam(),Math.max(...modal.works.map(w=>crewFor(w,modal.sizes[w]||'M')))):2}
 function openProj(id,from){
   maintOpen=false;
   const p=id?projById(id):null;
@@ -3090,7 +3162,7 @@ function jobForm(){
     <div class="row"><span class="muted small">${n>0?plural(n,'day'):'End date is before start date'}</span><button type="button" class="btn small" data-pmextend>+1 day</button></div>
     ${loadPreviewHtml()}
     ${p?`<div class="crewbox"><b>Crew:</b> ${crew.length?`${esc(dn(p.crew.leader)||'no leader')} (leader)${p.crew.members.length?', '+dnl(p.crew.members).map(esc).join(', '):''}`:'not set yet — Build teams on the first day picks it.'}</div>`:''}
-    <div class="row spread"><div class="row">${p?`<button type="button" class="btn small warn" data-pmdelete>Delete</button>${p.done?'<button type="button" class="btn small" data-pmreopen>Reopen</button>':'<button type="button" class="btn small" data-pmdone>Mark done today</button>'}`:''}</div>
+    <div class="row spread"><div class="row">${p?`<button type="button" class="btn small warn" data-pmdelete>Delete</button>${p.done?'<button type="button" class="btn small" data-pmreopen>Reopen</button>':p.from<=TODAY?'<button type="button" class="btn small" data-pmdone>Mark done today</button>':''}`:''}</div>
     <div class="row"><button type="button" class="btn" data-closemodal>Cancel</button><button class="btn primary">${p?'Save':'Add'}</button></div></div></form>`;
 }
 function readModal(){if(!$('pm-title'))return;modal.title=$('pm-title').value;modal.from=$('pm-from').value;modal.to=$('pm-to').value;const mi=$('pm-min');if(mi)modal.min=Math.max(1,parseInt(mi.value)||1);const pv=$('pm-value');if(pv)modal.value=Math.max(0,parseFloat(pv.value)||0)||''}
@@ -3156,7 +3228,7 @@ document.addEventListener('click',e=>{
   if('staffsave' in d){if('closeafter' in d)staffOpen=null;if(staffDraft){const r=draftResult();S.skills=r.skills;S.supervisors=r.supervisors;S.expert=r.expert;staffDraft=null;save()}staffSavedAt=new Date();toast(syncUrl()&&syncStatus!=='error'&&syncStatus!=='offline'?'Saved — remembered on this device and sent to your Google Sheet':'Saved on this device'+(syncUrl()?' — it will go to the Google Sheet once the sync works again':''));render();return}
   if('staffdiscard' in d){staffDraft=null;toast('Changes discarded');render();return}
   if(d.delstaff){const n=d.delstaff;if(delArm!=='ds:'+n){delArm='ds:'+n;render();return}removeStaff(n);delArm=null;toast(dn(n)+' deleted');render();return}
-  if('gohome' in d){if(staffDraft&&tab==='setup')toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save');modal=null;delArm=null;menuMode=null;renderModal();goDay(TODAY);return}
+  if('gohome' in d){if(staffDraft&&tab==='setup'&&S.staff.some(personDirty))toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save');modal=null;delArm=null;menuMode=null;renderModal();goDay(TODAY);return}
   if('closemodal' in d){modal=null;delArm=null;renderModal();return}
   if('closemenu' in d){sel=null;villaSel=null;menuMode=null;renderMenu();render();return}
   if(d.pmwork){readModal();const w=d.pmwork,i=modal.works.indexOf(w);if(i>=0){modal.works.splice(i,1);delete modal.sizes[w]}else{modal.works.push(w);modal.sizes[w]=modal.sizes[w]||'M'}const c=needsForWorks(modal.works);modal.need=c.need;modal.heavy=c.heavy;applySizes();renderModal();return}
@@ -3176,28 +3248,29 @@ document.addEventListener('click',e=>{
   if('pmheavy' in d){readModal();modal.heavy=!modal.heavy;if(modal.heavy)modal.need.heavy=modal.need.heavy||2;else delete modal.need.heavy;renderModal();return}
   if(d.pmcount){readModal();modal.needEdited=true;const s=d.pmcount;modal.need[s]=Math.max(1,Math.min(9,(modal.need[s]||1)+Number(d.delta)));renderModal();return}
   if('pmextend' in d){readModal();modal.to=addDays(modal.to<modal.from?modal.from:modal.to,1);renderModal();return}
-  if('pmdone' in d){const p=projById(modal.id);p.done=true;if(p.to>TODAY)p.to=TODAY<p.from?p.from:TODAY;learnJob(p,p.to);reconcileAll(true);save();modal=null;renderModal();toast('Marked done');render();return}
-  if('pmreopen' in d){const p=projById(modal.id);p.done=false;save();modal=null;renderModal();render();return}
-  if('pmdelete' in d){const id=modal.id,pj=projById(id);jobUndo={projects:clone(S.projects),days:clone(S.days)};S.projects=S.projects.filter(p=>p.id!==id);reconcileAll(true);delArm=null;save();modal=null;renderModal();
+  if('pmdone' in d){const p=projById(modal.id);if(p.from>TODAY){toast('This job has not started yet');return}p.done=true;p.toBeforeDone=p.to;if(p.to>TODAY)p.to=TODAY;learnJob(p,p.to);reconcileAll(true);save();modal=null;renderModal();toast('Marked done');render();return}
+  if('pmreopen' in d){const p=projById(modal.id);p.done=false;if(p.toBeforeDone&&p.toBeforeDone>p.to)p.to=p.toBeforeDone;delete p.toBeforeDone;const L=LRN();if(L.jobs)L.jobs=L.jobs.filter(j=>j.id!==p.id);reconcileAll(true);save();modal=null;renderModal();toast('Job reopened');render();return}
+  if('pmdelete' in d){const id=modal.id,pj=projById(id);jobUndo=jobUndoKeep(pj);S.projects=S.projects.filter(p=>p.id!==id);reconcileAll(true);jobUndoAfter();delArm=null;save();modal=null;renderModal();
     const el=$('toast');el.innerHTML=`${esc((pj&&pj.title)||'Job')} deleted <button class="tundo" data-undojob>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true;jobUndo=null},8000);render();return}
   if(d.rmjobteam){const pj=projById(d.rmjobteam);if(!pj)return;
     if(pj.from<cur&&cur<pj.to){toast(`${pj.title} runs ${shortDate(pj.from)} to ${shortDate(pj.to)} — tap Edit job to change its days`);return}
-    jobUndo={projects:clone(S.projects),days:clone(S.days)};let msg;
+    jobUndo=jobUndoKeep(pj);let msg;
     if(pj.from===pj.to){S.projects=S.projects.filter(x=>x!==pj);msg=`${pj.title} removed — the crew went back to maintenance`}
     else if(cur===pj.from){pj.from=addDays(pj.from,1);msg=`${pj.title} removed today — it now starts ${shortDate(pj.from)}`}
     else{pj.to=addDays(pj.to,-1);msg=`${pj.title} removed today — it now ends ${shortDate(pj.to)}`}
-    reconcileAll(true);save();
+    reconcileAll(true);jobUndoAfter();save();
     const el=$('toast');el.innerHTML=`${esc(msg)} <button class="tundo" data-undojob>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true;jobUndo=null},8000);render();return}
-  if('undojob' in d){if(jobUndo){S.projects=jobUndo.projects;S.days=jobUndo.days;jobUndo=null;save();toast('Job is back');render()}return}
+  if('undojob' in d){if(jobUndo){const u=jobUndo,J=JSON.stringify,i=S.projects.findIndex(x=>x.id===u.proj.id);if(i>=0)S.projects[i]=u.proj;else S.projects.push(u.proj);
+    Object.keys(u.days).forEach(k=>{if(dayKey(S.days[k])===dayKey(u.after[k])){if(u.days[k])S.days[k]=u.days[k];else delete S.days[k]}});jobUndo=null;reconcileAll(false);save();toast('Job is back');render()}return}
   if(d.offn){const n=d.offn,r=ensureDay(cur);
-    if(r.absent.includes(n)){const def=defaultTeams(cur).find(t=>people(t).includes(n)),teams=ctxTeams(dayCtx,true),back=def&&teams.find(t=>t.id===def.id);moveTo(dayCtx,n,back?back.id:'available');if(back&&def.leader===n&&!back.leader){back.members=back.members.filter(m=>m!==n);back.leader=n;save()}}
+    if(r.absent.includes(n)){r.absent=r.absent.filter(x=>x!==n);const def=defaultTeams(cur).find(t=>people(t).includes(n));r.absent.push(n);const teams=ctxTeams(dayCtx,true),back=def&&teams.find(t=>t.id===def.id);moveTo(dayCtx,n,back?back.id:'available');if(back&&def.leader===n&&!back.leader){back.members=back.members.filter(m=>m!==n);back.leader=n;save()}}
     else moveTo(dayCtx,n,'absent');
     renderModal();render();return}
   if('offbuild' in d){modal=null;renderModal();const b=buildDay(cur);toast(`Teams built — ${plural(b.moves.length,'change')}`);render();return}
   if(d.copyteam!=null){markSent(cur);const t=effTeams(cur)[Number(d.copyteam)];copyText(leaderText(t,cur),'Copied — paste in the leader\'s WhatsApp');modal.copied=Number(d.copyteam);renderModal();return}
   if('addmember' in d){modal=null;renderModal();tab='setup';setupTab='staff';render();const i=$('newname');if(i)i.focus();return}
   /* navigation */
-  if(d.tab){if(staffDraft&&tab==='setup'){toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save')}tab=d.tab;sel=null;villaSel=null;delArm=null;modal=null;renderModal();render();scrollTo(0,0);return}
+  if(d.tab){if(staffDraft&&tab==='setup'&&S.staff.some(personDirty)){toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save')}tab=d.tab;sel=null;villaSel=null;delArm=null;modal=null;renderModal();render();scrollTo(0,0);return}
   if(d.setup){if('gostaff' in d)tab='setup';setupTab=d.setup;delArm=null;sel=null;render();return}
   if('gosync' in d){tab='setup';setupTab='data';sel=null;render();return}
   if(d.date){goDay(d.date);return}
@@ -3224,18 +3297,18 @@ document.addEventListener('click',e=>{
   if('menuremove' in d&&sel){if(menuMode!=='remove'){menuMode='remove';renderMenu();return}const n=sel.name;removeStaff(n);sel=null;menuMode=null;toast(n+' removed from staff');render();return}
   /* villas */
   if(d.villa){villaSel=villaSel===d.villa?null:d.villa;sel=null;render();return}
-  if(d.vto&&villaSel){learnAreaMove(cur,villaSel,d.vto);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[villaSel]=d.vto;save();toast('Villa moved for today');villaSel=null;render();return}
-  if('vauto' in d&&villaSel){const r=ensureDay(cur);if(r.villaMove)delete r.villaMove[villaSel];save();villaSel=null;render();return}
+  if(d.vto&&villaSel){learnAreaMove(cur,villaSel,d.vto);freezeVillas(cur);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[villaSel]=d.vto;save();toast('Villa moved for today');villaSel=null;render();return}
+  if('vauto' in d&&villaSel){const r=ensureDay(cur);if(r.villaMove)delete r.villaMove[villaSel];if(r.vsnap)delete r.vsnap[villaSel];save();villaSel=null;render();return}
   if('vskip' in d&&villaSel){const r=ensureDay(cur);r.villaSkip=[...new Set([...(r.villaSkip||[]),villaSel])];save();toast('Villa skipped today');villaSel=null;render();return}
   if(d.vnext&&villaSel){moveVillasToDay(cur,[villaSel],d.vnext);toast(`Visit moved to ${shortDate(d.vnext)}`);villaSel=null;render();return}
   if(d.unskip){putVillaBack(cur,d.unskip);render();return}
-  if(d.keeparea&&d.keepto){const r=ensureDay(cur),tm=effTeams(cur),vp=villaPlan(cur,tm);r.villaMove=r.villaMove||{};tm.filter(x=>!isProj(x)).forEach(x=>(vp.byTeam[x.id]||[]).forEach(c=>{if(areaShort(c)===d.keeparea){r.villaMove[c.id]=d.keepto;if(x.id!==d.keepto)learnAreaMove(cur,c.id,d.keepto)}}));save();toast(`${d.keeparea} kept with one team today`);render();return}
+  if(d.keeparea&&d.keepto){freezeVillas(cur);const r=ensureDay(cur),tm=effTeams(cur),vp=villaPlan(cur,tm);r.villaMove=r.villaMove||{};tm.filter(x=>!isProj(x)).forEach(x=>(vp.byTeam[x.id]||[]).forEach(c=>{if(areaShort(c)===d.keeparea){r.villaMove[c.id]=d.keepto;if(x.id!==d.keepto)learnAreaMove(cur,c.id,d.keepto)}}));save();toast(`${d.keeparea} kept with one team today`);render();return}
   if(d.vtag&&d.vtagid){const c=(S.clients||[]).find(x=>x.id===d.vtagid);if(c){const cur2=vTags(c),i=cur2.indexOf(d.vtag);const nx=i>=0?cur2.filter(x=>x!==d.vtag):[...cur2,d.vtag];S.villaTags=Object.assign({},S.villaTags||{},{[c.id]:nx});save();render();renderMenu()}return}
   if(d.coretoggle){const [L,n]=d.coretoggle.split('|');const c=Object.assign({},S.core||{});const a=[...(c[L]||[])];const i=a.indexOf(n);if(i>=0)a.splice(i,1);else{Object.keys(c).forEach(k=>{c[k]=(c[k]||[]).filter(x=>x!==n)});a.push(n)}c[L]=a;S.core=c;save();render();return}
   if(d.readpins!=null){readPinsNow(d.readpins==='retry');return}
   if('baseclear' in d){S.settings.base=null;save();render();return}
   if(d.pullname&&d.pullto){const n=d.pullname;learnManualMove({type:'day',date:cur},n,d.pullto);moveTo({type:'day',date:cur},n,d.pullto);toast(`${dn(n)} moved — check the team they left`);render();return}
-  if(d.idea!=null){const x=heavyIdeas(cur)[Number(d.idea)];if(x&&x.kind==='small'){x.proj.small=true;reconcileAll(true);save();toast(`${x.proj.title} is now a small job`);render();return}if(x&&x.kind==='near'){learnAreaMove(cur,x.id,x.to);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[x.id]=x.to;save();toast(`${x.name} moved to ${x.toName} for today`);render();return}if(x&&x.kind==='villas'){moveVillasToDay(cur,x.ids,x.to);toast(`${plural(x.ids.length,'villa')} moved to ${shortDate(x.to)}`)}render();return}
+  if(d.idea!=null){const x=heavyIdeas(cur)[Number(d.idea)];if(x&&x.kind==='small'){x.proj.small=true;reconcileAll(true);save();toast(`${x.proj.title} is now a small job`);render();return}if(x&&x.kind==='near'){learnAreaMove(cur,x.id,x.to);freezeVillas(cur);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[x.id]=x.to;save();toast(`${x.name} moved to ${x.toName} for today`);render();return}if(x&&x.kind==='villas'){moveVillasToDay(cur,x.ids,x.to);toast(`${plural(x.ids.length,'villa')} moved to ${shortDate(x.to)}`)}render();return}
   /* day actions */
   if(d.ckyes){saveCheck(d.ckyes,{});toast(`Thanks — ${shortDate(d.ckyes)} saved as done`);render();return}
   if(d.ckskip){ensureDay(d.ckskip).check={skipped:true,at:Date.now()};save();render();return}
@@ -3273,7 +3346,7 @@ document.addEventListener('click',e=>{
   if(d.apply!=null){const m=suggest(cur).moves[Number(d.apply)];if(m){applyMove(cur,m);toast('Done')}render();return}
   if('applyall' in d){const {moves}=suggest(cur);moves.forEach(m=>applyMove(cur,m));toast(`${plural(moves.length,'change')} made`);render();return}
   if(d.addto){modal={kind:'addto',team:d.addto};sel=null;renderModal();renderMenu();return}
-  if(d.pickadd){const ctx={type:'day',date:cur},nm=d.pickadd,T=effTeams(cur).find(x=>x.id===modal.team);if(T&&people(T).length>=maxTeam()){toast('Car is full — tap a name to swap');return}keepUndo();learnManualMove(ctx,nm,modal.team);moveTo(ctx,nm,modal.team);toastUndo(`${dn(nm)} added to ${T?T.name:'the team'}`);const T2=effTeams(cur).find(x=>x.id===modal.team);if(!T2||people(T2).length>=maxTeam())modal=null;renderModal();render();return}
+  if(d.pickadd){const ctx={type:'day',date:cur},nm=d.pickadd,T=effTeams(cur).find(x=>x.id===modal.team);if(T&&people(T).length>=maxTeam()){toast('Car is full — tap a name to swap');return}keepUndo();learnManualMove(ctx,nm,modal.team);const F=effTeams(cur).find(x=>people(x).includes(nm));moveTo(ctx,nm,modal.team);const nl=F?fillLeaders(ctx,[F.id]):[];toastUndo(`${dn(nm)} added to ${T?T.name:'the team'}${nl.length?' · '+nl.join(', '):''}`);const T2=effTeams(cur).find(x=>x.id===modal.team);if(!T2||people(T2).length>=maxTeam())modal=null;renderModal();render();return}
   if(d.swapfrom){modal={kind:'swap',name:d.swapfrom};renderModal();return}
   if(d.swapwith){const a=modal.name,b=d.swapwith;keepUndo();swapPeople(a,b);modal=null;renderModal();const T=effTeams(cur).find(x=>people(x).includes(b));toastUndo(`${dn(a)} ⇄ ${dn(b)}${T&&!T.leader?' — pick a leader for '+T.name:''}`);render();return}
   if(d.dswap&&modal&&modal.kind==='dropswap'){const a=modal.incoming,b=d.dswap;keepUndo();swapInto(a,b);modal=null;renderModal();toastUndo(`${dn(a)} ⇄ ${dn(b)}`);render();return}
@@ -3284,8 +3357,8 @@ document.addEventListener('click',e=>{
     const ts=effTeams(cur),A=ts.find(x=>people(x).includes(n)),vp=villaPlan(cur,ts),load=t=>ptsSum(vp.byTeam[t.id]||[])/Math.max(1,people(t).length);
     const to=ts.filter(t=>t!==A&&!isProj(t)&&people(t).length<maxTeam()).sort((x,y)=>load(y)-load(x))[0];
     moveTo(ctx,n,to?to.id:'nursery');if(to)learnManualMove(ctx,n,to.id);
-    const A2=effTeams(cur).find(x=>A&&x.id===A.id);if(A2&&!A2.leader){const c=A2.members.find(m=>has(m,'lead'));if(c)makeLeader(ctx,c)}
-    modal=null;renderModal();toastUndo(`${dn(n)} → ${to?to.name:'nursery'}`);render();return}
+    const nl=A?fillLeaders(ctx,[A.id]):[];
+    modal=null;renderModal();toastUndo(`${dn(n)} → ${to?to.name:'nursery'}${nl.length?' · '+nl.join(', '):''}`);render();return}
   if('qoff' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();moveTo({type:'day',date:cur},n,'absent');modal=null;renderModal();toastUndo(`${dn(n)} is off today`);render();return}
   if('qnursery' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();moveTo({type:'day',date:cur},n,'nursery');modal=null;renderModal();toastUndo(`${dn(n)} → nursery`);render();return}
   if('qmore' in d&&modal&&modal.kind==='swap'){const n=modal.name;modal=null;renderModal();sel={name:n,ctx:{type:'day',date:cur}};menuMode=null;render();return}
@@ -3306,9 +3379,10 @@ document.addEventListener('click',e=>{
   if(d.ntlead&&modal&&modal.kind==='newteam'){modal.leader=d.ntlead;renderModal();return}
   if('ntcreate' in d&&modal&&modal.kind==='newteam'){const sel=[...modal.sel];if(!sel.length){toast('Choose the people first');return}const ctx={type:'day',date:cur};keepUndo();const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));
     const n=r.teams.filter(t=>!t.projectId).length+1,id='x'+uid(),L=modal.leader&&sel.includes(modal.leader)?modal.leader:null;
-    r.teams.push({id,name:'Team '+(L?dn(L).split(' ')[0]:n),job:'maint',desc:'',leader:null,members:[],extra:true});
-    sel.forEach(x=>moveTo(ctx,x,id));if(L)makeLeader(ctx,L);markManual(ctx);save();modal=null;renderModal();openTeams.add(id);
-    toastUndo(`New team: ${plural(sel.length,'person','people')}${r.teams.length>carsN()?` — ${r.teams.length} teams for ${carsN()} cars`:''}`);render();return}
+    r.teams.push({id,name:'Team '+(L?dn(L).split(' ')[0]:n),job:'maint',desc:'',leader:null,members:[],extra:true});delete r.vsnap;
+    const srcT=[...new Set(sel.map(x=>(r.teams.find(t=>t.id!==id&&people(t).includes(x))||{}).id).filter(Boolean))];
+    sel.forEach(x=>moveTo(ctx,x,id));if(L)makeLeader(ctx,L);const nl=fillLeaders(ctx,srcT);markManual(ctx);save();modal=null;renderModal();openTeams.add(id);
+    toastUndo(`New team: ${plural(sel.length,'person','people')}${r.teams.length>carsN()?` — ${r.teams.length} teams for ${carsN()} cars`:''}${nl.length?' · '+nl.join(', '):''}`);render();return}
   if('addday_old' in d){const ctx={type:'day',date:cur};const r=ensureDay(cur);if(!r.teams)r.teams=clone(effTeams(cur));const n=r.teams.filter(t=>!t.projectId).length+1;
     r.teams.push({id:'x'+uid(),name:'Team '+n,job:'maint',desc:'',leader:null,members:[],extra:true});markManual(ctx);save();
     const used=r.teams.length;toast(used>carsN()?`Team ${n} added — that is ${used} teams for ${carsN()} cars`:`Team ${n} added — tap "+ Add person" to fill it`);render();return}
@@ -3329,7 +3403,7 @@ document.addEventListener('click',e=>{
   if('loadsheet' in d){(async()=>{try{const r=await fetchT(apiUrl('load'),{},25000);const j=await readJson(r);if(j.ok&&j.state){adoptRemote(j.state);toast('Loaded from the Google Sheet')}else toast(j.error==='key'?KEY_MSG:'The Sheet has no plan saved')}catch(e){toast('Could not reach the Google Sheet')}})();return}
   if('undosync' in d){try{const b=JSON.parse(localStorage.getItem(KEY+'_beforeSync'));if(b&&b.state&&confirm(`Put back this device's data from ${new Date(b.at).toLocaleString()}? It will also be sent to the Google Sheet.`)){S=migrate(b.state);delete S.isSeed;S.rev=Math.max(S.rev||0,(()=>{try{return JSON.parse(localStorage.getItem(BASE_KEY)).rev||0}catch(e){return 0}})());save();hideNote('merge');toast('Your version put back');render()}}catch(e){toast('Nothing to undo')}return}
   if('downloadbackup' in d){download(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),`GardenGrow_Teams_Backup_${TODAY}.json`);toast('Backup downloaded');return}
-  if('resetlearn' in d){const keep=clone(S.learn||{});S.learn={w:{},t:{},p:{},l:{},a:{},at:Date.now()};Object.values(S.days).forEach(r=>{r.learned=true});save();const el=$('toast');el.innerHTML='Learning cleared <button class="tundo" data-undolearn>Undo</button>';el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,8000);window._learnUndo=keep;render();return}
+  if('resetlearn' in d){const keep=clone(S.learn||{});S.learn={w:{},t:{},p:{},l:{},a:{},at:Date.now()};S.learn.done={};Object.entries(S.days).forEach(([s,r])=>{if(s<TODAY){r.learned=true;S.learn.done[s]=1}});save();const el=$('toast');el.innerHTML='Learning cleared <button class="tundo" data-undolearn>Undo</button>';el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,8000);window._learnUndo=keep;render();return}
   if('undolearn' in d){if(window._learnUndo){S.learn=window._learnUndo;window._learnUndo=null;save();toast('Learning is back');render()}return}
   if(d.forgetp){const n=d.forgetp,L=LRN();['w','t','l','a'].forEach(g=>Object.values(L[g]).forEach(m=>{delete m[n]}));Object.keys(L.p).forEach(k=>{if(k.split('|').includes(n))delete L.p[k]});delete L.pace[n];save();toast(`Forgot what it learned about ${dn(n)}`);render();return}
   if('resetall' in d){if(delArm!=='ALL'){delArm='ALL';render();return}S.layouts=clone(DEFAULT.layouts);delArm=null;save();toast('Original teams restored');render();return}
@@ -3399,13 +3473,14 @@ document.addEventListener('dragover',e=>{const z=e.target.closest('[data-drop]')
 document.addEventListener('dragleave',e=>{const z=e.target.closest('[data-drop]');if(z)z.classList.remove('drop')});
 document.addEventListener('drop',e=>{const z=e.target.closest('[data-drop]');if(!z||!drag)return;e.preventDefault();
   const ctx=JSON.parse(z.dataset.ctx);
-  if(drag.villa){const t=effTeams(cur).find(x=>x.id===z.dataset.drop);if(t&&!isProj(t)&&ctx.type==='day'){learnAreaMove(cur,drag.villa,t.id);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[drag.villa]=t.id;save();toast('Villa moved for today')}}
+  if(drag.villa){const t=effTeams(cur).find(x=>x.id===z.dataset.drop);if(t&&!isProj(t)&&ctx.type==='day'){learnAreaMove(cur,drag.villa,t.id);freezeVillas(cur);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[drag.villa]=t.id;save();toast('Villa moved for today')}}
   else if(sameCtx(ctx,drag.ctx)&&ctx.type==='day'&&!['absent','available','nursery'].includes(z.dataset.drop)&&fullTeam(ctx.date,z.dataset.drop,drag.name)){
     const a=drag.name,onChip=e.target.closest('.chip'),b=onChip&&onChip.dataset.name,T=effTeams(ctx.date).find(x=>x.id===z.dataset.drop);
     cur=ctx.date;
     if(b&&T&&people(T).includes(b)&&b!==a){keepUndo();swapInto(a,b);toastUndo(`${dn(a)} ⇄ ${dn(b)}`)}
     else{drag=null;sel=null;villaSel=null;modal={kind:'dropswap',team:z.dataset.drop,incoming:a};renderModal();render();return}}
-  else if(sameCtx(ctx,drag.ctx)){if(!['absent','available','nursery'].includes(z.dataset.drop))learnManualMove(ctx,drag.name,z.dataset.drop);moveTo(ctx,drag.name,z.dataset.drop);toast(drag.name+' moved')}
+  else if(sameCtx(ctx,drag.ctx)&&ctx.type==='day'&&effTeams(ctx.date).some(x=>x.id===z.dataset.drop&&people(x).includes(drag.name))){}
+  else if(sameCtx(ctx,drag.ctx)){if(!['absent','available','nursery'].includes(z.dataset.drop))learnManualMove(ctx,drag.name,z.dataset.drop);moveTo(ctx,drag.name,z.dataset.drop);toast(dn(drag.name)+' moved')}
   drag=null;sel=null;villaSel=null;render()});
 async function copyText(txt,msg){
   try{await navigator.clipboard.writeText(txt);toast(msg)}
@@ -3415,6 +3490,7 @@ try{const b4=JSON.stringify(S.days);reconcileAll();if(JSON.stringify(S.days)!==b
 /* First run of this version, or a new device: remember the starting point for combining changes. */
 if(getBase()===undefined&&(S.isSeed||!isDirty()))setBase(stripMeta(S));
 localSave();
+if(brokenLoad)showNote('broken',syncUrl()?'The plan saved on this device could not be read, so a safe copy was kept and your plan is being loaded from the Google Sheet.':'The plan saved on this device could not be read. A safe copy was kept — please contact support before changing anything.','warn');
 render();
 if(syncUrl())pull();
 
