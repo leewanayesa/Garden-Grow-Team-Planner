@@ -432,6 +432,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;cursor:pointer;min-height:48px}
 .srow b{font-weight:700}.srow em{font-style:normal;color:var(--muted);font-size:.84rem}.srow i{font-style:normal;color:var(--green);font-weight:800;font-size:.82rem;white-space:nowrap}
 .rhl{display:grid;gap:6px}.rhr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:8px 10px}.rhr>div:first-child{display:grid;gap:1px}.rhr span{font-size:.8rem;color:var(--muted)}.rhr b.ok{color:var(--green)}
+.tname .tsub{font-style:normal;font-weight:600;font-size:.78rem;color:var(--muted);margin-left:6px}
 .qacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.qacts.top{margin:2px 0 4px;padding:0;border-top:0}
 .tundo{margin-left:8px;border:0;background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-weight:800;cursor:pointer}
 .addp{border:1.5px dashed var(--line);background:transparent;color:var(--green);font-weight:700;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;font:inherit;font-weight:700}
@@ -573,6 +574,8 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .dth .tno{width:22px;height:22px;border-radius:50%;background:#fff;color:var(--g);font-weight:800;display:grid;place-items:center;font-size:12px;flex:none}.dtb.job .tno{color:var(--job)}
 .dth h2{font-family:var(--display);font-weight:800;font-size:17px;flex:1;margin:0;line-height:1.15}
 .nwt{font-style:normal;font-family:var(--body);font-size:9.5px;font-weight:800;letter-spacing:.1em;background:#fff;color:var(--job);border-radius:5px;padding:2px 6px;margin-right:8px;vertical-align:2px}
+.dth h2 .tsub{font-style:normal;font-family:var(--body);font-size:10.5px;font-weight:600;opacity:.8;margin-left:8px}
+.dsz{font-size:10px;color:var(--mut);margin:1px 0 2px}
 .dth .cnt{font-size:11px;font-weight:700;background:rgba(255,255,255,.18);border-radius:20px;padding:2px 9px;white-space:nowrap}
 .dbody{display:grid;grid-template-columns:42% 58%}
 .dppl{padding:7px 10px;background:var(--g2);border-right:1px solid var(--line)}.dtb.job .dppl{background:var(--job2)}
@@ -1180,7 +1183,13 @@ function villaPlan(date,teams){
   const ck=date+'|'+(S.updatedAt||0)+'|'+JSON.stringify(S.settings.areaOwner||{})+JSON.stringify(S.settings.base||'')+'|'+maint.map(t=>t.id+':'+people(t).join('+')).join(',')+'|'+JSON.stringify(moved)+'|'+[...skip].join(',')+'|'+(S.clients||[]).length;
   if(_vpCache.has(ck))return _vpCache.get(ck);
   const all=clientsOn(date).filter(c=>!skip.has(c.id));
-  const auto=all.filter(c=>!(moved[c.id]&&ids.has(moved[c.id])));
+  let auto=all.filter(c=>!(moved[c.id]&&ids.has(moved[c.id])));
+  /* A: a day whose villas are fixed (sent, or a villa moved by hand): a villa added later joins the team that already has
+     its spot / area / zone (else the team with the least work per person) — the other villas stay where they are. */
+  if(r.vsnap&&auto.length&&maint.length){const pin={...moved},inT=id=>Object.entries(pin).filter(([k,v])=>v===id&&ids.has(v)).map(([k])=>all.find(c=>c.id===k)).filter(Boolean);
+    auto.forEach(c=>{const sc=t=>{const L=inT(t.id);return L.filter(x=>placeKey(x)===placeKey(c)).length*100+L.filter(x=>areaShort(x)===areaShort(c)).length*10+L.filter(x=>zoneOf(x)===zoneOf(c)).length};
+      const best=[...maint].sort((a,b)=>sc(b)-sc(a)||ptsSum(inT(a.id))/Math.max(1,people(a).length)-ptsSum(inT(b.id))/Math.max(1,people(b).length))[0];pin[c.id]=best.id});
+    Object.assign(moved,pin);auto=[]}
   let parts=splitVillas(auto,maint.length); const byTeam={};
   if(maint.length>1&&maint.length<=6){
     const wk=weekdayAreas(date), own=S.settings.areaOwner||{};
@@ -1952,7 +1961,7 @@ function checkHtml(){
   const date=modal.date, r=dayRec(date), teams=r.teams||[], vp=villaPlan(date,teams), res=modal.res;
   return `<div class="mhead"><div><b>${dayLabel(date)} — what changed?</b><span>${longDate(date)} · tap only what was different; everything else counts as done</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
   ${teams.filter(t=>people(t).length).map(t=>{const x=res[t.id]||(res[t.id]={}),vl=isProj(t)?[]:(vp.byTeam[t.id]||[]),p=t.projectId&&projById(t.projectId);
-    return `<div class="ckteam"><div class="cktitle"><b>${esc(t.name)}</b><span>${esc(dn(t.leader)||'')}</span></div>
+    return `<div class="ckteam"><div class="cktitle"><b>${esc(tName(t))}</b><span>${esc(dn(t.leader)||'')}</span></div>
       ${!isProj(t)?`<label class="field inline"><span class="lbl">Finished at</span><input class="textin" type="time" data-ckfinish="${t.id}" value="${esc(x.finish||'')}"></label>`:''}
       ${vl.length?`<span class="lbl">Villas not done (tap)</span><div class="tchips">${vl.map(c=>`<button class="tchip ${(x.notDone||[]).includes(c.id)?'bad':''}" data-cknd="${t.id}|${esc(c.id)}">${(x.notDone||[]).includes(c.id)?'✗ ':''}${esc(villaName(c))}</button>`).join('')}</div>`:''}
       <span class="lbl">Didn't come (tap)</span><div class="tchips">${people(t).map(n=>`<button class="tchip ${(x.missing||[]).includes(n)?'bad':''}" data-ckmiss="${t.id}|${esc(n)}">${(x.missing||[]).includes(n)?'✗ ':''}${esc(dn(n))}</button>`).join('')}</div>
@@ -1993,7 +2002,7 @@ function whatsappText(){
   let t=`*Garden Grow – Teams*\n${longDate(cur)}\n${ps.length?TYPE_NW:TYPE_REG}\n`;
   if(r.note)t+=`Note: ${r.note}\n`;
   teams.forEach(x=>{const j=jobOf(x),p=x.projectId&&projById(x.projectId);
-    t+=`\n*${x.name.toUpperCase()}* – ${j.name}\n`;
+    t+=`\n*${tName(x).toUpperCase()}*${tNameSub(x)?' ('+tNameSub(x)+')':''} – ${j.name}\n`;
     if(p)t+=`Dates: ${rangeText(p.from,p.to)} (day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1})\n`;
     else if(x.desc)t+=`Note: ${x.desc}\n`;
     if(j.heavy)t+=`⚠ Heavy work – safety gear required\n`;
@@ -2022,6 +2031,10 @@ function pdfTags(n){const sk=S.skills[n]||[],g=gradeOf(n),out=[];if(isSup(n))out
   if(g)out.push([['','lab','jr','sr'][g],['','LABOUR','GARDENER','SR GARDENER'][g]]);
   if(sk.includes('drv_spare'))out.push(['drv','SPARE DRIVER']);else if(has(n,'driver'))out.push(['drv','DRIVER']);
   return out.map(([c,l])=>`<i class="tg ${c}">${l}</i>`).join('')}
+/* B: a maintenance team whose usual leader is away today is called by today's leader ("Team Tahir"), with "Jawad's team" beside it. */
+function tName(t){if(!t)return '';if(t.projectId||!t.leader)return t.name;const L=((S.layouts.normal||[]).find(x=>x.id===t.id)||{}).leader,f=(dn(t.leader)||'').split(' ')[0];
+  if(!L||L===t.leader||!/^Team\b/i.test(t.name||'')||!f||String(t.name).toLowerCase().includes(f.toLowerCase()))return t.name;return 'Team '+f}
+function tNameSub(t){const n=tName(t);return t&&n!==t.name?String(t.name).replace(/^Team\s+/i,'')+"'s team":''}
 function pdfWorks(p){const ws=p.works||[];if(!ws.length)return worksText(p);return ws.map(w=>((WORKS.find(x=>x.id===w)||{}).name||w)+(p.sizes&&p.sizes[w]?' ('+SZL[p.sizes[w]]+')':'')+(w==='treeremoval'&&p.removal?' — '+REMOVAL_NAME[p.removal]:'')).join(' · ')}
 function pdfName(n){const f=dn(n)||'',k=f.indexOf(' ');return k>0?`<b>${esc(f.slice(0,k))}</b> ${esc(f.slice(k+1))}`:`<b>${esc(f)}</b>`}
 function pdfTeamBlock(t,date,vp,ix){
@@ -2033,11 +2046,12 @@ function pdfTeamBlock(t,date,vp,ix){
   if(p){right=`<div class="dl">The job</div><div class="djw">${esc(pdfWorks(p))}</div>
       <div class="djm"><span>📅 ${esc(rangeText(p.from,p.to))} · day ${daysBetween(p.from,date)+1} of ${daysBetween(p.from,p.to)+1}</span>${needsTruck(p)?'<span>🚚 Truck</span>':''}${j.heavy?'<span class="hv">⚠ Heavy work — safety gear</span>':''}${needsSub(p)?'<span class="hv">Machinery / subcontractor</span>':''}</div>
       ${t.desc?`<div class="dl" style="margin-top:8px">Note</div><div class="dnt">${esc(t.desc)}</div>`:`<div class="dl" style="margin-top:8px">Notes</div><div class="dline"></div>`}`}
-  else{let n=0;right=`<div class="dl">Villas · in drive order</div>`+(vl.length?villaGroups(vl).map(g=>`<div class="dar">${esc(g.area)} <em>· ${g.items.length}</em></div>`+g.items.map(c=>{n++;const isNew=c.newFrom&&daysBetween(c.newFrom,date)>=0&&daysBetween(c.newFrom,date)<14;return `<div class="dvr"><span class="no">${n}</span><span class="vn">${esc(villaName(c))}${FREQ_TAG[c.frequency]?` <i class="ft">${FREQ_TAG[c.frequency]}</i>`:''}${isNew?' <i class="ft new">NEW</i>':''}</span><span class="chk"></span></div>`}).join('')).join(''):'<div class="dnt">No villas today</div>')
+  else{let n=0;const sz={S:0,M:0,L:0};vl.forEach(c=>sz[sizeOf(c)]++);const wpp=vl.length?(ptsSum(vl)/Math.max(1,ppl.length)).toFixed(1):'';
+    right=`<div class="dl">Villas · in drive order</div>${vl.length?`<div class="dsz">${[['L','large'],['M','medium'],['S','small']].filter(([k])=>sz[k]).map(([k,w])=>sz[k]+' '+w).join(' · ')} · work per person ${wpp}</div>`:''}`+(vl.length?villaGroups(vl).map(g=>`<div class="dar">${esc(g.area)} <em>· ${g.items.length}</em></div>`+g.items.map(c=>{n++;const isNew=c.newFrom&&daysBetween(c.newFrom,date)>=0&&daysBetween(c.newFrom,date)<14;return `<div class="dvr"><span class="no">${n}</span><span class="vn">${esc(villaName(c))}${FREQ_TAG[c.frequency]?` <i class="ft">${FREQ_TAG[c.frequency]}</i>`:''}${isNew?' <i class="ft new">NEW</i>':''}</span><span class="chk"></span></div>`}).join('')).join(''):'<div class="dnt">No villas today</div>')
       +small.map(q=>`<div class="dex"><b>+ Extra job:</b> ${esc(q.title)} <span>· ${esc(worksText(q))}</span></div>`).join('')
       +(t.desc?`<div class="dex"><b>Note:</b> ${esc(t.desc)}</div>`:'')}
   const cnt=plural(ppl.length,'person','people')+(vl?' · '+plural(vl.length,'villa'):'');
-  return `<section class="dtb ${p?'job':''}"><div class="dth"><span class="tno">${ix+1}</span><h2>${p?'<i class="nwt">NEW WORK</i>':''}${esc(t.name)}</h2><span class="cnt">${cnt}</span></div>
+  return `<section class="dtb ${p?'job':''}"><div class="dth"><span class="tno">${ix+1}</span><h2>${p?'<i class="nwt">NEW WORK</i>':''}${esc(tName(t))}${tNameSub(t)?`<em class="tsub">${esc(tNameSub(t))}</em>`:''}</h2><span class="cnt">${cnt}</span></div>
     <div class="dbody"><div class="dppl"><div class="dl">Team</div>${lead}${crew}</div><div class="drt">${right}</div></div></section>`;
 }
 function pdfDayPage(date){
@@ -2063,7 +2077,7 @@ function pdfLeaderPages(date){
     const works=p?worksText(p):'';
     return `<div class="lp ${isProj(t)?'nw':''}">
       <header><div class="lt"><span class="llogo"><img src="${LOGO}" alt="Garden Grow"></span><small>TEAM PLAN</small></div>
-        <div class="ld">${longDate(date)}</div><b>${esc(t.name)}</b>
+        <div class="ld">${longDate(date)}</div><b>${esc(tName(t))}</b>
         <div class="ls">${vl?`${plural(vl.length,'villa')} · ${plural(gs.length,'area')} · `:''}${plural(people(t).length,'person','people')}${vl&&vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈ ':''}${vp.km[t.id].km} km`:''}${vl&&vl.length&&vp.time&&vp.time[t.id]?` · finish ≈ ${clock(vp.time[t.id].finish)}`:''}</div></header>
       <section><small>LEADER</small><div class="lld">${esc(dn(t.leader)||'—')}</div>
         ${t.members.length?`<small>CREW</small><div class="lcr">${t.members.map(m=>esc(dn(m))).join('<br>')}</div>`:''}
@@ -2537,7 +2551,7 @@ function teamCard(t,ctx,vp){
   const noteShown=t.desc||noteTeams.has(t.id), allT=ctx.type==='day'?effTeams(ctx.date):[], sm=(!isProj(t)&&ctx.type==='day')?(smallByTeam(ctx.date,allT,vp)[t.id]||[]):[], mts=allT.filter(x=>!isProj(x));
   return `<section class="tcard ${isProj(t)?'proj':'maint'} ${ps.length?'bad':''} ${open?'open':''}" data-drop="${t.id}" data-ctx='${cs}'>
     <button class="thead" data-toggle="${t.id}" aria-expanded="${open}">
-      <span class="tl1"><span class="tname">${esc(t.name)}</span><span class="tright ${over?'warn':''}">${vl?plural(vl.length,'villa'):`${n}/${maxTeam()} seats`}</span>${ICON.chev}</span>
+      <span class="tl1"><span class="tname">${esc(tName(t))}${tNameSub(t)?`<em class="tsub">${esc(tNameSub(t))}</em>`:''}</span><span class="tright ${over?'warn':''}">${vl?plural(vl.length,'villa'):`${n}/${maxTeam()} seats`}</span>${ICON.chev}</span>
       <span class="tl2"><b>${esc(dn(t.leader)||'No leader')}</b>${t.members.length?` + ${t.members.length}`:''}</span>
       ${vl?`<span class="vbar ${over?'over':''}" aria-label="${vl.length} of ${mx} villas"><i style="width:${pct}%"></i></span><span class="vbtxt"><b>${plural(vl.length,'villa')}</b> of ${mx} · ${szc.L?`<i class="vsz l">${szc.L} L</i>`:''}${szc.M?`<i class="vsz m">${szc.M} M</i>`:''}${szc.S?`<i class="vsz s">${szc.S} S</i>`:''} · workload ${pts} (${(pts/Math.max(1,n)).toFixed(1)} per person)${over?' · <b class="warntxt">heavy</b>':''} · <span class="${n>maxTeam()?'redtxt':''}">${n}/${maxTeam()} seats</span>${vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈':''}${vp.km[t.id].km} km drive`:''}</span>${vp.time&&vp.time[t.id]&&vl.length?`<span class="vbtxt ${vp.time[t.id].over?'warntxt':''}">≈ ${hm(vp.time[t.id].total)} (work ${hm(vp.time[t.id].work)} + drive ${hm(vp.time[t.id].drive)}) · finish ≈ <b>${clock(vp.time[t.id].finish)}</b>${vp.time[t.id].over?` · over ${dayHours()} h`:''}</span>`:''}`:''}
       ${sub?`<span class="tl3">${sub}</span>`:''}${sm.length?`<span class="tl3 smtag">＋ ${plural(sm.length,'small job')}: ${sm.map(p=>esc(p.title)).join(', ')}</span>`:''}
@@ -2634,7 +2648,7 @@ function renderDay(){
   const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
   const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} villas today · ${off.length} off</span>`;
   const okBox=iss.length?`<div class="ibox bad">${ICON.alert}<div><b>${plural(iss.length,'thing')} to check</b>${sumTxt}<span>${esc(iss[0])}</span>${sug.moves.length?`<button class="btn small primary" data-applyall>Fix all (${sug.moves.length})</button>`:''}</div></div>`
-    :heavy.length?`<div class="ibox warn">${ICON.alert}<div><b>Teams ready · busy day</b>${sumTxt}<span>${heavy.map(t=>esc(t.name)+' '+(vp.byTeam[t.id]||[]).length).join(', ')} villas — above ${maxV()}</span></div></div>`
+    :heavy.length?`<div class="ibox warn">${ICON.alert}<div><b>Teams ready · busy day</b>${sumTxt}<span>${heavy.map(t=>esc(tName(t))+' '+(vp.byTeam[t.id]||[]).length).join(', ')} villas — above ${maxV()}</span></div></div>`
     :`<div class="ibox ok">${ICON.ok}<div><b>All teams ready</b>${sumTxt}<span>Leaders, skills and sizes OK</span></div></div>`;
   const ck=cur===TODAY?dayToCheck():null;
   const checkBar=ck?`<div class="ibox ok checkbar">${ICON.ok}<div><b>${dayLabel(ck)} (${shortDate(ck)}) — all done as planned?</b><span>One tap helps the planner learn real times and carry over anything not done.</span><div class="row"><button class="btn small primary" data-ckyes="${ck}">✓ Yes, all done</button><button class="btn small" data-ckopen="${ck}">Something changed</button><button class="link small" data-ckskip="${ck}">Skip</button></div></div></div>`:'';
@@ -2690,14 +2704,14 @@ function renderWeek(){
   const cell=(d,inner,cls='')=>`<td class="${cls}"><button class="wcell" data-gotoday="${d.s}">${inner}</button></td>`;
   let rows='';
   projs.forEach(p=>{rows+=`<tr><th class="nwth">${esc(p.title)}</th>${info.map(d=>{const t=d.t.find(x=>x.projectId===p.id);return t?cell(d,`<b>${esc(dn(t.leader)||'No leader')}</b><span>${plural(people(t).length,'person','people')}</span>`,'nwc'+(problems(t).length?' red':'')):'<td class="dash">—</td>'}).join('')}</tr>`});
-  for(let i=0;i<maxM;i++)rows+=`<tr><th>Maintenance ${i+1}</th>${info.map(d=>{const t=d.maint[i];if(!t)return '<td class="dash">—</td>';if(muted(d))return `<td class="dash">${i===0?'No visits':''}</td>`;const v=(d.vp.byTeam[t.id]||[]).length;return cell(d,`<b>${esc(t.name)}</b><span class="${v>maxV()?'warntxt':''}">${plural(people(t).length,'person','people')} · ${plural(v,'villa')}</span>`,problems(t).length?'red':'')}).join('')}</tr>`;
+  for(let i=0;i<maxM;i++)rows+=`<tr><th>Maintenance ${i+1}</th>${info.map(d=>{const t=d.maint[i];if(!t)return '<td class="dash">—</td>';if(muted(d))return `<td class="dash">${i===0?'No visits':''}</td>`;const v=(d.vp.byTeam[t.id]||[]).length;return cell(d,`<b>${esc(tName(t))}</b><span class="${v>maxV()?'warntxt':''}">${plural(people(t).length,'person','people')} · ${plural(v,'villa')}</span>`,problems(t).length?'red':'')}).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Villas</th>${info.map(d=>`<td>${d.vp.total||'—'}</td>`).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Work per team</th>${info.map(d=>{if(muted(d))return '<td>—</td>';const L=dayLoad(d.s);return `<td class="${L.mins>dayHours()*60-60?'warntxt':''}">≈ ${hm(L.mins)}</td>`}).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Off / leave</th>${info.map(d=>`<td>${d.off.map(n=>esc(dn(n))+(leaveOn(n,d.s)?' (leave)':'')).join(', ')||'—'}</td>`).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Status</th>${info.map(d=>`<td>${muted(d)?'':d.iss?`<span class="redtxt">${plural(d.iss,'issue')}</span>`:'<span class="oktxt">Ready</span>'}</td>`).join('')}</tr>`;
   const list=info.map(d=>`<button class="wday ${d.s===TODAY?'today':''} ${muted(d)?'mut':''}" data-gotoday="${d.s}">
       <span class="wd1"><b>${shortDate(d.s)}</b>${d.ps.length?`<span class="typepill nw sm">New work</span>`:''}${muted(d)?'<span class="muted small">No visits</span>':d.iss?`<span class="redtxt small">${plural(d.iss,'issue')}</span>`:'<span class="oktxt small">Ready</span>'}</span>
-      ${muted(d)&&!d.ps.length?'':d.t.map(t=>`<span class="wd2"><span>${esc(t.name)}</span><span>${plural(people(t).length,'person','people')}${isProj(t)?'':' · '+plural((d.vp.byTeam[t.id]||[]).length,'villa')}</span></span>`).join('')}
+      ${muted(d)&&!d.ps.length?'':d.t.map(t=>`<span class="wd2"><span>${esc(tName(t))}</span><span>${plural(people(t).length,'person','people')}${isProj(t)?'':' · '+plural((d.vp.byTeam[t.id]||[]).length,'villa')}</span></span>`).join('')}
       ${d.off.length?`<span class="wd2 muted"><span>Off</span><span>${d.off.map(n=>esc(dn(n))+(leaveOn(n,d.s)?' (leave)':'')).join(', ')}</span></span>`:''}</button>`).join('');
   $('view').innerHTML=`<div class="pagehead"><div class="datenav inline"><button class="iconbtn lg" data-shiftweek="-7" aria-label="Previous week">${ICON.left}</button><h2>${fromIso(days[0]).getDate()} ${MN[fromIso(days[0]).getMonth()]} – ${fromIso(days[6]).getDate()} ${MN[fromIso(days[6]).getMonth()]}</h2><button class="iconbtn lg" data-shiftweek="7" aria-label="Next week">${ICON.right}</button></div>
     <div class="row"><button class="btn" data-pdfweek>Week PDF</button><button class="btn" data-buildweek>Build whole week</button><button class="btn primary" data-planweek>Plan week</button></div></div>
@@ -2735,7 +2749,7 @@ function simpleRows(t,out,act){
 function addToHtml(){
   const t=effTeams(cur).find(x=>x.id===modal.team); if(!t)return '';
   const n=people(t).length, full=n>=maxTeam();
-  return `<div class="mhead"><div><b>Add to ${esc(t.name)}</b><span>${full?`<b class="warntxt">Car full (${n}/${maxTeam()}) — close this and tap a name to swap.</b>`:`${n}/${maxTeam()} seats · tap a name to add`}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+  return `<div class="mhead"><div><b>Add to ${esc(tName(t))}</b><span>${full?`<b class="warntxt">Car full (${n}/${maxTeam()}) — close this and tap a name to swap.</b>`:`${n}/${maxTeam()} seats · tap a name to add`}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
     ${full?'':`<div class="slist">${simpleRows(t,null,'data-pickadd')}</div>`}`;
 }
 /* A full car never takes a 6th person: moving someone into a full team becomes a swap. */
@@ -2746,7 +2760,7 @@ function swapInto(a,b){const r=ensureDay(cur);if((r.absent||[]).includes(a)){r.a
 function newTeamHtml(){
   const teams=effTeams(cur),off=new Set(dayRec(cur).absent||[]),sel=modal.sel,L=modal.leader;
   const rows=[];S.staff.filter(n=>!off.has(n)).forEach(n=>{const t=teams.find(x=>people(x).includes(n));
-    rows.push({n,where:t?esc(t.name)+(t.leader===n?' · leader':''):nurseryOf(cur).includes(n)?'Nursery':'Free',r:t?(t.projectId?4:t.leader===n?3:2):nurseryOf(cur).includes(n)?1:0})});
+    rows.push({n,where:t?esc(tName(t))+(t.leader===n?' · leader':''):nurseryOf(cur).includes(n)?'Nursery':'Free',r:t?(t.projectId?4:t.leader===n?3:2):nurseryOf(cur).includes(n)?1:0})});
   rows.sort((a,b)=>a.r-b.r||dn(a.n).localeCompare(dn(b.n)));
   const need=jobNeeds(jobOfId('maint')),checks=Object.keys(need).filter(k=>k!=='lead'&&active(k)).map(k=>{const ok=sel.filter(x=>has(x,k)).length>=need[k];return `<span class="tick ${ok?'':'no'}">${ok?'✓':'✗'} ${esc((SKILLS.find(s=>s.id===k)||{}).short||k)}</span>`}).join('');
   return `<div class="mhead"><div><b>New team for ${esc(shortDate(cur))}</b><span>Tap the people for this team (up to ${maxTeam()} with the driver). Free people and the nursery are first.</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
@@ -2757,7 +2771,7 @@ function newTeamHtml(){
 function dropSwapHtml(){
   const t=effTeams(cur).find(x=>x.id===modal.team);if(!t)return '';const a=modal.incoming,from=effTeams(cur).find(x=>people(x).includes(a));
   const whereA=from?from.name:(nurseryOf(cur).includes(a)?'the nursery':'Available');
-  return `<div class="mhead"><div><b>${esc(t.name)} is full (${people(t).length}/${maxTeam()})</b><span>Who goes to ${esc(whereA)} in exchange for ${esc(dn(a))}?</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+  return `<div class="mhead"><div><b>${esc(tName(t))} is full (${people(t).length}/${maxTeam()})</b><span>Who goes to ${esc(whereA)} in exchange for ${esc(dn(a))}?</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
     <div class="slist">${people(t).map(n=>`<button class="srow" data-dswap="${esc(n)}"><span><b>${esc(dn(n))}</b> ${roleTag(n)}<em> · ${t.leader===n?'leader':'member'}</em></span></button>`).join('')}</div>
     <div class="mrow"><button class="btn" data-closemodal>Cancel</button></div>`;
 }
@@ -3050,7 +3064,7 @@ function renderMenu(){
     const c=(S.clients||[]).find(x=>x.id===villaSel); if(!c){villaSel=null;return renderMenu()}
     const teams=effTeams(cur), vp=villaPlan(cur,teams), inT=teams.find(t=>(vp.byTeam[t.id]||[]).some(x=>x.id===c.id)), moved=(dayRec(cur).villaMove||{})[c.id], next=lightestDay(cur,6,null,[c.id]);
     return show(`<div class="mhead"><div><b>${esc(villaName(c))}</b><span>${esc(areaShort(c))}${inT?' · '+esc(inT.name):''}${FREQ_TAG[c.frequency]?' · '+FREQ_TAG[c.frequency]:''}</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div>
-      <div class="msec">Move today to</div><div class="mgrid">${teams.filter(t=>!isProj(t)&&t!==inT).map(t=>`<button class="mbig" data-vto="${t.id}"><b>${esc(t.name)}</b><span>${plural((vp.byTeam[t.id]||[]).length,'villa')}</span></button>`).join('')}</div>
+      <div class="msec">Move today to</div><div class="mgrid">${teams.filter(t=>!isProj(t)&&t!==inT).map(t=>`<button class="mbig" data-vto="${t.id}"><b>${esc(tName(t))}</b><span>${plural((vp.byTeam[t.id]||[]).length,'villa')}</span></button>`).join('')}</div>
       ${moved?'<button class="mi" data-vauto>Back to automatic</button>':''}
       <div class="msec">This visit</div>${next?`<button class="mi" data-vnext="${next.s}">Move to ${shortDate(next.s)} (lighter day)</button>`:''}<button class="mi warn" data-vskip>Skip today</button>
       <div class="msec">What this villa needs</div><div class="tchips">${VTAGS.map(x=>`<button class="tchip ${vTags(c).includes(x.id)?'on':''}" data-vtag="${x.id}" data-vtagid="${esc(c.id)}">${vTags(c).includes(x.id)?'✓ ':''}${x.label}<em>${esc(SK[x.skill])}</em></button>`).join('')}</div>
@@ -3068,7 +3082,7 @@ function renderMenu(){
   const teams=ctxTeams(ctx), inT=teams.find(t=>people(t).includes(n)), isLead=inT&&inT.leader===n, isOff=ctxAbsent(ctx).includes(n);
   const where=inT?(isLead?`Leader of ${esc(inT.name)}`:`In ${esc(inT.name)}`):isOff?'Off today':'Available';
   show(`<div class="mhead"><div><b>${esc(dn(n))}</b><span>${dn(n)!==n?esc(n)+' · ':''}${where}${isSup(n)?' · Supervisor':''}${learnedText(n)?'<br>Learned: '+esc(learnedText(n)):''}</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div>
-    <div class="msec">Move to</div><div class="mgrid">${teams.filter(t=>t!==inT).map(t=>`<button class="mbig ${isProj(t)?'proj':''}" data-to="${t.id}"><b>${esc(t.name)}</b><span>${plural(people(t).length,'person','people')}</span></button>`).join('')}${inT||isOff?'<button class="mbig" data-to="available"><b>Available</b><span>Not in a team</span></button>':''}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?'<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>stays to look after the plants</span></button>':''}</div>
+    <div class="msec">Move to</div><div class="mgrid">${teams.filter(t=>t!==inT).map(t=>`<button class="mbig ${isProj(t)?'proj':''}" data-to="${t.id}"><b>${esc(tName(t))}</b><span>${plural(people(t).length,'person','people')}</span></button>`).join('')}${inT||isOff?'<button class="mbig" data-to="available"><b>Available</b><span>Not in a team</span></button>':''}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?'<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>stays to look after the plants</span></button>':''}</div>
     ${inT&&ctx.type==='day'?'<button class="mi" data-pswap>⇄ Swap with someone…</button>':''}
     ${inT&&!isLead?`<button class="mi lead" data-lead>Make leader of ${esc(inT.name)}</button>`:''}
     ${ctx.type==='day'&&!isOff?'<button class="mi warn" data-to="absent">Off today</button>':''}
@@ -3124,7 +3138,7 @@ function renderModal(){
     const teams=effTeams(cur);
     inner=`<div class="mhead"><div><b>Send to leaders</b><span>${longDate(cur)}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
       <p class="muted small">Each leader gets only their own team. Tap Copy, then paste in their WhatsApp chat.</p>
-      ${teams.map((t,i)=>`<div class="sendcard ${isProj(t)?'proj':''}"><div class="sendhead"><b>${esc(dn(t.leader)||'No leader')} · ${esc(t.name)}</b><span>${isProj(t)?plural(people(t).length,'person','people'):plural((villaPlan(cur,teams).byTeam[t.id]||[]).length,'villa')}</span></div><pre class="sendtxt">${esc(leaderText(t,cur))}</pre><button class="btn ${modal.copied===i?'':'primary'} full" data-copyteam="${i}">${modal.copied===i?'Copied':'Copy'}</button></div>`).join('')}
+      ${teams.map((t,i)=>`<div class="sendcard ${isProj(t)?'proj':''}"><div class="sendhead"><b>${esc(dn(t.leader)||'No leader')} · ${esc(tName(t))}</b><span>${isProj(t)?plural(people(t).length,'person','people'):plural((villaPlan(cur,teams).byTeam[t.id]||[]).length,'villa')}</span></div><pre class="sendtxt">${esc(leaderText(t,cur))}</pre><button class="btn ${modal.copied===i?'':'primary'} full" data-copyteam="${i}">${modal.copied===i?'Copied':'Copy'}</button></div>`).join('')}
       <div class="mrow"><button class="btn" data-copy>Copy all (group)</button><button class="btn" data-pdfday>Save PDF</button></div>`;
   }else if(modal.kind==='leave'){
     const l=modal, ex=l.id&&(S.leaves||[]).find(x=>x.id===l.id), n=daysBetween(l.from,l.to)+1;
