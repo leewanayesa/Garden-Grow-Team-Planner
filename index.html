@@ -431,6 +431,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .slist{display:grid;gap:6px;margin-top:6px}
 .srow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 14px;font:inherit;cursor:pointer;min-height:48px}
 .srow b{font-weight:700}.srow em{font-style:normal;color:var(--muted);font-size:.84rem}.srow i{font-style:normal;color:var(--green);font-weight:800;font-size:.82rem;white-space:nowrap}
+.rhl{display:grid;gap:6px}.rhr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:8px 10px}.rhr>div:first-child{display:grid;gap:1px}.rhr span{font-size:.8rem;color:var(--muted)}.rhr b.ok{color:var(--green)}
 .qacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.qacts.top{margin:2px 0 4px;padding:0;border-top:0}
 .tundo{margin-left:8px;border:0;background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;font:inherit;font-weight:800;cursor:pointer}
 .addp{border:1.5px dashed var(--line);background:transparent;color:var(--green);font-weight:700;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;font:inherit;font-weight:700}
@@ -889,15 +890,21 @@ const areaShort=c=>String((c.mainArea||c.area||'')).split(',')[0].trim()||'Other
 function zoneOf(c){const a=String(c.area||c.mainArea||'').toLowerCase();let bi=ZONES.length,bl=0;for(let i=0;i<ZONES.length;i++)ZONES[i].k.forEach(k=>{if(a.includes(k)&&k.length>bl){bl=k.length;bi=i}});return bi}
 const villaName=c=>c.nick||c.name||'Villa';
 const FREQ_TAG={fortnightly:'every 2 wks',twice_month:'2×/month',monthly:'1×/month',alternate:'alt. days'};
+/* Every 2 weeks: a villa visited twice a month can follow its own alternate-week rhythm (set in Setup → Villas),
+   counted from the week of S.villaRhythm[id].from — so it never drifts in months with 5 weeks. Otherwise the weeks
+   from the Maintenance App are used (week 1 = days 1–7, …). */
+const rhythmOf=c=>(S.villaRhythm||{})[c.id]||null;
+function visitWeekOk(c,date){const r=rhythmOf(c);if(!r||!r.from)return weekOk(c.weeks,date);const w=Math.round(daysBetween(weekStart(r.from),weekStart(date))/7);return ((w%2)+2)%2===0}
+const rhythmable=c=>!!(c&&(c.weeks||['twice_month','fortnightly'].includes(c.frequency)||String(c.monthlyVisits)==='2'));
 function weekOk(w,date){if(!w)return true;const wk=Math.ceil(fromIso(date).getDate()/7);return String(w).split('-').map(Number).includes(wk)}
 /* Villas due on a date, in drive order (area by area). */
-const dueNative=(c,date)=>c.status!=='paused'&&(c.days||[]).includes(DNL[fromIso(date).getDay()])&&weekOk(c.weeks,date)&&!(c.newFrom&&date<c.newFrom);
+const dueNative=(c,date)=>c.status!=='paused'&&(c.days||[]).includes(DNL[fromIso(date).getDay()])&&visitWeekOk(c,date)&&!(c.newFrom&&date<c.newFrom);
 /* Is this villa already being visited on that date (its own visit or one moved in, and not moved away)? */
 const visitOn=(id,date)=>{const r=S.days[date]||{};if((r.villaSkip||[]).includes(id))return false;if((r.villaExtra||[]).includes(id))return true;const c=(S.clients||[]).find(x=>x.id===id);return !!c&&dueNative(c,date)};
 function clientsOn(date){
   const dn=DNL[fromIso(date).getDay()];
   const extra=new Set((S.days[date]&&S.days[date].villaExtra)||[]);
-  return (S.clients||[]).filter(c=>extra.has(c.id)||(c.status!=='paused'&&(c.days||[]).includes(dn)&&weekOk(c.weeks,date)&&!(c.newFrom&&date<c.newFrom)))
+  return (S.clients||[]).filter(c=>extra.has(c.id)||(c.status!=='paused'&&(c.days||[]).includes(dn)&&visitWeekOk(c,date)&&!(c.newFrom&&date<c.newFrom)))
     .sort((a,b)=>zoneOf(a)-zoneOf(b)||areaShort(a).localeCompare(areaShort(b))||((a.routeOrder??999)-(b.routeOrder??999))||villaName(a).localeCompare(villaName(b)));
 }
 /* ---------- Villa size, map position and the smart split ----------
@@ -1282,6 +1289,10 @@ function applyEmployeeList(o){
 
 /* ---------- migration from earlier versions ---------- */
 function migrate(o){
+  if(!o.rhythmSeed1&&Array.isArray(o.clients)){o.villaRhythm=o.villaRhythm||{};
+    [['6649636e-f255-4279-b526-1ebfff992aec','2026-10-28'],['e389a260-bdee-4b63-8746-389e6e6b4279','2026-11-04'],['585581cb-602d-4949-b9a7-5e6bafc537bb','2026-11-04']]
+      .forEach(([id,from])=>{if(o.clients.some(c=>c.id===id)&&!o.villaRhythm[id])o.villaRhythm[id]={from}});
+    if(o.clients.some(c=>c.id==='6649636e-f255-4279-b526-1ebfff992aec'))o.rhythmSeed1=true}
   if(o.days)Object.keys(o.days).forEach(k=>{const d=o.days[k];if(!d||typeof d!=='object'){delete o.days[k];return}if(d.teams&&!Array.isArray(d.teams))d.teams=null;(d.teams||[]).forEach(t=>{t.members=Array.isArray(t.members)?t.members.filter(Boolean):[]});if(!Array.isArray(d.absent))d.absent=[]});
   if(Array.isArray(o.projects))o.projects=o.projects.filter(p=>p&&p.id&&p.from&&p.to).map(p=>{p.crew=p.crew&&typeof p.crew==='object'?p.crew:{leader:null,members:[]};p.crew.members=Array.isArray(p.crew.members)?p.crew.members:[];return p});
   if(o.layouts&&typeof o.layouts==='object'){if(!Array.isArray(o.layouts.normal))o.layouts.normal=clone(DEFAULT.layouts.normal);if(!Array.isArray(o.layouts.newwork))o.layouts.newwork=clone(DEFAULT.layouts.newwork||DEFAULT.layouts.normal)}
@@ -1892,7 +1903,7 @@ function nwLeaders(){const st=S.settings||{};let L=Array.isArray(st.nwLeaders)?s
 function daySig(date){
   const r=dayRec(date), wd=DNL[fromIso(date).getDay()], st=S.settings||{};
   const ps=teamProjects(date).map(p=>[p.id,p.from,p.to,p.works,p.sizes,p.need,p.min,p.pins,p.small,p.urgent,p.removal,p.sub,p.waste]);
-  const vil=(S.clients||[]).filter(c=>c.status!=='paused'&&(c.days||[]).includes(wd)).map(c=>c.id+':'+(c.lat??'')+','+(c.lng??'')+':'+areaShort(c)+':'+(c.fee||'')+':'+(c.frequency||'')+':'+(c.weeks||'')+':'+(c.newFrom||''));
+  const vil=(S.clients||[]).filter(c=>c.status!=='paused'&&(c.days||[]).includes(wd)).map(c=>c.id+':'+(c.lat??'')+','+(c.lng??'')+':'+areaShort(c)+':'+(c.fee||'')+':'+(c.frequency||'')+':'+(c.weeks||'')+':'+((rhythmOf(c)||{}).from||'')+':'+(c.newFrom||''));
   const txt=JSON.stringify([ps,[...(r.absent||[])].sort(),S.staff,S.skills,S.supervisors,S.expert,S.core||{},S.layouts,S.nicks||{},vil,
     [st.cars,st.maxTeam,st.trucks,st.maxVillas,st.base,st.areaOwner,st.dayStart,st.dayHours,st.sizeS,st.sizeM,st.dayOff,nwLeaders()]]);
   let h=5381;for(let i=0;i<txt.length;i++)h=((h<<5)+h+txt.charCodeAt(i))|0;return (h>>>0).toString(36)+txt.length.toString(36);
@@ -2445,6 +2456,17 @@ function pinStatus(c){const u=String(c.mapUrl||'').trim();
   if(u&&/^https?:\/\//i.test(u))return c.pinErr&&c.pinOf===u?'failed':'waiting';
   if(u)return 'failed';
   return areaPosByName(areaShort(c))?'area':'unknown'}
+function nextVisits(c,k){const out=[];for(let i=0;i<70&&out.length<k;i++){const d=addDays(TODAY,i);if(dueNative(c,d))out.push(d)}return out}
+function rhythmCard(){
+  const L=(S.clients||[]).filter(c=>c.status!=='paused'&&rhythmable(c)).sort((a,b)=>(DNL.indexOf((a.days||[])[0])-DNL.indexOf((b.days||[])[0]))||villaName(a).localeCompare(villaName(b)));
+  if(!L.length)return '';
+  const wkTxt=w=>String(w).split('-').filter(Boolean).map(x=>'week '+x).join(' & ');
+  return `<div class="card"><h2>Twice-a-month villas</h2>
+    <p class="muted small">Choose <b>Every 2 weeks</b> for a villa that is visited every other week, so it never slips in months with 5 weeks. Tap <b>This week</b> or <b>Next week</b> for the next visit; after that it alternates by itself.</p>
+    <div class="rhl">${L.map(c=>{const r=rhythmOf(c),nx=nextVisits(c,2),day=(c.days||[]).map(d=>d.slice(0,3)).join(', ');
+      return `<div class="rhr"><div><b>${esc(villaName(c))}</b><span>${esc(day)} · ${r?'<b class="ok">Every 2 weeks</b>':c.weeks?esc(wkTxt(c.weeks))+' (Maintenance App)':'every week (no weeks set)'}</span><span>Next: ${nx.length?nx.map(shortDate).join(' · '):'—'}</span></div>
+        <div class="row"><button class="btn small ${r&&nx[0]&&weekStart(nx[0])===weekStart(TODAY)?'primary':''}" data-rhythm="${esc(c.id)}" data-rfrom="0">This week</button><button class="btn small ${r&&nx[0]&&weekStart(nx[0])===addDays(weekStart(TODAY),7)?'primary':''}" data-rhythm="${esc(c.id)}" data-rfrom="7">Next week</button>${r?`<button class="link small" data-rhythm="${esc(c.id)}" data-rfrom="app">Use the app's weeks</button>`:''}</div></div>`}).join('')}</div></div>`;
+}
 function pinsCard(){
   const cl=(S.clients||[]).filter(c=>c.status!=='paused'), g={exact:[],area:[],unknown:[],waiting:[],failed:[]};cl.forEach(c=>g[pinStatus(c)].push(c));
   const P=g.exact.map(posOf), med=k=>{const v=P.map(p=>p[k]).sort((a,b)=>a-b);return v[Math.floor(v.length/2)]}, mid=P.length?{lat:med('lat'),lng:med('lng')}:null;
@@ -2461,7 +2483,7 @@ function pinsCard(){
     ${box('failed','links could not be read',g.failed,'Open the villa in the Maintenance App and paste the Google Maps link again (Share → Copy link). Then tap Try again.')}
     ${box('waiting','links waiting to be read',g.waiting,'Tap "Read map links now". The Google Sheet opens each link once.')}
     ${box('area','by area (no map link)',g.area,'Placed at the centre of their area. Add a Google Maps link in the Maintenance App to put them on their exact spot.')}
-    ${box('weeks','visited 2×/month or less but no weeks set — planned every week',cl.filter(c=>FLEX.has(c.frequency)&&!c.weeks),'These villas have no "Which weeks" set, so the planner puts them on every week and the teams look busier than they are. Set the weeks in the Maintenance App (Week 1 & 3, or 2 & 4).')}
+    ${box('weeks','visited 2×/month or less but no weeks set — planned every week',cl.filter(c=>FLEX.has(c.frequency)&&!c.weeks&&!rhythmOf(c)),'These villas have no "Which weeks" set, so the planner puts them on every week and the teams look busier than they are. Set the weeks in the Maintenance App (Week 1 & 3, or 2 & 4).')}
     ${box('unknown','area not known (no map link)',g.unknown,'The planner does not know where this area is. Add a map link in the Maintenance App, or set the area position in Setup → Teams.')}
   </div>`;
 }
@@ -2978,6 +3000,7 @@ function renderSetup(){
       <div class="row"><button class="btn" data-pdfroster="std-with">Roster PDF with contacts</button><button class="btn" data-pdfroster="std-without">without contacts</button><button class="btn" data-pdfroster="phone-with">Phone PDF with contacts</button><button class="btn" data-pdfroster="phone-without">without contacts</button></div>
       <p class="muted small">Same layout as the roster app's Export PDF. With contacts shows MAP, Call and WhatsApp; without contacts shows MAP only and no phone numbers. Paused villas are left out.${(S.clients||[]).some(c=>c.phone||c.whatsapp)?'':' <b>Phone numbers have not come from the Maintenance App yet</b> — until then "with contacts" shows MAP only.'}</p></div>
       ${pinsCard()}
+      ${rhythmCard()}
       ${(()=>{const L=sizeLimits(), cl=(S.clients||[]).filter(c=>c.status!=='paused'), cnt=k=>cl.filter(c=>sizeOf(c)===k).length, noFee=cl.filter(c=>!c.fee), noPos=cl.filter(c=>!posOf(c));
         return `<div class="card"><h2>Villa sizes</h2><p class="muted small">Size = what the client pays <b>per visit</b> (monthly fee ÷ visits a month). The team builder balances teams by workload: Small = 1 point, Medium = 1.5, Large = 2. A team is "heavy" above ${maxV()} villas or ${capPts()} points.</p>
         <div class="kpis"><div><b>${cnt('L')}</b><span>Large</span></div><div><b>${cnt('M')}</b><span>Medium</span></div><div><b>${cnt('S')}</b><span>Small</span></div><div><b>${noFee.length}</b><span>no fee</span></div></div>
@@ -3118,7 +3141,9 @@ function renderModal(){
       <button class="mbig wide proj" data-newproj><b>Add new work</b><span>A job on one or more days</span></button>
       <button class="mbig wide" data-addmember><b>Add staff member</b><span>New person on the team</span></button>`;
   }
+  const mk=modal.kind+'|'+(modal.id||modal.name||modal.team||''), oldD=root.querySelector('.dialog'), keepTop=oldD&&renderModal._k===mk?oldD.scrollTop:0;
   root.innerHTML=`<div class="dialog ${isPhone()?'sheet':''}" role="dialog" aria-modal="true">${inner}</div>`;
+  renderModal._k=mk; if(keepTop){const d=root.querySelector('.dialog');if(d)d.scrollTop=keepTop}
   root.querySelectorAll('.mhead').forEach(h=>{const c=h.querySelector(':scope>[data-closemodal]');if(!c||h.querySelector('[data-gohome]'))return;const w=document.createElement('span');w.className='mhbtns';c.replaceWith(w);w.innerHTML=`<button type="button" class="iconbtn" data-gohome aria-label="Home" title="Home">${ICON.home}</button>`;w.appendChild(c)});
 }
 function openLeave(name,id){
@@ -3339,6 +3364,9 @@ document.addEventListener('click',e=>{
   /* villas */
   if(d.villa){villaSel=villaSel===d.villa?null:d.villa;sel=null;render();return}
   if(d.vto&&villaSel){learnAreaMove(cur,villaSel,d.vto);freezeVillas(cur);const r=ensureDay(cur);r.villaMove=r.villaMove||{};r.villaMove[villaSel]=d.vto;save();toast('Villa moved for today');villaSel=null;render();return}
+  if(d.rhythm){S.villaRhythm=S.villaRhythm||{};const c=(S.clients||[]).find(x=>x.id===d.rhythm);if(!c)return;
+    if(d.rfrom==='app')delete S.villaRhythm[c.id];else S.villaRhythm[c.id]={from:addDays(weekStart(TODAY),Number(d.rfrom))};
+    save();const nx=nextVisits(c,2);toast(`${villaName(c)}: next visits ${nx.map(shortDate).join(' and ')||'—'}`);render();return}
   if('vauto' in d&&villaSel){const r=ensureDay(cur);if(r.villaMove)delete r.villaMove[villaSel];if(r.vsnap)delete r.vsnap[villaSel];save();villaSel=null;render();return}
   if('vskip' in d&&villaSel){const r=ensureDay(cur);r.villaSkip=[...new Set([...(r.villaSkip||[]),villaSel])];save();toast('Villa skipped today');villaSel=null;render();return}
   if(d.vnext&&villaSel){moveVillasToDay(cur,[villaSel],d.vnext);toast(`Visit moved to ${shortDate(d.vnext)}`);villaSel=null;render();return}
