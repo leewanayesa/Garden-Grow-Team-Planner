@@ -65,6 +65,8 @@ h3{margin:0;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:14px}
 .brandwrap{display:flex;align-items:center;gap:10px;flex:none}
 .brandlogo{height:40px;width:auto;display:block;background:#fff;border-radius:6px;padding:2px 4px}
+.brandtxt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.brandsub{font:inherit;font-size:.74rem;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer;background:none;border:0;padding:0;text-align:left}.brandsub b{color:var(--green)}
 .brand{font-family:var(--display);font-weight:800;font-size:1.05rem;color:var(--green);letter-spacing:.01em;white-space:nowrap}
 #topnav{display:none;gap:4px;flex:1}
 #topnav button{border:0;background:none;font-weight:600;color:var(--muted);padding:8px 14px;border-radius:10px;cursor:pointer;min-height:40px}
@@ -689,7 +691,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 <body>
 <div id="printsheet"></div>
 <header class="top">
-  <span class="brandwrap"><img class="brandlogo" id="brandlogo" alt="Garden Grow Landscaping and Gardening LLC"><span class="brand">Team Planner</span></span>
+  <span class="brandwrap"><img class="brandlogo" id="brandlogo" alt="Garden Grow Landscaping and Gardening LLC"><span class="brandtxt"><span class="brand">Team Planner</span><button type="button" class="brandsub" id="clientpill" data-goclients title="Maintenance clients (Setup → Villas)"></button></span></span>
   <nav id="topnav" aria-label="Main"></nav>
   <button class="homebtn" data-gohome aria-label="Home — today's teams" title="Home"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Home</span></button>
   <button class="syncpill" id="syncpill" data-gosync>Not connected</button>
@@ -2114,6 +2116,7 @@ function tName(t){if(!t)return '';if(t.projectId||!t.leader)return t.name;const 
 function tNameSub(t){if(!t)return '';if(!t.projectId&&!t.leader&&people(t).length)return 'no leader';const n=tName(t);return n!==t.name&&!t.extra?String(t.name).replace(/^Team\s+/i,'')+"'s team":''}
 function pdfWorks(p){const ws=p.works||[];if(!ws.length)return worksText(p);return ws.map(w=>((WORKS.find(x=>x.id===w)||{}).name||w)+(p.sizes&&p.sizes[w]?' ('+SZL[p.sizes[w]]+')':'')+(w==='treeremoval'&&p.removal?' — '+REMOVAL_NAME[p.removal]:'')).join(' · ')}
 /* Note shown to a team: a job's notes for the crew, plus the note typed on the team today. */
+const totalClients=()=>(S.clients||[]).filter(c=>c.status!=='paused').length;
 function teamNote(t){const p=t&&t.projectId&&projById(t.projectId);return [p&&p.note,t&&t.desc].map(x=>String(x||'').trim()).filter(Boolean).join(' · ')}
 function pdfName(n){if(((S.nicks||{})[n]||'').trim())return `<b>${esc(sn(n))}</b>`;const f=dn(n)||'',k=f.indexOf(' ');return k>0?`<b>${esc(f.slice(0,k))}</b> ${esc(f.slice(k+1))}`:`<b>${esc(f)}</b>`}
 function pdfTeamBlock(t,date,vp,ix){
@@ -2138,7 +2141,7 @@ function pdfDayPage(date){
   const placed=teams.reduce((a,t)=>a+people(t).length,0), all=[...teams.filter(isProj),...teams.filter(t=>!isProj(t))];
   return `<div class="dpp">
     <header class="dhd"><img src="${LOGO}" alt="Garden Grow Landscaping and Gardening LLC"><div class="r"><small>DAILY TEAM PLAN</small><h1>${longDate(date)}</h1>
-      <span class="dpill">${plural(teams.length,'team')} · ${placed} working · ${plural(vp.total,'villa')} · ${ab.length} off</span>${ps.length?` <span class="dpill nw">+ ${plural(ps.length,'new work job')}</span>`:''}</div></header>
+      <span class="dpill">${plural(teams.length,'team')} · ${placed} working · ${plural(vp.total,'villa')} · ${ab.length} off · ${totalClients()} clients total</span>${ps.length?` <span class="dpill nw">+ ${plural(ps.length,'new work job')}</span>`:''}</div></header>
     ${r.note?`<p class="dpnote"><b>Note for today:</b> ${esc(r.note)}</p>`:''}
     ${all.map((t,i)=>pdfTeamBlock(t,date,vp,i)).join('')}
     <div class="dft"><div><div class="dl">Off today · ${ab.length}</div>${ab.length?ab.map(n=>`<div>${esc(sn(n))}${leaveOn(n,date)?` — ${esc(leaveOn(n,date).type.toLowerCase())}`:''}</div>`).join(''):'<div>Everyone is in</div>'}
@@ -2223,7 +2226,7 @@ function dayPlanData(date){
   const placed=teams.reduce((a,t)=>a+people(t).length,0), all=[...teams.filter(isProj),...teams.filter(t=>!isProj(t))];
   const tags=n=>{const sk=S.skills[n]||[],g=gradeOf(n),o=[];if(isSup(n))o.push(['sup','SUPERVISOR']);if(g)o.push([['','lab','jr','sr'][g],['','LABOUR','GARDENER','SR GARDENER'][g]]);if(sk.includes('drv_spare'))o.push(['drv','SPARE DRIVER']);else if(has(n,'driver'))o.push(['drv','DRIVER']);return o};
   const person=n=>{if(((S.nicks||{})[n]||'').trim())return {first:sn(n),rest:'',tags:tags(n)};const f=dn(n)||'',k=f.indexOf(' ');return {first:k>0?f.slice(0,k):f,rest:k>0?f.slice(k+1):'',tags:tags(n)}};
-  return {date,title:longDate(date),summary:`${plural(teams.length,'team')} · ${placed} working · ${plural(vp.total,'villa')} · ${ab.length} off`,jobs:ps.length?`+ ${plural(ps.length,'new work job')}`:'',note:r.note||'',
+  return {date,title:longDate(date),summary:`${plural(teams.length,'team')} · ${placed} working · ${plural(vp.total,'villa')} · ${ab.length} off · ${totalClients()} clients total`,jobs:ps.length?`+ ${plural(ps.length,'new work job')}`:'',note:r.note||'',
     teams:all.map(t=>{const p=t.projectId&&projById(t.projectId),vl=!isProj(t)?(vp.byTeam[t.id]||[]):null,j=jobOf(t),n=people(t).length;
       const sz={S:0,M:0,L:0};(vl||[]).forEach(c=>sz[sizeOf(c)]++);
       return {job:!!p,name:tName(t),sub:tNameSub(t),count:plural(n,'person','people')+(vl?' · '+plural(vl.length,'villa'):''),
@@ -3563,6 +3566,7 @@ function render(){
   if(_inChange&&_ptrDown){_pendRender=true;return}
   if(!S.sigV87&&!S.isSeed)restampV87(); /* a field changed because you tapped something else: draw after that tap */
   const bl=$('brandlogo'); if(bl&&!bl.src)bl.src=LOGO;
+  {const cp=$('clientpill');if(cp){const n=(S.clients||[]).filter(c=>c.status!=='paused').length;cp.innerHTML=n?`<b>${n}</b> maintenance clients`:''}}
   $('topnav').innerHTML=TABS.map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${k==='day'?'Day':l}</button>`).join('');
   $('tabbar').innerHTML=TABS.map(([k,l,ic])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${ic}<span>${l}</span></button>`).join('');
   if(tab==='report')tab='day';
@@ -3741,6 +3745,7 @@ document.addEventListener('click',e=>{
   if(d.swapwith){const a=modal.name,b=d.swapwith;keepUndo();swapPeople(a,b);modal=null;renderModal();const T=effTeams(cur).find(x=>people(x).includes(b));toastUndo(`${dn(a)} ⇄ ${dn(b)}${T&&!T.leader?' — pick a leader for '+T.name:''}`);render();return}
   if(d.dswap&&modal&&modal.kind==='dropswap'){const a=modal.incoming,b=d.dswap;keepUndo();swapInto(a,b);modal=null;renderModal();toastUndo(`${dn(a)} ⇄ ${dn(b)}`);render();return}
   if('undolast' in d){$('toast').hidden=true;undoLast();return}
+  if('goclients' in d){tab='setup';setupTab='villas';sel=null;villaSel=null;render();scrollTo(0,0);return}
   if('undosnap' in d){$('toast').hidden=true;undoSnap();return}
   if('qlead' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();makeLeader({type:'day',date:cur},n);modal=null;renderModal();toastUndo(`${dn(n)} is the leader`);render();return}
   if('qremove' in d&&modal&&modal.kind==='swap'){const n=modal.name,ctx={type:'day',date:cur};keepUndo();
@@ -4952,6 +4957,17 @@ async function generateRosterPdf(pdfOpts) {
     }
   }
 
+  /* planner: "TOTAL CLIENTS: N" badge, top-right of every page */
+  function drawTotalBadge() {
+    const t = `TOTAL CLIENTS: ${pdfClients.length}`;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(phoneMode ? 6.5 : 7.5);
+    const w = doc.getTextWidth(t) + (phoneMode ? 4 : 5), h = phoneMode ? 4.6 : 5.4, x = pageW - margin - w, y = phoneMode ? 4 : 6;
+    doc.setFillColor(47, 107, 58);
+    doc.roundedRect(x, y, w, h, h / 2, h / 2, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.text(t, x + w / 2, y + h * 0.68, { align: "center" });
+  }
   function drawFooter(pageIndex, totalPages, dayLabel) {
     const bandH = 8.95;
     const bandTop = pageH - 9.95;
@@ -5978,6 +5994,7 @@ async function generateRosterPdf(pdfOpts) {
     doc.setPage(p);
     const dayLabel = pageDayLabels[p - 1] || "";
     drawFooter(p, totalPages, dayLabel);
+    drawTotalBadge();
   }
 
   const pdfFilename = `${state.companyName.replace(/\s+/g, "_")}_Roster${phoneMode ? "_Phone" : ""}_${includeContacts ? "With_Contacts" : "Without_Contacts"}.pdf`;
