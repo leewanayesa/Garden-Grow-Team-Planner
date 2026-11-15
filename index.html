@@ -1413,9 +1413,19 @@ function migrate(o){
     }
     delete r.mode; delete r.site;
   }
+  if(Array.isArray(o.clients)){const dd=dedupeVillas(o.clients,o);if(dd.dropped.length){o.clients=dd.list;o.clientsInfo=Object.assign({},o.clientsInfo||{},{dupes:Math.max(Number((o.clientsInfo||{}).dupes)||0,dd.dropped.length)})}}
   applyPins(o);
   return o;
 }
+/* Copies of the same villa (same name and area) that reach the planner — e.g. when the Maintenance App is opened
+   somewhere with no saved data and sends its built-in starting list with new IDs. One villa is kept: the one the
+   planner already uses (map pin, rhythm, time, needs), else the one with a map link, else the oldest. */
+function dedupeVillas(list,o){o=o||S;const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g,' ').trim();
+  const ref=new Set([o.villaPos,o.villaRhythm,o.villaMins,o.villaTags].flatMap(x=>x&&typeof x==='object'?Object.keys(x):[]));
+  const G=new Map();(list||[]).forEach((c,i)=>{if(!c)return;const nm=nk(c.name||c.nick),k=nm?nm+'|'+nk(c.area):'#'+i;if(!G.has(k))G.set(k,[]);G.get(k).push([c,i])});
+  const keep=new Set(),dropped=[];
+  G.forEach(L=>{L.sort((a,b)=>(ref.has(b[0].id)-ref.has(a[0].id))||((b[0].mapUrl?1:0)-(a[0].mapUrl?1:0))||(a[1]-b[1]));keep.add(L[0][0]);L.slice(1).forEach(x=>dropped.push(x[0]))});
+  return {list:(list||[]).filter(c=>keep.has(c)),dropped}}
 /* Map pins kept by the planner itself (S.villaPos[id]={lat,lng,of}) for villas whose Maintenance App link can't be read.
    Used only when the villa has no readable position of its own, and dropped when its map link is changed in the app. */
 function pinFits(c,e){return e&&e.lat!=null&&e.lng!=null&&(!e.of||e.of===String(c.mapUrl||'').trim())}
@@ -2406,9 +2416,9 @@ function takeRosterVillas(v){
   if(now>=5&&inc<now*0.5){
     if(!confirm(`The roster app sent ${inc} villa${inc===1?'':'s'}, but the planner has ${now}.\n\nThis looks like a mistake in the roster app.\n\nOK = replace with the ${inc} villas\nCancel = keep the ${now} villas (recommended)`)){S.clientsInfo=Object.assign({},S.clientsInfo||{},{refused:v.at});save();toast(`Kept your ${now} villas`);return false}
   }
-  S.clients=mapRosterClients(v.clients);applyPins();
-  S.clientsInfo={source:'Linked to the roster app',loaded:TODAY,at:v.at,live:true};
-  save(); toast(`Villas updated from the roster app (${S.clients.length})`); return true;
+  const dd=dedupeVillas(mapRosterClients(v.clients));S.clients=dd.list;applyPins();
+  S.clientsInfo={source:'Linked to the roster app',loaded:TODAY,at:v.at,live:true,dupes:dd.dropped.length};
+  save(); toast(`Villas updated from the roster app (${S.clients.length})${dd.dropped.length?` · ${dd.dropped.length} copies ignored`:''}`); return true;
 }
 /* How much real data a plan holds: skills, supervisors, leave, jobs, edited days. Used to catch a near-empty
    plan about to replace a full one (e.g. a new phone or browser that has not loaded the Sheet yet). */
@@ -3280,7 +3290,7 @@ function renderSetup(){
       <div class="card"><div class="row"><button class="btn warn" data-resetlearn>Forget everything learned</button></div></div>`;
   }else if(setupTab==='villas'){
     const per=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d=>[d,(S.clients||[]).filter(c=>c.status!=='paused'&&(c.days||[]).includes(d)).length]);
-    body=`<div class="card"><h2>Maintenance villas · ${(S.clients||[]).length}</h2><p class="muted small">${(S.clientsInfo||{}).live?'<b class="oktxt">● Linked to the roster app</b> — villas update by themselves when you change them in the roster app':esc((S.clientsInfo||{}).source||'')}${(S.clientsInfo||{}).live&&S.clientsInfo.at?' · last update '+shortDate(iso(new Date(S.clientsInfo.at)))+' '+pad(new Date(S.clientsInfo.at).getHours())+':'+pad(new Date(S.clientsInfo.at).getMinutes()):(S.clientsInfo||{}).loaded?' · loaded '+shortDate(S.clientsInfo.loaded):''}. Uses names, areas, visit days, the monthly fee (only to work out villa size) and the map position — never phone numbers or payments.</p>
+    body=`<div class="card"><h2>Maintenance villas · ${(S.clients||[]).length}</h2><p class="muted small">${(S.clientsInfo||{}).live?'<b class="oktxt">● Linked to the roster app</b> — villas update by themselves when you change them in the roster app':esc((S.clientsInfo||{}).source||'')}${(S.clientsInfo||{}).live&&S.clientsInfo.at?' · last update '+shortDate(iso(new Date(S.clientsInfo.at)))+' '+pad(new Date(S.clientsInfo.at).getHours())+':'+pad(new Date(S.clientsInfo.at).getMinutes()):(S.clientsInfo||{}).loaded?' · loaded '+shortDate(S.clientsInfo.loaded):''}. Uses names, areas, visit days, the monthly fee (only to work out villa size) and the map position — never phone numbers or payments.</p>${(S.clientsInfo||{}).dupes?`<p class="muted small">⚠ <b>${S.clientsInfo.dupes} copies</b> of villas that were already in the list came from the Maintenance App and were left out (same name and area). This happens when the Maintenance App is opened somewhere with no saved data and sends its built-in starting list.</p>`:''}
       <div class="row"><label class="btn primary" for="rosterfile">Load roster backup</label><input type="file" id="rosterfile" accept=".json,application/json" hidden>
       <label class="field inline"><span class="lbl">Max villas per team per day</span><input class="textin num" type="number" min="1" max="40" id="maxvillas" value="${maxV()}"></label></div>
       <p class="muted small">Villas are split between teams area by area. An area stays with one team even if that team gets more villas; it's only divided when it has more villas than this maximum.</p>
@@ -3833,7 +3843,7 @@ function onChange(e){
   if(t.id==='note'){ensureDay(cur).note=t.value.trim();touchSent(cur);save();return}
   if(t.id==='rosterfile'&&t.files[0]){const name=t.files[0].name,fr=new FileReader();fr.onload=()=>{try{
       const data=JSON.parse(fr.result); if(!data||!Array.isArray(data.clients))throw 0;
-      S.clients=mapRosterClients(data.clients);applyPins();
+      S.clients=dedupeVillas(mapRosterClients(data.clients)).list;applyPins();
       S.clientsInfo={source:'Roster backup '+name,loaded:TODAY};save();toast(`Loaded ${S.clients.length} villas from the roster backup`);render();
     }catch(_){toast('That file is not a roster backup')}};fr.readAsText(t.files[0]);t.value='';return}
   if(t.dataset&&t.dataset.pinpaste!=null){setPin(t.dataset.pinpaste,t.value);return}
