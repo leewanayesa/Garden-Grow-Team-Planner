@@ -478,7 +478,9 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .ntrow{display:flex;gap:6px;align-items:center}.ntrow .srow{flex:1}.ntrow.on .srow{border-color:#2e7d32;background:#eef7ec}
 .mhead3{margin:8px 4px 0;font-weight:800;font-size:.9rem;color:var(--ink);border-top:1px solid var(--line);padding-top:8px}.mhead3:first-child{border-top:0;padding-top:0;margin-top:2px}
 .mhead2{margin:6px 4px 0;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.mhead2:first-child{margin-top:2px}
-.pdfi{display:grid;text-align:left;gap:1px;min-width:250px}.pdfi span{font-size:.78rem;font-weight:500;color:var(--muted)}
+.pdfi{display:grid;text-align:left;gap:1px;min-width:250px}
+.trpop .seg{justify-self:stretch;display:flex}.trpop .seg button{flex:1;padding:8px 10px;min-height:38px;font-size:.86rem}
+.trrow{display:flex;flex-wrap:wrap;gap:6px}.trchip{font-weight:700}.trn{display:inline-block;min-width:1.5em;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--line);font-size:.75rem;text-align:center}.trnote{margin:2px 4px}.pdfi span{font-size:.78rem;font-weight:500;color:var(--muted)}
 .more summary{list-style:none;cursor:pointer} .more summary::-webkit-details-marker{display:none}
 .morepop{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:8px;display:grid;gap:6px;min-width:220px}
 .morepop .btn{justify-content:flex-start;width:100%}
@@ -2951,8 +2953,9 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
       <button class="btn pdfi" data-pdfroster="phone-with"><b>With contacts</b><span>map, call and WhatsApp buttons</span></button>
       <button class="btn pdfi" data-pdfroster="phone-without"><b>Without contacts</b><span>map only — no phone numbers</span></button>`;
   /* Two PDF buttons: the team plan (who works where) and the maintenance roster (all villas, every day) */
-  const pdfMenu=`<details class="more pdfmenu"><summary class="btn">Team Plan PDF ▾</summary><div class="morepop">${teamItems}</div></details><details class="more pdfmenu"><summary class="btn">Maintenance Roster PDF ▾</summary><div class="morepop">${rosterItems}</div></details>`;
-  const pdfMenuPhone=`<details class="more pdfmenu"><summary class="btn pdfb"><b>Team Plan</b><small>PDF</small></summary><div class="morepop"><p class="mhead3">📋 Team Plan PDF</p>${teamItems}</div></details><details class="more pdfmenu"><summary class="btn pdfb"><b>Roster</b><small>PDF</small></summary><div class="morepop"><p class="mhead3">🏡 Maintenance Roster PDF</p>${rosterItems}</div></details>`;
+  const trItems=rosterMenu();void rosterItems;
+  const pdfMenu=`<details class="more pdfmenu"><summary class="btn">Team Plan PDF ▾</summary><div class="morepop">${teamItems}</div></details><details class="more pdfmenu"><summary class="btn">Team Roster PDF ▾</summary><div class="morepop trpop">${trItems}</div></details>`;
+  const pdfMenuPhone=`<details class="more pdfmenu"><summary class="btn pdfb"><b>Team Plan</b><small>PDF</small></summary><div class="morepop"><p class="mhead3">📋 Team Plan PDF</p>${teamItems}</div></details><details class="more pdfmenu"><summary class="btn pdfb"><b>Roster</b><small>PDF</small></summary><div class="morepop trpop"><p class="mhead3">🏡 Team Roster PDF</p>${trItems}</div></details>`;
   const nClients=(S.clients||[]).filter(c=>c.status!=='paused').length, nPaused=(S.clients||[]).length-nClients;
   const sumTxt=`<span class="phone-only sumtxt">${placed} working · ${vp.total} villas today · ${off.length} off</span>`;
   const okBox=iss.length?`<div class="ibox bad">${ICON.alert}<div><b>${plural(iss.length,'thing')} to check</b>${sumTxt}<span>${esc(iss[0])}</span>${sug.moves.length?`<button class="btn small primary" data-applyall>Fix all (${sug.moves.length})</button>`:''}</div></div>`
@@ -3421,6 +3424,55 @@ function positionMenu(){
 addEventListener('resize',()=>{if(!$('menu').hidden)renderMenu()});
 
 /* ---------- sheets / dialogs ---------- */
+/* ── Team Roster PDF (Maintenance App design): one section per team and day, only the villas due that date ── */
+const trPref=()=>{let p={};try{p=JSON.parse(localStorage.getItem('gg_tr_prefs')||'{}')||{}}catch(e){}return {phone:p.phone!=null?!!p.phone:isPhone(),wc:p.wc!=null?!!p.wc:true}};
+const trSave=p=>{try{localStorage.setItem('gg_tr_prefs',JSON.stringify(p))}catch(e){}};
+/* the work week: Saturday to Thursday (a Friday shows the coming week) */
+function rosterWeek(s){const d=fromIso(s),g=d.getDay();d.setDate(d.getDate()+(g===5?1:-((g+1)%7)));const sat=iso(d);return [0,1,2,3,4,5].map(i=>addDays(sat,i))}
+function rosterSection(t,date){
+  const ppl=people(t),r=dayRec(date),drv=ppl.find(n=>has(n,'driver')&&!(S.skills[n]||[]).includes('drv_spare'))||ppl.find(n=>has(n,'driver'));
+  const L=t.leader?sn(t.leader):'',D=drv?sn(drv):'';
+  const lead=[L?`${L} (leader${drv&&drv===t.leader?' + driver':''})`:'No leader',D&&drv!==t.leader?`${D} (driver)`:''].filter(Boolean).join('  \u00b7  ');
+  const off=[...new Set([...(r.absent||[]),...S.staff.filter(n=>leaveOn(n,date))])];
+  const dt=fromIso(date);
+  return {team:tName(t),teamId:t.id,date,day:DNL[dt.getDay()],title:`${DNL[dt.getDay()]} ${dt.getDate()} ${MN[dt.getMonth()]}`,footer:`${tName(t)} \u00b7 ${shortDate(date)}`,
+    right:plural(ppl.length,'person','people'),lead,crew:snl((t.members||[]).filter(n=>n!==drv)).join(', '),off:snl(off).join(', '),nursery:snl(nurseryOf(date)).join(', '),
+    note:[teamNote(t),r.note].filter(Boolean).join(' \u00b7 ')};
+}
+function rosterSections(dates,key){
+  const out=[];
+  dates.forEach(date=>{if(isDayOff(date))return;const teams=effTeams(date),vp=villaPlan(date,teams);
+    teams.filter(t=>!isProj(t)).forEach(t=>{if(key!=='all'&&t.id!==key)return;const vl=vp.byTeam[t.id]||[];if(!vl.length)return;out.push({...rosterSection(t,date),clients:vl})})});
+  /* a week: each team's days together (Sat → Thu), teams in their usual order */
+  if(dates.length>1){const ord=[];out.forEach(x=>{if(!ord.includes(x.teamId))ord.push(x.teamId)});out.sort((a,b)=>ord.indexOf(a.teamId)-ord.indexOf(b.teamId)||(a.date<b.date?-1:a.date>b.date?1:0))}
+  return out;
+}
+function rosterMenu(){
+  const P=trPref(),teams=isDayOff(cur)?[]:effTeams(cur).filter(t=>!isProj(t)),vp=teams.length?villaPlan(cur,effTeams(cur)):{byTeam:{}},wk=rosterWeek(cur);
+  const due=teams.reduce((a,t)=>a+(vp.byTeam[t.id]||[]).length,0);
+  const chip=(per,t,n)=>`<button class="btn small trchip" data-troster="${per}:${esc(t.id)}">${esc(tName(t))}${n!=null?` <span class="trn">${n}</span>`:''}</button>`;
+  return `<p class="mhead2">Page</p>
+      <div class="seg trseg"><button type="button" data-trfmt="phone" class="${P.phone?'on':''}">Phone</button><button type="button" data-trfmt="std" class="${P.phone?'':'on'}">Standard</button></div>
+      <div class="seg trseg"><button type="button" data-trwc="1" class="${P.wc?'on':''}">With contacts</button><button type="button" data-trwc="0" class="${P.wc?'':'on'}">Without</button></div>
+      <p class="mhead2">This day — ${esc(shortDate(cur))}</p>
+      ${isDayOff(cur)?'<p class="muted small trnote">Weekly day off — no villas.</p>':`<div class="trrow">${teams.filter(t=>(vp.byTeam[t.id]||[]).length).map(t=>chip('day',t,(vp.byTeam[t.id]||[]).length)).join('')}</div>
+      <button class="btn pdfi" data-troster="day:all"><b>All teams</b><span>one section per team · ${plural(due,'villa')} due</span></button>`}
+      <p class="mhead2">This week — ${esc(shortDate(wk[0]))} to ${esc(shortDate(wk[5]))}</p>
+      ${teams.length?`<div class="trrow">${teams.map(t=>chip('week',t,null)).join('')}</div>`:''}
+      <button class="btn pdfi" data-troster="week:all"><b>All teams</b><span>each team's days, Saturday to Thursday</span></button>
+      <p class="mhead2">Whole roster</p>
+      <button class="btn pdfi" data-trfull><b>Every client, by weekday</b><span>the full list, like the Maintenance App</span></button>`;
+}
+function makeTeamRoster(per,key){
+  if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}
+  if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}
+  const P=trPref(),dates=per==='week'?rosterWeek(cur):[cur],secs=rosterSections(dates,key);
+  if(!secs.length){toast(per==='day'&&isDayOff(cur)?'That is the weekly day off — no villas':'No villas due for that team'+(per==='week'?' this week':' on this day'));return}
+  if(P.wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the team roster PDF…');
+  const who=key==='all'?'All_Teams':String(secs[0].team).replace(/[^A-Za-z0-9]+/g,'_');
+  const when=per==='week'?`Week_${dates[0]}`:dates[0];
+  RosterPDF.makeTeams(secs,P.phone,P.wc,{totalClients:totalClients(),fileName:`Garden_Grow_Team_Roster_${who}_${when}${P.phone?'_Phone':''}_${P.wc?'With':'Without'}_Contacts.pdf`}).catch(err=>toast('PDF problem: '+(err&&err.message||err)));
+}
 function leaderText(t,date){
   const j=jobOf(t), p=t.projectId&&projById(t.projectId), vl=isProj(t)?[]:(villaPlan(date,effTeams(date)).byTeam[t.id]||[]), note=dayRec(date).note;
   let s=`*Garden Grow – ${shortDate(date)}*\n*${tName(t)}*${tNameSub(t)?' ('+tNameSub(t)+')':''} – ${j.name}\n`;
@@ -3626,7 +3678,7 @@ document.addEventListener('click',e=>{
   if((sel||villaSel)&&!e.target.closest('#menu')&&!e.target.closest('.chip')&&!e.target.closest('.vchip')&&!e.target.closest('#modalroot')){sel=null;villaSel=null;menuMode=null;if(e.target.closest('summary')){renderMenu();return}render();if(!el)return}
   if(!el)return;
   const d=el.dataset, dayCtx={type:'day',date:cur};
-  {const dm=el.closest('details.more');if(dm&&el.tagName==='BUTTON')dm.open=false}
+  {const dm=el.closest('details.more');if(dm&&el.tagName==='BUTTON'&&!('trfmt' in d||'trwc' in d))dm.open=false}
   /* dialogs */
   if('lvdelete' in d){const id=modal.id;if(delArm!=='lv:'+id){delArm='lv:'+id;readLeave();renderModal();return}S.leaves=S.leaves.filter(x=>x.id!==id);applyLeaves();save();delArm=null;modal=null;renderModal();toast('Leave deleted');render();return}
   if('newleave' in d){openLeave(null);return}
@@ -3768,7 +3820,9 @@ document.addEventListener('click',e=>{
   if('pdfday' in d){const viaSend=!!(modal&&modal.kind==='send');const det=el.closest('details');if(det)det.open=false;if(usePhoneShare()){const D0=cur;sharePlan([D0],`Garden Grow Team Plan ${shortDate(D0)}.pdf`,()=>{markSent(D0);render()});return}printDay(viaSend);return}
   if('pdfweek' in d){const det=el.closest('details');if(det)det.open=false;if(usePhoneShare()){[0,1,2,3,4,5,6].forEach(i=>ensureBuilt(addDays(weekStart(cur),i)));const ws=weekStart(cur),days=[0,1,2,3,4,5,6].map(i=>addDays(ws,i)).filter(s=>!isDayOff(s)&&(clientsOn(s).length||activeProjects(s).length));if(!days.length){toast('No working days with villas this week');return}sharePlan(days,`Garden Grow Week Plan ${shortDate(ws)}.pdf`);return}printWeek();return}
   if('pdfleaders' in d){printLeaders();return}
-  if('pdfroster' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const v=d.pdfroster||'std-without',wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
+  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
+  if('troster' in d){const det=el.closest('details');if(det)det.open=false;const [per,...k]=String(d.troster).split(':');makeTeamRoster(per,k.join(':')||'all');return}
+  if('pdfroster' in d||'trfull' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const P0=trPref(),v=('trfull' in d)?(P0.phone?'phone':'std')+(P0.wc?'-with':'-without'):(d.pdfroster||'std-without'),wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
   if('pdfsetup' in d){printSetup();return}
   if('reportpdf' in d){printReport();return}
   if('reportcsv' in d){reportCsv();return}
@@ -4382,7 +4436,9 @@ function nextVisitDate(c, fromYmd) {
   }
   return start;
 }
+let ROSTER_DATES = null; /* planner team roster: the real date of each day printed */
 function upcomingDateOf(dayName) {
+  if (ROSTER_DATES && ROSTER_DATES[dayName]) return ROSTER_DATES[dayName];
   const i = DAY_ORDER.indexOf(dayName);
   const today = ymdLocal(new Date());
   if (i < 0) return today;
@@ -4873,8 +4929,13 @@ async function generateRosterPdf(pdfOpts) {
   }
   readUiPrefs();
   /* paused villas are not on the driver's sheet (he would go there) */
-  const pdfClients = state.clients.filter((c) => c.status !== "paused");
-  const visits = expandVisits(pdfClients);
+  const SECS = pdfOpts && Array.isArray(pdfOpts.sections) ? pdfOpts.sections.filter((x) => x.clients && x.clients.length) : null;
+  const pdfClients = SECS ? [...new Map(SECS.flatMap((x) => x.clients).map((c) => [c.id, c])).values()] : state.clients.filter((c) => c.status !== "paused");
+  const visits = SECS
+    ? SECS.flatMap((x) => x.clients.map((c) => ({ client: c, day: x.day, note: scheduleExtraLine(c), ...resolveLinks(c) })))
+    : expandVisits(pdfClients);
+  ROSTER_DATES = null;
+  if (SECS) { ROSTER_DATES = {}; SECS.forEach((x) => { ROSTER_DATES[x.day] = x.date; }); }
   if (!visits.length) {
     alert("Nothing to export.");
     return;
@@ -4894,7 +4955,11 @@ async function generateRosterPdf(pdfOpts) {
     const noLoc = pdfClients.filter((c) => newVillaInfo(c) && !String(c.mapUrl || "").trim() && !String(c.landmark || "").trim());
     if (noLoc.length && !confirm(`These NEW villas have no Google Maps link and no directions — the driver may not find them:\n\n${noLoc.slice(0, 8).map((c) => "• " + clientDisplayNick(c)).join("\n")}\n\nOK = make the PDF anyway\nCancel = go back and add the location first`)) return;
   }
-  const grouped = groupByDay(visits);
+  /* team roster: one block per team (and day) in the planner's route order; else the weekday roster */
+  const grouped = SECS
+    ? SECS.map((x) => [x.day, x.clients.map((c) => ({ client: c, day: x.day, note: scheduleExtraLine(c), ...resolveLinks(c) })), x])
+    : groupByDay(visits);
+  let curTitle = "";
   const { jsPDF } = window.jspdf;
   /* Phone mode: tall narrow page (~phone aspect) so it fills an Android/iPhone screen,
      single column, big tap targets. Print mode: Legal portrait, two columns. */
@@ -4996,7 +5061,7 @@ async function generateRosterPdf(pdfOpts) {
 
   /* planner: "TOTAL CLIENTS: N" badge, top-right of every page */
   function drawTotalBadge() {
-    const t = `TOTAL CLIENTS: ${pdfClients.length}`;
+    const t = `TOTAL CLIENTS: ${pdfOpts && pdfOpts.totalClients != null ? pdfOpts.totalClients : pdfClients.length}`;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(phoneMode ? 6.5 : 7.5);
     const w = doc.getTextWidth(t) + (phoneMode ? 4 : 5), h = phoneMode ? 4.6 : 5.4, x = pageW - margin - w, y = phoneMode ? 4 : 6;
@@ -5107,7 +5172,7 @@ async function generateRosterPdf(pdfOpts) {
     const midY = y + baseTopH / 2;
     drawCalendarIcon(margin + 4, midY - ic / 2, ic, PAL.brand);
     const tx = margin + 4 + ic + 4.5;
-    const dayName = `${String(day).toUpperCase()}${continued ? " (CONT.)" : ""}`;
+    const dayName = `${String(curTitle || day).toUpperCase()}${continued ? " (CONT.)" : ""}`;
     doc.setFont("helvetica", "bold");
     let pt = narrow ? 20 : 25;
     doc.setFontSize(pt);
@@ -5805,7 +5870,7 @@ async function generateRosterPdf(pdfOpts) {
     return [...best.values()].map((x) => x.it).sort((a, b) => (a.on < b.on ? -1 : a.on > b.on ? 1 : a.stopN - b.stopN));
   })();
   const weekLinks = [];
-  let weekBoxDone = false;
+  let weekBoxDone = !!SECS;
   function weekTag(it) {
     if (it.nv.isFirst || it.nv.before) {
       const d = new Date(`${it.nv.first}T00:00:00`);
@@ -5891,16 +5956,72 @@ async function generateRosterPdf(pdfOpts) {
     if (more) { doc.setFont("helvetica", "bold"); doc.setFontSize(8); setTxt(NV.title); doc.text(`+ ${more} more new villa${more === 1 ? "" : "s"} — marked NEW on their day`, innerX + 2, ly + 4); }
     return y0 + h + 3;
   }
+  /** Team roster: the team card under the day header — team, leader, driver, crew, off today. Returns where the list starts. */
+  function drawTeamCard(sec, y0, cont) {
+    const x = margin, w = contentW, pad = 3.2, narrow = contentW < 120;
+    const lab = (sec.team || "TEAM").toUpperCase();
+    doc.setFont("helvetica", "bold");
+    const pillPt = narrow ? 9 : 10;
+    doc.setFontSize(pillPt);
+    const pw = textWidthMm(lab) + 7, ph = narrow ? 6.4 : 7;
+    if (cont) {
+      setFill(PAL.brand); doc.roundedRect(x, y0, pw, ph, ph / 2, ph / 2, "F");
+      setTxt([255, 255, 255]); doc.text(lab, x + pw / 2, y0 + ph * 0.68, { align: "center" });
+      return y0 + ph + 2;
+    }
+    const lines = [];
+    const lead = sec.lead || "";
+    const tw = w - pad * 2;
+    const wrapLine = (label, txt, pt, bold) => {
+      if (!txt) return;
+      doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(pt);
+      const ls = doc.splitTextToSize(pdfText((label ? label + ": " : "") + txt), tw);
+      ls.forEach((l, i) => lines.push({ t: l, pt, bold, first: i === 0, label: i === 0 ? label : "" }));
+    };
+    wrapLine("", lead, narrow ? 10.5 : 11.5, true);
+    wrapLine("Crew", sec.crew, narrow ? 9 : 9.8, false);
+    wrapLine("Off today", sec.off, narrow ? 8.2 : 8.8, false);
+    wrapLine("Nursery", sec.nursery, narrow ? 8.2 : 8.8, false);
+    wrapLine("Note", sec.note, narrow ? 8.2 : 8.8, false);
+    const lh = (pt) => pt * 0.45;
+    const h = pad + ph + 1.6 + lines.reduce((a, l) => a + lh(l.pt), 0) + pad - 0.6;
+    setFill([255, 255, 255]); setDraw(PAL.line); doc.setLineWidth(0.35);
+    doc.roundedRect(x, y0, w, h, 2.4, 2.4, "FD");
+    setFill(PAL.brand); doc.roundedRect(x + pad, y0 + pad, pw, ph, ph / 2, ph / 2, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(pillPt); setTxt([255, 255, 255]);
+    doc.text(lab, x + pad + pw / 2, y0 + pad + ph * 0.68, { align: "center" });
+    if (sec.right) {
+      doc.setFont("helvetica", "normal"); doc.setFontSize(narrow ? 8 : 8.8); setTxt(PAL.text2);
+      doc.text(fitOneLine(pdfText(sec.right), w - pad * 3 - pw), x + w - pad, y0 + pad + ph * 0.68, { align: "right" });
+    }
+    let ly = y0 + pad + ph + 1.6;
+    lines.forEach((l) => {
+      ly += lh(l.pt);
+      doc.setFontSize(l.pt);
+      if (l.label) {
+        doc.setFont("helvetica", "bold"); setTxt(PAL.muted);
+        const lw = textWidthMm(l.label + ": ");
+        doc.text(l.label + ": ", x + pad, ly - lh(l.pt) * 0.2);
+        doc.setFont("helvetica", l.bold ? "bold" : "normal"); setTxt(PAL.ink);
+        doc.text(l.t.slice(l.label.length + 2), x + pad + lw, ly - lh(l.pt) * 0.2);
+      } else {
+        doc.setFont("helvetica", l.bold ? "bold" : "normal"); setTxt(l.bold ? PAL.ink : PAL.text2);
+        doc.text(l.t, x + pad, ly - lh(l.pt) * 0.2);
+      }
+    });
+    return y0 + h + 2;
+  }
   const pageDayLabels = [];
   const usableBottom = pageH - footerH - 4;
   const orderKeys = areaDriveOrderKeys();
   let isFirstDayPage = true;
   let firstDayPageNo = 1;
 
-  grouped.forEach(([day, list]) => {
+  grouped.forEach(([day, list, sec]) => {
     if (!list.length) return;
     const mainKeysPdf = dayMainOrderKeys(day);
-    list.sort((a, b) => compareByDriveOrder(a, b, orderKeys, mainKeysPdf));
+    if (!sec) list.sort((a, b) => compareByDriveOrder(a, b, orderKeys, mainKeysPdf));
+    curTitle = sec ? sec.title : "";
 
     /* Groups = main areas (rows keep the drive order inside) */
     const groups = [];
@@ -5924,11 +6045,12 @@ async function generateRosterPdf(pdfOpts) {
       }
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, pageW, pageH, "F");
-      pageDayLabels.push(String(day));
+      pageDayLabels.push(sec ? sec.footer : String(day));
       let logoBottom = drawPdfPageBrandingLogo(logoBytes, phoneMode ? 4 : 5);
       const showCo = !(logoBytes && logoBytes.length);
       if (!weekBoxDone) { weekBoxDone = true; logoBottom = drawWeekBox(logoBottom + (showCo ? 6 : 1)); }
       contentStartY = drawPdfGridDayHeader(day, logoBottom, cont, list.length, showCo, groups);
+      if (sec) contentStartY = drawTeamCard(sec, contentStartY - 1.5, cont) + 1.5;
       if (!cont) {
         const nvItems = groups.flatMap((g) => g.items).filter((it) => newTagOf(it.rv.client, day));
         if (nvItems.length) {
@@ -6034,10 +6156,11 @@ async function generateRosterPdf(pdfOpts) {
     drawTotalBadge();
   }
 
-  const pdfFilename = `${state.companyName.replace(/\s+/g, "_")}_Roster${phoneMode ? "_Phone" : ""}_${includeContacts ? "With_Contacts" : "Without_Contacts"}.pdf`;
+  const pdfFilename = SECS && pdfOpts.fileName ? pdfOpts.fileName : `${state.companyName.replace(/\s+/g, "_")}_Roster${phoneMode ? "_Phone" : ""}_${includeContacts ? "With_Contacts" : "Without_Contacts"}.pdf`;
   state.lastPdfExportedAt = new Date().toISOString();
   saveState();
   updateMeta();
+  ROSTER_DATES = null;
   await saveFileBlob(pdfFilename, doc.output("blob"), exportDir);
 }
 /* the planner keeps the logo inside the page — use it for the PDF header */
@@ -6046,7 +6169,10 @@ const logoPng=()=>new Promise(res=>{try{const im=new Image();im.onload=()=>{try{
 pdfLoadBrandingBytes=async(fileName,fb)=>{if(fileName==="logo.png"&&typeof LOGO==="string"&&LOGO.startsWith("data:")){const u=await logoPng();if(u)return u}return _origLoad(fileName,fb)};
 const adapt=(c,wc)=>({id:c.id,nick:c.nick||"",name:c.name||"",area:c.area||"",mainArea:c.mainArea||"",days:[...(c.days||[])],frequency:c.frequency||"",weeks:c.weeks||"",monthlyVisits:c.monthlyVisits||"",status:c.status||"active",newFrom:c.newFrom||"",routeOrder:c.routeOrder??null,mapUrl:c.mapUrl||"",villaNumber:c.villaNumber||"",
   phone:wc?String(c.phone||""):"",whatsapp:wc?String(c.whatsapp||""):"",whatsappSame:wc?c.whatsappSame:undefined,phoneIntl:wc?String(c.phoneIntl||""):"",landmark:"",notes:""});
-return {make(clients,phone,withContacts){const wc=!!withContacts;state.clients=(clients||[]).map(c=>adapt(c,wc));return generateRosterPdf({phone:!!phone,includeContacts:wc})}};
+return {make(clients,phone,withContacts){const wc=!!withContacts;state.clients=(clients||[]).map(c=>adapt(c,wc));return generateRosterPdf({phone:!!phone,includeContacts:wc})},
+  /* team roster: sections = [{team,title,footer,day,date,right,leader,driver,crew,off,nursery,note,clients}] */
+  makeTeams(sections,phone,withContacts,o){const wc=!!withContacts;o=o||{};const secs=(sections||[]).map(x=>({...x,clients:(x.clients||[]).map(c=>adapt(c,wc))}));state.clients=secs.flatMap(x=>x.clients);
+    return generateRosterPdf({phone:!!phone,includeContacts:wc,sections:secs,totalClients:o.totalClients,fileName:o.fileName})}};
 })();
 </script>
 <script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
