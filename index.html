@@ -1688,6 +1688,37 @@ const LEAVE_TYPES=['Annual leave','Sick leave','Emergency leave','Other leave'];
 const allLeaves=()=>[...(S.leaves||[]),...(S.attLeaves||[])];
 const leaveOn=(n,s)=>allLeaves().find(l=>l.name===n&&l.from<=s&&s<=l.to);
 /* The Attendance Sheet's leave list and the days already marked Leave / Absent from today on. Names are matched to staff. */
+/* ── Attendance check (18 Nov 2026): who was really Present / Absent / on Leave / Day Off on the last 14 days, read from
+   the Attendance app's Sheet (read only). Kept on this device only (not synced) — it comes again with every sync. ── */
+let ATT_DAYS=(()=>{try{return JSON.parse(localStorage.getItem(KEY+'_attDays')||'{}')||{}}catch(e){return {}}})();
+function takeAttDays(a){
+  if(!a||!Array.isArray(a.days))return false;
+  const up=new Map(S.staff.map(n=>[n.toUpperCase().replace(/\s+/g,' ').trim(),n]));
+  const m={};a.days.forEach(x=>{const n=up.get(String(x.name||'').toUpperCase().replace(/\s+/g,' ').trim());if(!n||!/^\d{4}-\d{2}-\d{2}$/.test(String(x.date||'')))return;(m[x.date]=m[x.date]||{})[n]=String(x.status||'')});
+  if(JSON.stringify(m)===JSON.stringify(ATT_DAYS))return false;
+  ATT_DAYS=m;try{localStorage.setItem(KEY+'_attDays',JSON.stringify(m))}catch(e){}return true;
+}
+/* Planned (this app's teams + nursery) against the Attendance marks of that day. null = no marks for that day yet. */
+function attCheck(date){
+  const A=ATT_DAYS[date];if(!A||date>TODAY||isDayOff(date)||!Object.values(A).includes('Present'))return null; /* nobody marked Present yet = the day is not marked yet */
+  const teams=effTeams(date),where={};teams.forEach(t=>people(t).forEach(n=>{where[n]=tName(t)}));nurseryOf(date).forEach(n=>{if(!where[n])where[n]='Nursery'});
+  const planned=Object.keys(where),st=n=>A[n]||'';
+  const res={planned:planned.length,present:Object.values(A).filter(x=>x==='Present').length,
+    absent:planned.filter(n=>st(n)==='Absent'),leave:planned.filter(n=>st(n)==='Leave'),dayoff:planned.filter(n=>st(n)==='Day Off'),
+    unmarked:planned.filter(n=>!st(n)),extra:Object.keys(A).filter(n=>A[n]==='Present'&&!where[n]),where,sent:!!dayRec(date).sent};
+  res.diff=res.absent.length+res.leave.length+res.dayoff.length+res.extra.length;
+  return res;
+}
+function attBox(date){
+  const c=attCheck(date);if(!c)return '';
+  const who=(l,tag)=>l.map(n=>`<b>${esc(sn(n))}</b>${tag?` (${esc(c.where[n]||'')})`:''}`).join(', ');
+  const lines=[c.absent.length?`⚠ Planned but <b>absent</b>: ${who(c.absent,1)}`:'',c.leave.length?`⚠ Planned but <b>on leave</b>: ${who(c.leave,1)}`:'',
+    c.dayoff.length?`⚠ Planned but <b>day off</b>: ${who(c.dayoff,1)}`:'',c.extra.length?`➕ Present but <b>not in the plan</b>: ${who(c.extra,0)}`:'',
+    c.unmarked.length?`<span class="muted">No Attendance mark: ${c.unmarked.map(n=>esc(sn(n))).join(', ')}</span>`:''].filter(Boolean);
+  return `<div class="ibox ${c.diff?'warn':'ok'} attbox">${c.diff?ICON.alert:ICON.ok}<div><b>Attendance check — ${esc(shortDate(date))}</b>
+    <span>${c.sent?'Sent plan':'Plan in this app'}: ${plural(c.planned,'person','people')} · Present: ${c.present}${c.diff?'':' · everyone as planned'}</span>${lines.map(l=>`<span>${l}</span>`).join('')}
+    <span class="muted small">From the Attendance app (read only). Only useful when the day was worked as planned here.</span></div></div>`;
+}
 function takeAttendance(a){
   if(!a||!Array.isArray(a.leaves))return false;
   const up=new Map(S.staff.map(n=>[n.toUpperCase().replace(/\s+/g,' ').trim(),n]));
@@ -2600,6 +2631,7 @@ async function pull(){
     }
     else if(newer){if(dirty)mergeIn(remote);else adoptRemote(remote)}
     if(takeAttendance(j.attendance))save();
+    if(takeAttDays(j.attendance)&&!modal)waitBuild=true; /* attendance check: redraw once the sync is done */
     if(takeRosterVillas(j.villas)){lastSyncAt=new Date();render();return}
     else if(!remote||isDirty()){pulling=false;await push();return}
     lastSyncAt=new Date(); setSync('ok'); maybeArchive();
@@ -2994,6 +3026,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
       <div class="ibox nwbox"><div><span class="nwh"><span class="lbl">New work</span><button class="btn small nwadd2" data-newproj>＋ Add new work</button></span>${ps.length?ps.map(p=>{const smt=p.small?Object.entries(smallByTeam(cur,teams,vp)).find(([k,v])=>v.includes(p)):null,tn=smt?(teams.find(x=>x.id===smt[0])||{}).name:'';return `<button class="nwi" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>${p.small?`Small job · with ${esc(tn||'a maintenance team')}`:isSupply(p)?'Delivery only · driver':`Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1} · ${plural(people(p.crew).length,'person','people')}`}</span></button>`}).join(''):'<span>None today</span>'}
         ${upcoming.length?`${upcoming.map(p=>`<button class="nwi up" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Coming up · ${rangeText(p.from,p.to)} · ${plural(Object.values(p.need||{}).length?Math.max(p.min||0,people(p.crew).length):people(p.crew).length,'person','people')}</span></button>`).join('')}`:''}<button class="link small" data-alljobs>All jobs (${S.projects.length}) →</button></div></div>
     </section>
+    ${cur<=TODAY?attBox(cur):''}
     ${fixes}
     ${un.length?availableCard(ctx):''}
     ${tm?`<div class="card tip"><p><b>${plural(tm,'name')}</b> need matching to your employee list.</p><button class="btn small" data-setup="staff" data-gostaff>Match names</button></div>`:''}
@@ -3026,10 +3059,13 @@ function renderWeek(){
   rows+=`<tr class="sum"><th>Villas</th>${info.map(d=>`<td>${d.vp.total||'—'}</td>`).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Work per team</th>${info.map(d=>{if(muted(d))return '<td>—</td>';const L=dayLoad(d.s);return `<td class="${L.mins>dayHours()*60-60?'warntxt':''}">≈ ${hm(L.mins)}</td>`}).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Off / leave</th>${info.map(d=>`<td>${d.off.map(n=>esc(dn(n))+(leaveOn(n,d.s)?' (leave)':'')).join(', ')||'—'}</td>`).join('')}</tr>`;
+  const attCell=d=>{const c=attCheck(d.s);return !c?'':c.diff?`<span class="redtxt">⚠ ${plural(c.diff,'difference')}</span>`:'<span class="oktxt">✓ As planned</span>'};
+  if(info.some(d=>attCheck(d.s)))rows+=`<tr class="sum"><th>Attendance</th>${info.map(d=>`<td>${attCell(d)||'—'}</td>`).join('')}</tr>`;
   rows+=`<tr class="sum"><th>Status</th>${info.map(d=>`<td>${muted(d)?'':d.iss?`<span class="redtxt">${plural(d.iss,'issue')}</span>`:'<span class="oktxt">Ready</span>'}</td>`).join('')}</tr>`;
   const list=info.map(d=>`<button class="wday ${d.s===TODAY?'today':''} ${muted(d)?'mut':''}" data-gotoday="${d.s}">
       <span class="wd1"><b>${shortDate(d.s)}</b>${d.ps.length?`<span class="typepill nw sm">New work</span>`:''}${muted(d)?'<span class="muted small">No visits</span>':d.iss?`<span class="redtxt small">${plural(d.iss,'issue')}</span>`:'<span class="oktxt small">Ready</span>'}</span>
       ${muted(d)&&!d.ps.length?'':d.t.map(t=>`<span class="wd2"><span>${esc(tName(t))}</span><span>${plural(people(t).length,'person','people')}${isProj(t)?'':' · '+plural((d.vp.byTeam[t.id]||[]).length,'villa')}</span></span>`).join('')}
+      ${attCheck(d.s)?`<span class="wd2"><span>Attendance</span><span>${attCell(d)}</span></span>`:''}
       ${d.off.length?`<span class="wd2 muted"><span>Off</span><span>${d.off.map(n=>esc(dn(n))+(leaveOn(n,d.s)?' (leave)':'')).join(', ')}</span></span>`:''}</button>`).join('');
   $('view').innerHTML=`<div class="pagehead"><div class="datenav inline"><button class="iconbtn lg" data-shiftweek="-7" aria-label="Previous week">${ICON.left}</button><h2>${fromIso(days[0]).getDate()} ${MN[fromIso(days[0]).getMonth()]} – ${fromIso(days[6]).getDate()} ${MN[fromIso(days[6]).getMonth()]}</h2><button class="iconbtn lg" data-shiftweek="7" aria-label="Next week">${ICON.right}</button></div>
     <div class="row"><button class="btn" data-pdfweek>Week PDF</button><button class="btn" data-buildweek>Build whole week</button><button class="btn primary" data-planweek>Plan week</button></div></div>
