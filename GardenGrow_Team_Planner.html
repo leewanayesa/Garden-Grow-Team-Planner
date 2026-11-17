@@ -908,9 +908,11 @@ const FREQ_TAG={fortnightly:'every 2 wks',twice_month:'2×/month',monthly:'1×/m
 /* Visit dates come only from the Maintenance App (Step 1, Nov 2026); the planner's own every-2-weeks dates are no longer used. */
 let RHYTHM_OFF=true;
 const rhythmOf=c=>RHYTHM_OFF?null:((S.villaRhythm||{})[c.id]||null);
-function visitWeekOk(c,date){const r=rhythmOf(c);if(!r||!r.from)return weekOk(c.weeks,date);const w=Math.round(daysBetween(weekStart(r.from),weekStart(date))/7);return ((w%2)+2)%2===0}
+/* Maintenance App "every 2 weeks" (from Step 3): visits every other work week (Saturday–Friday), counted from the week of c.biweekFrom */
+const workWeekOf=s=>{const d=fromIso(s);d.setDate(d.getDate()-((d.getDay()+1)%7));return iso(d)};
+function visitWeekOk(c,date){if(c.biweekFrom){const w=Math.round(daysBetween(workWeekOf(c.biweekFrom),workWeekOf(date))/7);return w%2===0}const r=rhythmOf(c);if(!r||!r.from)return weekOk(c.weeks,date);const w=Math.round(daysBetween(weekStart(r.from),weekStart(date))/7);return ((w%2)+2)%2===0}
 const rhythmable=c=>!!(c&&(c.weeks||['twice_month','fortnightly'].includes(c.frequency)||String(c.monthlyVisits)==='2'));
-function weekOk(w,date){if(!w)return true;const wk=Math.ceil(fromIso(date).getDate()/7);return String(w).split('-').map(Number).includes(wk)}
+function weekOk(w,date){if(!w||!/^[1-4](-[1-4])?$/.test(String(w)))return true;const wk=Math.ceil(fromIso(date).getDate()/7);return String(w).split('-').map(Number).includes(wk)}
 /* Villas due on a date, in drive order (area by area). */
 const dueNative=(c,date)=>c.status!=='paused'&&(c.days||[]).includes(DNL[fromIso(date).getDay()])&&visitWeekOk(c,date)&&!(c.newFrom&&date<c.newFrom);
 /* Is this villa already being visited on that date (its own visit or one moved in, and not moved away)? */
@@ -1173,6 +1175,11 @@ function bestPath(stops,start){
     if(!better)break}
   return seq;
 }
+/* Same order as the Maintenance App's driver roster: its stop number for that weekday (sent as c.stops). Villas without one keep the planner's place. */
+function rosterOrder(list,date){const dn=DNL[fromIso(date).getDay()],no=c=>c.stops&&c.stops[dn]!=null?+c.stops[dn]:null;
+  if(list.filter(c=>no(c)!=null).length<2)return list;
+  const out=[];const withNo=list.filter(c=>no(c)!=null).sort((a,b)=>no(a)-no(b));let k=0;
+  list.forEach(c=>{out.push(no(c)!=null?withNo[k++]:c)});return out}
 function orderRoute(list){
   if(list.length<2)return [...list];
   const {stops,att,unk}=routeStops(list), seq=bestPath(stops,basePos()), last={};
@@ -1230,7 +1237,7 @@ function villaPlan(date,teams){
   balanceVillas(byTeam,maint,all.filter(c=>moved[c.id]&&ids.has(moved[c.id])),moved,date);
   const order=new Map();parts.flat().forEach((c,i)=>order.set(c.id,i));
   all.forEach(c=>{const to=moved[c.id];if(to&&ids.has(to)){byTeam[to].push(c)}});
-  maint.forEach(t=>{byTeam[t.id]=orderRoute(byTeam[t.id])});
+  maint.forEach(t=>{byTeam[t.id]=rosterOrder(orderRoute(byTeam[t.id]),date)});
   /* L8 areas shared between teams today, and why */
   const shared=[];const at={};maint.forEach(t=>(byTeam[t.id]||[]).forEach(c=>{const a=areaShort(c);(at[a]=at[a]||{})[t.id]=(at[a][t.id]||0)+1}));
   Object.entries(at).forEach(([a,m])=>{const ts=Object.keys(m);if(ts.length<2)return;const main=ts.sort((x,y)=>m[y]-m[x])[0],total=ts.reduce((s,x)=>s+m[x],0);
@@ -2438,7 +2445,7 @@ function readableRows(){
 }
 function schedulePush(){if(!syncUrl())return;clearTimeout(pushTimer);setSync('pending');pushTimer=setTimeout(push,1500)}
 /* Villas from the roster app: only names, areas, visit days and status are kept. */
-function mapRosterClients(arr){return (arr||[]).filter(Boolean).map((c,i)=>({fee:numVal(c.fee!=null?c.fee:c.amount),mapUrl:String(c.mapUrl||'').trim(),...(parseLatLng(c.lat!=null&&c.lng!=null?`${c.lat},${c.lng}`:'',c.mapUrl,c.location)||(c.pinLat!=null&&c.pinLng!=null&&(c.pinOf==null||String(c.pinOf).trim()===String(c.mapUrl||'').trim())&&+c.pinLat>22&&+c.pinLat<27&&+c.pinLng>51&&+c.pinLng<57?{lat:+c.pinLat,lng:+c.pinLng}:null)||{lat:null,lng:null}),pinErr:String(c.pinErr||''),pinOf:String(c.pinOf||''),id:String(c.id||('r'+i)),nick:String(c.nick||'').trim(),name:String(c.name||'').trim(),area:String(c.area||''),mainArea:String(c.mainArea||''),days:Array.isArray(c.days)?c.days:[],frequency:c.frequency||(String(c.monthlyVisits)==='2'?'twice_month':''),weeks:String(c.weeks||''),monthlyVisits:String(c.monthlyVisits??''),status:c.status||'active',newFrom:c.newFrom||'',routeOrder:c.routeOrder??null,needs:Array.isArray(c.needs)?c.needs.map(String):[],minutes:numVal(c.minutes),phone:String(c.phone||''),whatsapp:String(c.whatsapp||''),whatsappSame:c.whatsappSame,phoneIntl:String(c.phoneIntl||''),villaNumber:String(c.villaNumber||'')}))}
+function mapRosterClients(arr){return (arr||[]).filter(Boolean).map((c,i)=>({fee:numVal(c.fee!=null?c.fee:c.amount),mapUrl:String(c.mapUrl||'').trim(),...(parseLatLng(c.lat!=null&&c.lng!=null?`${c.lat},${c.lng}`:'',c.mapUrl,c.location)||(c.pinLat!=null&&c.pinLng!=null&&(c.pinOf==null||String(c.pinOf).trim()===String(c.mapUrl||'').trim())&&+c.pinLat>22&&+c.pinLat<27&&+c.pinLng>51&&+c.pinLng<57?{lat:+c.pinLat,lng:+c.pinLng}:null)||{lat:null,lng:null}),pinErr:String(c.pinErr||''),pinOf:String(c.pinOf||''),id:String(c.id||('r'+i)),nick:String(c.nick||'').trim(),name:String(c.name||'').trim(),area:String(c.area||''),mainArea:String(c.mainArea||''),days:Array.isArray(c.days)?c.days:[],frequency:c.frequency||(String(c.monthlyVisits)==='2'?'twice_month':''),weeks:String(c.weeks||''),monthlyVisits:String(c.monthlyVisits??''),status:c.status||'active',newFrom:c.newFrom||'',routeOrder:c.routeOrder??null,needs:Array.isArray(c.needs)?c.needs.map(String):[],minutes:numVal(c.minutes),phone:String(c.phone||''),whatsapp:String(c.whatsapp||''),whatsappSame:c.whatsappSame,phoneIntl:String(c.phoneIntl||''),villaNumber:String(c.villaNumber||''),biweekFrom:/^\d{4}-\d{2}-\d{2}$/.test(String(c.biweekFrom||''))?String(c.biweekFrom):'',stops:c.stops&&typeof c.stops==='object'&&!Array.isArray(c.stops)?Object.fromEntries(Object.entries(c.stops).filter(([k,v])=>DNL.includes(k)&&isFinite(+v)).map(([k,v])=>[k,+v])):null}))}
 /* The roster app sends its villa list to the same Google Sheet; take it when it is newer than ours. */
 function takeRosterVillas(v){
   if(!v||!Array.isArray(v.clients)||!v.at)return false;
@@ -6164,7 +6171,7 @@ async function generateRosterPdf(pdfOpts) {
 const _origLoad=pdfLoadBrandingBytes;
 const logoPng=()=>new Promise(res=>{try{const im=new Image();im.onload=()=>{try{const w=480,h=Math.round(w*(im.naturalHeight||im.height||1)/(im.naturalWidth||im.width||1)),cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(im,0,0,w,h);const bin=atob(cv.toDataURL("image/png").split(",")[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);res(u)}catch(_){res(null)}};im.onerror=()=>res(null);im.src=LOGO}catch(_){res(null)}});
 pdfLoadBrandingBytes=async(fileName,fb)=>{if(fileName==="logo.png"&&typeof LOGO==="string"&&LOGO.startsWith("data:")){const u=await logoPng();if(u)return u}return _origLoad(fileName,fb)};
-const adapt=(c,wc)=>({id:c.id,nick:c.nick||"",name:c.name||"",area:c.area||"",mainArea:c.mainArea||"",days:[...(c.days||[])],frequency:c.frequency||"",weeks:c.weeks||"",monthlyVisits:c.monthlyVisits||"",status:c.status||"active",newFrom:c.newFrom||"",routeOrder:c.routeOrder??null,mapUrl:c.mapUrl||"",villaNumber:c.villaNumber||"",
+const adapt=(c,wc)=>({biweekFrom:c.biweekFrom||'',id:c.id,nick:c.nick||"",name:c.name||"",area:c.area||"",mainArea:c.mainArea||"",days:[...(c.days||[])],frequency:c.frequency||"",weeks:c.weeks||"",monthlyVisits:c.monthlyVisits||"",status:c.status||"active",newFrom:c.newFrom||"",routeOrder:c.routeOrder??null,mapUrl:c.mapUrl||"",villaNumber:c.villaNumber||"",
   phone:wc?String(c.phone||""):"",whatsapp:wc?String(c.whatsapp||""):"",whatsappSame:wc?c.whatsappSame:undefined,phoneIntl:wc?String(c.phoneIntl||""):"",landmark:"",notes:""});
 return {make(clients,phone,withContacts){const wc=!!withContacts;state.clients=(clients||[]).map(c=>adapt(c,wc));return generateRosterPdf({phone:!!phone,includeContacts:wc})},
   /* team roster: sections = [{team,title,footer,day,date,right,leader,driver,crew,off,nursery,note,clients}] */
