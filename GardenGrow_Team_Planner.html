@@ -478,7 +478,20 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .pdfi{display:grid;text-align:left;gap:1px;min-width:250px}
 /* Today, new look (18 Nov 2026): laptop = tidy board (A), phone = morning steps (C) */
 .vbtxt.simple{font-size:.86rem}
-.helptxt{display:none!important}.showhelp .helptxt{display:block!important}
+.helptxt{display:none!important}
+.stline{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;background:var(--surface);border:0;border-radius:14px;font:inherit;color:var(--ink);text-align:left;cursor:pointer;box-shadow:var(--shadow)}
+.stline .stn{width:26px;height:26px}.stline .stlt{flex:1;font-size:.92rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stline .stlt b{color:var(--ink)}.stline i{font-style:normal;color:var(--faint);font-size:1.2rem}
+.stshare2{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}.splitb{display:flex;min-width:0}.splitb>.btn{flex:1;border-radius:12px 0 0 12px;min-width:0;padding-inline:8px}
+.splitb>details>summary{border-radius:0 12px 12px 0;border-left:0;padding-inline:10px;height:100%}
+.stshare2>details>summary{padding-inline:14px}
+.sendrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;margin-top:8px}.sendrow.done{background:var(--green-soft);border-color:transparent}
+.sav{width:38px;height:38px;flex:none;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.sinfo{flex:1;display:grid;min-width:0}.sinfo span{font-size:.82rem;color:var(--muted)}
+.btn.wa{background:#1fa855;color:#fff;border-color:#1fa855}.sendrow.done .btn.wa{background:transparent;color:var(--green);border-color:var(--green)}
+.sendnote{margin:10px 2px 0}.sendprev{margin-top:10px}.sendprev summary{cursor:pointer;color:var(--muted);font-size:.86rem}
+.phrows{display:grid;gap:8px}.phrow{display:grid;grid-template-columns:110px 1fr 20px;align-items:center;gap:8px;font-weight:600}
+.mbig.free{background:var(--green-soft)}.mbig.offb b{color:var(--red)}.mbig.offb{background:var(--red-soft)}
+.mmore{margin-top:8px}.mmore>summary{cursor:pointer;color:var(--muted);font-size:.88rem;padding:8px 2px}.showhelp .helptxt{display:block!important}
 .infob{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:6px;border-radius:50%;border:1.5px solid var(--faint);background:transparent;color:var(--muted);font:italic 700 .78rem/1 Georgia,serif;cursor:pointer;vertical-align:middle;padding:0;flex:none}
 .showhelp .infob{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .fold{padding-top:4px;padding-bottom:4px}.foldhead{display:flex;align-items:center;gap:6px}
@@ -2272,6 +2285,17 @@ function pdfLeaderPages(date){
 function setPageSize(css){let s=$('pagesize');if(!s){s=document.createElement('style');s.id='pagesize';document.head.appendChild(s)}s.textContent=`@media print{@page{${css}}}`}
 /* Before you move a villa by hand: the other villas stay with the team they have now. */
 function freezeVillas(date){const r=ensureDay(date);if(r.vsnap)return;try{const vp=villaPlan(date,effTeams(date)),m={};Object.entries(vp.byTeam).forEach(([tid,L])=>L.forEach(c=>m[c.id]=tid));r.vsnap=m}catch(_){}}
+/* Leaders' WhatsApp numbers (Setup → Staff), so Send opens each leader's chat with the message ready (18 Nov 2026) */
+function waNum(n){let d=String(((S.phones||{})[n])||'').replace(/\D/g,'');if(!d)return '';if(d.startsWith('00'))d=d.slice(2);if(/^05\d{8}$/.test(d))d='971'+d.slice(1);else if(/^5\d{8}$/.test(d))d='971'+d;return d.length>=11&&d.length<=15?d:''}
+function openLeaderWa(t,date){const num=t&&t.leader?waNum(t.leader):'';if(!num)return false;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(leaderText(t,date))}`,'_blank');
+  const r=ensureDay(date);r.sentTo=Object.assign({},r.sentTo||{},{[t.id]:clockNow()});markSent(date);save();return true}
+const clockNow=()=>{const d=new Date();return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`};
+function phonesCard(){
+  const L=[...new Set([...S.layouts.normal,...(S.layouts.newwork||[])].map(t=>t.leader).filter(Boolean).concat(S.supervisors||[]))].filter(n=>S.staff.includes(n));
+  return `<div class="card"><h2>Leaders' WhatsApp</h2><p class="muted small">Type each leader's mobile once. Send then opens his WhatsApp chat with his team's message already written — you only press Send.</p>
+    <div class="phrows">${L.map(n=>`<label class="phrow"><span>${esc(sn(n))}</span><input class="textin" type="tel" inputmode="tel" data-phone="${esc(n)}" value="${esc((S.phones||{})[n]||'')}" placeholder="05x xxx xxxx" aria-label="WhatsApp number for ${esc(sn(n))}">${waNum(n)?'<b class="oktxt">✓</b>':''}</label>`).join('')}</div></div>`;
+}
 function markSent(date){if(isDayOff(date))return;const r=ensureDay(date);if(!r.teams)return;try{const vp=villaPlan(date,r.teams),m={};Object.entries(vp.byTeam).forEach(([tid,L])=>L.forEach(c=>m[c.id]=tid));r.vsnap=m}catch(_){}r.sent=true;r.editedAt=Date.now();delete r.resend;r.sig=r.sig||daySig(date);const n=new Date();r.sentAt=pad(n.getHours())+':'+pad(n.getMinutes());save()}
 function printDay(markIt){if(markIt)markSent(cur);setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=pdfDayPage(cur);doPrint(`Garden Grow Daily Team Plan ${cur}`)}
 function printWeek(){
@@ -2560,7 +2584,7 @@ function merge3(b,l,r,path){
 }
 /* One day from two devices: the teams come as one piece from the side with the stronger version (edited by hand,
    sent or checked beats built by the app; then the later edit wins). Note, who's off and villa moves combine field by field. */
-const DAY_TEAM_KEYS=['teams','manual','sent','sentAt','resend','sig','nursery','editedAt','leaveFrom','areaSnap'];
+const DAY_TEAM_KEYS=['teams','manual','sent','sentAt','sentTo','resend','sig','nursery','editedAt','leaveFrom','areaSnap'];
 function mergeDay(b,l,r,path){
   const J=JSON.stringify, part=d=>d?DAY_TEAM_KEYS.reduce((o,k)=>{if(d[k]!==undefined)o[k]=d[k];return o},{}):{};
   const pl=part(l),pr=part(r),pb=b?part(b):undefined, rank=d=>d.teams?((d.manual||d.sent||(d.check&&d.check.done))?1:0):-1;
@@ -2706,7 +2730,7 @@ addEventListener('online',()=>{if(syncUrl())((S.updatedAt||0)>(S.syncedAt||0)?pu
 let maintOpen=false, sugOpen=false;
 let staffDraft=null, staffSavedAt=null, staffView='person', staffOpen=null, staffSkill='general';
 let cur=TODAY, tab='day', setupTab='teams', sel=null, menuMode=null, villaSel=null, delArm=null, modal=null, addOpen=null, noteOpen=false, reportMonth=TODAY.slice(0,7);
-const openTeams=new Set(), noteTeams=new Set(); let monthOpen=false, phEdit=false; /* phone: the team board is shown under the steps when Edit teams / See villas is tapped */
+const openTeams=new Set(), noteTeams=new Set(); let monthOpen=false, phEdit=false; const STEP_OPEN=new Set(); /* phone: ready steps the user opened again */ /* phone: the team board is shown under the steps when Edit teams / See villas is tapped */
 const isPhone=()=>matchMedia('(max-width: 899px)').matches;
 let tt;function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600)}
 const ICON={
@@ -2919,7 +2943,7 @@ function skillHint(k,t,date,teams){
 function teamCard(t,ctx,vp){
   if(vp&&!isProj(t))VN.set(t,villaNeedsOf(vp.byTeam[t.id]||[]));
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), ps=problems(t), cs=esc(JSON.stringify(ctx));
-  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id), mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
+  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id)||(phEdit&&ctx.type==='day'&&isPhone()), /* phone: Edit teams opens every team */ mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
   const pct=vl?Math.min(100,Math.round(Math.max(vl.length/mx,pts/capPts())*100)):0, szc=vl?{L:vl.filter(c=>sizeOf(c)==='L').length,M:vl.filter(c=>sizeOf(c)==='M').length,S:vl.filter(c=>sizeOf(c)==='S').length}:null;
   const miss=new Set(ps.filter(x=>x.kind==='skill').map(x=>x.skill));
   const detail=vl?`${plural(vl.length,'villa')} of ${mx} · ${szc.L} large, ${szc.M} medium, ${szc.S} small · workload ${pts} (${(pts/Math.max(1,n)).toFixed(1)} per person)${vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈':''}${vp.km[t.id].km} km drive`:''}${vp.time&&vp.time[t.id]&&vl.length?` · ≈ ${hm(vp.time[t.id].total)} (work ${hm(vp.time[t.id].work)} + drive ${hm(vp.time[t.id].drive)})`:''}`:'';
@@ -2945,7 +2969,7 @@ function teamCard(t,ctx,vp){
       <div class="plist2">${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${ctx.type==='day'?(n>=maxTeam()?`<button class="addp full" disabled>Car full</button>`:`<button class="addp" data-addto="${t.id}">＋ Add person</button>`):`<button class="addp" data-addto="${t.id}">＋ Add or swap a person</button>`}</div>
       ${vl?`<div class="vwrap">${villaList(t,vp,ctx)}</div>`:''}
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):(p.note?`<div class="jobnote"><b>Notes for the crew:</b> ${esc(p.note)}</div>`:'')}
-      ${ctx.type==='day'&&t.leader?`<div class="tfoot">${vl&&vl.length?`<button class="btn small" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}<button class="btn small wabtn" data-copyleader="${esc(t.id)}">Copy for WhatsApp</button></div>`:''}
+      ${ctx.type==='day'&&t.leader?`<div class="tfoot">${vl&&vl.length?`<button class="btn small" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}<button class="btn small wabtn" data-copyleader="${esc(t.id)}">${waNum(t.leader)?'WhatsApp':'Copy for WhatsApp'}</button></div>`:''}
       ${ctx.type==='day'?(p?`<button class="link small rmteam" data-rmjobteam="${p.id}">✕ Remove team</button>`:`<button class="link small rmteam" data-rmteam="${t.id}">✕ Remove team</button>`):''}
     </div>
   </section>`;
@@ -3037,25 +3061,26 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
   const resendBar=r.resend&&r.sent&&!stale&&cur>=TODAY?`<div class="ibox warn stalebar">${ICON.alert}<div><b>Teams changed after sending</b><span>Send to the leaders again.</span><div class="row"><button class="btn small primary" data-send>${ICON.send}Send to leaders</button></div></div></div>`:'';
   /* Phone (option C, 18 Nov 2026): the morning in 4 steps — who's working, teams, villas, share. The full team board opens under them. */
   const tm0=(S.toMatch||[]).filter(n=>S.staff.includes(n)).length;
+  const stepLine=(k,html)=>`<button class="stline" data-stepopen="${k}"><span class="stn ok">${ICON.ok}</span><span class="stlt">${html}</span><i aria-hidden="true">›</i></button>`;
   const okTeams=!teams.some(t=>problems(t).length), okVillas=!heavy.length, stepsOk=[tm0===0,okTeams,okVillas,!!r.sent], nOk=stepsOk.filter(Boolean).length;
   const stepIcon=(k,ok,warn)=>ok?`<span class="stn ok">${ICON.ok}</span>`:`<span class="stn ${warn?'warn':''}">${k}</span>`;
   const tLine=t=>`<div class="stt"><b>${esc(tName(t).replace(/^Team\s+/i,''))}</b><span>${t.members.map(m=>esc(sn(m))).join(' · ')||'—'}</span></div>`;
   const vBars=maint.map(t=>{const n=(vp.byTeam[t.id]||[]).length,ov=n>maxV();return `<div class="stb"><span>${esc(tName(t).replace(/^Team\s+/i,''))}</span><i><b class="${ov?'ov':''}" style="width:${Math.min(100,Math.round(100*n/Math.max(1,maxV())))}%"></b></i><em class="${ov?'warntxt':''}">${n}</em></div>`}).join('');
   const phSteps=isDayOff(cur)?'':`<section class="steps phone-only">
     <div class="stprog"><i><b style="width:${Math.round(100*nOk/4)}%"></b></i><span>${nOk} of 4 ready</span></div>
-    <article class="stc">${stepIcon(1,stepsOk[0])}<div><div class="sth"><b>Who's working</b><span class="row"><button class="link small" data-newleave>+ Leave</button><button class="link small" data-off>Change</button></span></div>
+    ${stepsOk[0]&&!STEP_OPEN.has(1)?stepLine(1,`<b>${placed} working</b> · ${off.length} off${nurseryOf(cur).length?` · ${nurseryOf(cur).length} nursery`:''}`):`<article class="stc">${stepIcon(1,stepsOk[0])}<div><div class="sth"><b>Who's working</b><span class="row"><button class="link small" data-newleave>+ Leave</button><button class="link small" data-off>Change</button></span></div>
       <details class="stmore"><summary><b>${placed} working</b> · ${off.length} off${nurseryOf(cur).length?` · ${nurseryOf(cur).length} nursery`:''}</summary><p>${off.length?`Off: ${off.map(n=>esc(sn(n))+(leaveOn(n,cur)?` (to ${esc(shortDate(leaveOn(n,cur).to).replace(/^\S+ /,''))})`:'')).join(', ')}`:'Everyone is in'}${nurseryOf(cur).length?`<br>Nursery: ${nurseryOf(cur).map(n=>esc(sn(n))).join(', ')}`:''}</p></details>
-      ${tm0?`<p class="warntxt">${plural(tm0,'name')} to match · Setup → Staff</p>`:''}</div></article>
-    <article class="stc">${stepIcon(2,okTeams,!okTeams)}<div><div class="sth"><b>Teams</b><button class="link small" data-phedit>${phEdit?'Hide teams':'Edit teams'}</button></div>
+      ${tm0?`<p class="warntxt">${plural(tm0,'name')} to match · Setup → Staff</p>`:''}</div></article>`}
+    ${okTeams&&!STEP_OPEN.has(2)&&!phEdit?stepLine(2,`<b>Teams</b> · ${teams.map(t=>esc(tName(t).replace(/^Team\s+/i,''))+' '+people(t).length).join(' · ')}`):`<article class="stc">${stepIcon(2,okTeams,!okTeams)}<div><div class="sth"><b>Teams</b><button class="link small" data-phedit>${phEdit?'Hide teams':'Edit teams'}</button></div>
       ${teams.map(tLine).join('')||'<p class="muted">No teams yet</p>'}
-      ${okTeams?'':`<p class="warntxt">${esc(iss[0]||'A team needs a check')}</p>`}</div></article>
-    ${maint.length?`<article class="stc ${okVillas?'':'warnc'}">${stepIcon(3,okVillas,!okVillas)}<div><div class="sth"><b>Villas</b><span class="muted small">${plural(vp.total,'villa')} due</span></div>
+      ${okTeams?'':`<p class="warntxt">${esc(iss[0]||'A team needs a check')}</p>`}</div></article>`}
+    ${maint.length&&okVillas&&!STEP_OPEN.has(3)&&!phEdit?stepLine(3,`<b>Villas</b> · ${vp.total} due · ${maint.map(t=>(vp.byTeam[t.id]||[]).length).join(' · ')}`):maint.length?`<article class="stc ${okVillas?'':'warnc'}">${stepIcon(3,okVillas,!okVillas)}<div><div class="sth"><b>Villas</b><span class="muted small">${plural(vp.total,'villa')} due</span></div>
       <div class="stbars">${vBars}</div>
-      ${heavy.length?`<p class="warntxt small">${heavy.map(t=>esc(tName(t).replace(/^Team\s+/i,''))+' +'+Math.max(1,(vp.byTeam[t.id]||[]).length-maxV())).join(' · ')} over ${maxV()}</p>`:''}
+      ${heavy.length?`<p class="warntxt small">${heavy.map(t=>{const n=(vp.byTeam[t.id]||[]).length;return esc(tName(t).replace(/^Team\s+/i,''))+(n>maxV()?` ${n} of ${maxV()}`:' long day')}).join(' · ')}</p>`:''}
       <div class="row">${sug.moves.length?`<button class="btn small primary" data-applyall>${sug.moves.length>1?`Fix: apply ${sug.moves.length} changes`:'Fix it'}</button>`:''}<button class="btn small" data-phedit>${phEdit?'Hide villas':'See villas'}</button></div></div></article>`:''}
     <article class="stc">${stepIcon(4,!!r.sent)}<div><div class="sth"><b>Share</b>${r.sent?`<span class="oktxt small">Sent${r.sentAt?' '+esc(r.sentAt):''}</span>`:''}</div>
       ${built||cur>=TODAY?`<button class="btn primary full" data-send>${ICON.send}Send to leaders</button>`:`<button class="btn primary full" data-build>${ICON.build}Build teams</button>`}
-      <div class="stshare"><details class="more pdfmenu"><summary class="btn">Roster PDF</summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details><details class="more pdfmenu"><summary class="btn">Plan PDF</summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details>${more.replace('More ▾','More')}</div></div></article>
+      <div class="stshare2"><div class="splitb"><button class="btn" data-troster="day:all">Roster PDF</button><details class="more pdfmenu"><summary class="btn" aria-label="Roster PDF options">▾</summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details></div><div class="splitb"><button class="btn" data-pdfday>Plan PDF</button><details class="more pdfmenu"><summary class="btn" aria-label="Plan PDF options">▾</summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>${more.replace('More ▾','⋯')}</div></div></article>
     <div class="stnw"><span><b>New work</b> · ${ps.length?ps.map(p=>`<button class="link small" data-editproj="${p.id}">${esc(p.title)}</button>`).join(', '):'none today'}${upcoming.length?` · ${upcoming.length} coming up`:''}</span><button class="link small" data-newproj>Add</button></div>
   </section>`;
   const fixes=checkBar+staleBar+resendBar+((sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'');
@@ -3154,7 +3179,7 @@ function simpleRows(t,out,act){
   teams.filter(x=>x!==t).forEach(x=>people(x).forEach(n=>rows.push({n,where:esc(x.name)+(x.leader===n?' · leader':''),r:x.leader===n||isSup(n)?3:2})));
   rows.forEach(o=>{o.f=[...new Set(need)].filter(k=>has(o.n,k))});
   rows.sort((a,b)=>b.f.length-a.f.length||a.r-b.r||dn(a.n).localeCompare(dn(b.n)));
-  return rows.map(o=>`<button class="srow" ${act}="${esc(o.n)}"><span><b>${esc(dn(o.n))}</b> ${roleTag(o.n)}<em> · ${o.where}</em></span>${o.f.length?`<i>✓ ${o.f.map(k=>esc((SKILLS.find(x=>x.id===k)||{}).short||SK[k]||k)).join(', ')}</i>`:''}</button>`).join('')||'<p class="muted small">Nobody else is working today.</p>';
+  return rows.map(o=>`<button class="srow" ${act}="${esc(o.n)}"><span><b>${esc(sn(o.n))}</b> ${roleTag(o.n)}<em> · ${o.where}</em></span>${o.f.length?`<i>✓ ${o.f.map(k=>esc((SKILLS.find(x=>x.id===k)||{}).short||SK[k]||k)).join(', ')}</i>`:''}</button>`).join('')||'<p class="muted small">Nobody else is working today.</p>';
 }
 function addToHtml(){
   const t=effTeams(cur).find(x=>x.id===modal.team); if(!t)return '';
@@ -3182,13 +3207,16 @@ function dropSwapHtml(){
   const t=effTeams(cur).find(x=>x.id===modal.team);if(!t)return '';const a=modal.incoming,from=effTeams(cur).find(x=>people(x).includes(a));
   const whereA=from?from.name:(nurseryOf(cur).includes(a)?'the nursery':'Available');
   return `<div class="mhead"><div><b>${esc(tName(t))} is full (${people(t).length}/${maxTeam()})</b><span>Who goes to ${esc(whereA)} in exchange for ${esc(dn(a))}?</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-    <div class="slist">${people(t).map(n=>`<button class="srow" data-dswap="${esc(n)}"><span><b>${esc(dn(n))}</b> ${roleTag(n)}<em> · ${t.leader===n?'leader':'member'}</em></span></button>`).join('')}</div>
+    <div class="slist">${people(t).map(n=>`<button class="srow" data-dswap="${esc(n)}"><span><b>${esc(sn(n))}</b> ${roleTag(n)}<em> · ${t.leader===n?'leader':'member'}</em></span></button>`).join('')}</div>
     <div class="mrow"><button class="btn" data-closemodal>Cancel</button></div>`;
 }
 function swapHtml(){
   const teams=effTeams(cur), a=modal.name, A=teams.find(x=>people(x).includes(a)); if(!A)return '';
-  return `<div class="mhead"><div><b>Swap ${esc(dn(a))} with…</b><span>${A.leader===a?'Leader of ':'In '}${esc(A.name)} · tap a name — they change places</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-    <div class="qacts top"><button class="btn small ${people(A).length>maxTeam()?'primary':''}" data-qremove>Remove from team</button>${A.leader!==a?'<button class="btn small" data-qlead>Make leader</button>':''}<button class="btn small" data-qoff>Off today</button><button class="btn small" data-qnursery>Nursery</button><button class="btn small" data-qmore>More…</button></div>
+  /* phone (18 Nov 2026): big "Move to" buttons first — one tap moves him; swapping is below */
+  const others=teams.filter(t=>t!==A);
+  return `<div class="mhead"><div><b>${esc(sn(a))}</b><span>${A.leader===a?'Leader of ':'In '}${esc(tName(A))}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+    <p class="mhead3">Move to</p><div class="mgrid">${others.map(t=>{const np=people(t).length,free=maxTeam()-np;return `<button class="mbig ${!isProj(t)&&free>0?'free':''}" data-qmove="${t.id}"><b>${esc(tName(t))}</b><span>${isProj(t)?plural(np,'person','people'):free>0?`${np} people · ${plural(free,'seat')} free`:`${np} people · car full — swap`}</span></button>`}).join('')}<button class="mbig" data-qnursery><b>Nursery / farm</b><span>${plural(nurseryOf(cur).length,'person','people')} there</span></button><button class="mbig offb" data-qoff><b>Off today</b><span>sick, absent…</span></button></div>
+    <div class="qacts">${A.leader!==a?'<button class="btn small" data-qlead>Make leader</button>':''}<button class="btn small" data-qmore>More…</button></div>
     <p class="mhead3">Or swap with</p><div class="slist">${simpleRows(A,a,'data-swapwith')}</div>`;
 }
 let lastUndo=null, jobUndo=null, snapUndo=null;
@@ -3398,6 +3426,7 @@ function renderSetup(){
       ${staffView==='person'?staffByPerson():staffBySkill()}
       </div>
       ${(()=>{const dirty=!!staffDraft&&S.staff.some(personDirty);return `<div class="savebar ${dirty?'dirty':'clean'}"><span>${dirty?'<b>Unsaved changes</b> — press Save to keep them':`✓ All changes saved${staffSavedAt?` at ${pad(staffSavedAt.getHours())}:${pad(staffSavedAt.getMinutes())}`:''}`}</span><div class="row">${dirty?'<button class="btn" data-staffdiscard>Discard</button><button class="btn primary" data-staffsave>Save</button>':'<button class="btn savedbtn" disabled>✓ Saved</button>'}</div></div>`})()}
+      ${phonesCard()}
       ${shortNamesCard()}
       ${leaveCard()}`;
   }else if(setupTab==='jobs'){
@@ -3487,11 +3516,12 @@ function renderMenu(){
     const c=(S.clients||[]).find(x=>x.id===villaSel); if(!c){villaSel=null;return renderMenu()}
     const teams=effTeams(cur), vp=villaPlan(cur,teams), inT=teams.find(t=>(vp.byTeam[t.id]||[]).some(x=>x.id===c.id)), moved=(dayRec(cur).villaMove||{})[c.id], next=lightestDay(cur,6,null,[c.id]);
     return show(`<div class="mhead"><div><b>${esc(villaName(c))}</b><span>${esc(areaShort(c))}${inT?' · '+esc(inT.name):''}${freqTag(c)?' · '+freqTag(c):''}</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div>
-      <div class="msec">Move today to</div><div class="mgrid">${teams.filter(t=>!isProj(t)&&t!==inT).map(t=>`<button class="mbig" data-vto="${t.id}"><b>${esc(tName(t))}</b><span>${plural((vp.byTeam[t.id]||[]).length,'villa')}</span></button>`).join('')}</div>
+      <div class="msec">Give today to</div><div class="mgrid">${teams.filter(t=>!isProj(t)&&t!==inT).map(t=>{const L=vp.byTeam[t.id]||[],same=L.filter(x=>areaShort(x)===areaShort(c)).length;return {t,L,same}}).sort((a,b)=>b.same-a.same||a.L.length-b.L.length).map(({t,L,same},i)=>`<button class="mbig ${i===0?'free':''}" data-vto="${t.id}"><b>${esc(tName(t))}</b><span>${L.length} → ${L.length+1} villas${same?' · also in '+esc(areaShort(c)):''}</span></button>`).join('')}</div>
+      ${villaMapLink(c)?`<a class="mi" href="${esc(villaMapLink(c))}" target="_blank" rel="noopener">Open map</a>`:''}
       ${moved?'<button class="mi" data-vauto>Back to automatic</button>':''}
       <div class="msec">This visit</div>${next?`<button class="mi" data-vnext="${next.s}">Move to ${shortDate(next.s)} (lighter day)</button>`:''}<button class="mi warn" data-vskip>Skip today</button>
-      <div class="msec">What this villa needs</div><div class="tchips">${VTAGS.map(x=>`<button class="tchip ${vTags(c).includes(x.id)?'on':''}" data-vtag="${x.id}" data-vtagid="${esc(c.id)}">${vTags(c).includes(x.id)?'✓ ':''}${x.label}<em>${esc(SK[x.skill])}</em></button>`).join('')}</div>
-      <label class="field inline"><span class="lbl">Time here (normal crew of 4)</span><input class="textin num" type="number" min="10" max="600" step="5" data-vminid="${esc(c.id)}" value="${(S.villaMins||{})[c.id]||''}" placeholder="${MIN_BY_SIZE[sizeOf(c)]} min"></label>`);
+      <details class="mmore"><summary>More — needs and time</summary><div class="msec">What this villa needs</div><div class="tchips">${VTAGS.map(x=>`<button class="tchip ${vTags(c).includes(x.id)?'on':''}" data-vtag="${x.id}" data-vtagid="${esc(c.id)}">${vTags(c).includes(x.id)?'✓ ':''}${x.label}<em>${esc(SK[x.skill])}</em></button>`).join('')}</div>
+      <label class="field inline"><span class="lbl">Time here (normal crew of 4)</span><input class="textin num" type="number" min="10" max="600" step="5" data-vminid="${esc(c.id)}" value="${(S.villaMins||{})[c.id]||''}" placeholder="${MIN_BY_SIZE[sizeOf(c)]} min"></label></details>`);
   }
   if(!sel){el.hidden=true;ov.hidden=!modal;return}
   const ctx=sel.ctx, n=sel.name;
@@ -3505,11 +3535,10 @@ function renderMenu(){
   const teams=ctxTeams(ctx), inT=teams.find(t=>people(t).includes(n)), isLead=inT&&inT.leader===n, isOff=ctxAbsent(ctx).includes(n);
   const where=inT?(isLead?`Leader of ${esc(inT.name)}`:`In ${esc(inT.name)}`):isOff?'Off today':'Available';
   show(`<div class="mhead"><div><b>${esc(dn(n))}</b><span>${dn(n)!==n?esc(n)+' · ':''}${where}${isSup(n)?' · Supervisor':''}${learnedText(n)?'<br>Learned: '+esc(learnedText(n)):''}</span></div><button class="iconbtn" data-closemenu aria-label="Close">${ICON.close}</button></div>
-    <div class="msec">Move to</div><div class="mgrid">${teams.filter(t=>t!==inT).map(t=>`<button class="mbig ${isProj(t)?'proj':''}" data-to="${t.id}"><b>${esc(tName(t))}</b><span>${plural(people(t).length,'person','people')}</span></button>`).join('')}${inT||isOff?'<button class="mbig" data-to="available"><b>Available</b><span>Not in a team</span></button>':''}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?'<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>stays to look after the plants</span></button>':''}</div>
+    <div class="msec">Move to</div><div class="mgrid">${teams.filter(t=>t!==inT).map(t=>{const np=people(t).length,free=maxTeam()-np;return `<button class="mbig ${isProj(t)?'proj':''} ${!isProj(t)&&free>0?'free':''}" data-to="${t.id}"><b>${esc(tName(t))}</b><span>${isProj(t)?plural(np,'person','people'):free>0?`${np} people · ${plural(free,'seat')} free`:`${np} people · car full`}</span></button>`}).join('')}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?`<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>${plural(nurseryOf(ctx.date).length,'person','people')} there</span></button>`:''}${ctx.type==='day'&&!isOff?`<button class="mbig offb" data-to="absent"><b>Off today</b><span>sick, absent…</span></button>`:''}${inT||isOff?'<button class="mbig" data-to="available"><b>Available</b><span>Not in a team</span></button>':''}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?'<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>stays to look after the plants</span></button>':''}</div>
     ${inT&&ctx.type==='day'?'<button class="mi" data-pswap>⇄ Swap with someone…</button>':''}
     ${inT&&!isLead?`<button class="mi lead" data-lead>Make leader of ${esc(inT.name)}</button>`:''}
-    ${ctx.type==='day'&&!isOff?'<button class="mi warn" data-to="absent">Off today</button>':''}
-    ${leaveHtml}${supHtml}${skillsHtml}${memberHtml}`);
+    <details class="mmore"><summary>More — leave, skills, rename</summary>${leaveHtml}${supHtml}${skillsHtml}${memberHtml}</details>`);
 }
 function focusRename(){const i=$('rn-input');if(i){i.focus();i.select()}}
 function positionMenu(){
@@ -3607,11 +3636,13 @@ function renderModal(){
       <button class="btn" data-newleave>+ Add annual leave (several days)</button>
       <div class="mrow"><button class="btn primary" data-offbuild>Done & build teams</button><button class="btn" data-closemodal>Done</button></div>`;
   }else if(modal.kind==='send'){
-    const teams=effTeams(cur);
-    inner=`<div class="mhead"><div><b>Send to leaders</b><span>${longDate(cur)}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-      <p class="muted small">Each leader gets only their own team. Tap Copy, then paste in their WhatsApp chat.</p>
-      ${teams.map((t,i)=>`<div class="sendcard ${isProj(t)?'proj':''}"><div class="sendhead"><b>${esc(dn(t.leader)||'No leader')} · ${esc(tName(t))}</b><span>${isProj(t)?plural(people(t).length,'person','people'):plural((villaPlan(cur,teams).byTeam[t.id]||[]).length,'villa')}</span></div><pre class="sendtxt">${esc(leaderText(t,cur))}</pre><button class="btn ${modal.copied===i?'':'primary'} full" data-copyteam="${i}">${modal.copied===i?'Copied':'Copy'}</button></div>`).join('')}
-      <div class="mrow"><button class="btn" data-copy>Copy all (group)</button><button class="btn" data-pdfday>Save PDF</button></div>`;
+    const teams=effTeams(cur), vp=villaPlan(cur,teams), sentTo=dayRec(cur).sentTo||{}, withL=teams.filter(t=>t.leader), nSent=withL.filter(t=>sentTo[t.id]).length;
+    inner=`<div class="mhead"><div><b>Send to leaders</b><span>${shortDate(cur)}${nSent?` · ${nSent} of ${withL.length} sent`:''}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+      ${teams.map((t,i)=>{const num=t.leader?waNum(t.leader):'',done=sentTo[t.id];return `<div class="sendrow ${done?'done':''}"><span class="sav">${esc((sn(t.leader)||'?').slice(0,1))}</span><div class="sinfo"><b>${esc(sn(t.leader)||'No leader')}</b><span>${esc(tName(t))} · ${plural(people(t).length,'person','people')}${isProj(t)?'':' · '+plural((vp.byTeam[t.id]||[]).length,'villa')}</span></div>
+        ${!t.leader?'':num?`<button class="btn wa" data-wasend="${i}">${done?'Sent '+esc(done)+' · again':'WhatsApp'}</button>`:`<button class="btn" data-copyteam="${i}">${modal.copied===i?'Copied ✓':'Copy'}</button>`}</div>`}).join('')}
+      ${withL.some(t=>!waNum(t.leader))?`<p class="muted small sendnote">No number yet for ${withL.filter(t=>!waNum(t.leader)).map(t=>esc(sn(t.leader))).join(', ')} — Copy, then paste in his chat. <button class="link small" data-gophones>Add numbers</button></p>`:''}
+      <details class="sendprev"><summary>See the messages</summary>${teams.map(t=>`<pre class="sendtxt">${esc(leaderText(t,cur))}</pre>`).join('')}</details>
+      <div class="mrow"><button class="btn" data-copy>Copy all (group)</button><button class="btn" data-pdfday>Share PDF</button></div>`;
   }else if(modal.kind==='leave'){
     const l=modal, ex=l.id&&(S.leaves||[]).find(x=>x.id===l.id), n=daysBetween(l.from,l.to)+1;
     inner=`<form id="leaveform" class="mform"><div class="mhead"><div><b>${ex?'Edit leave':'Add leave'}</b><span>The person is marked off on every day of the leave.</span></div><button type="button" class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
@@ -3774,6 +3805,7 @@ function setupSummary(title){
     if(t.startsWith('cars'))return `${carsN()} cars · ${maxTeam()} per car · ${dayHours()} h day`;
     if(t.startsWith('new work leaders'))return nwLeaders().filter(Boolean).map(sn).join(', ');
     if(t.startsWith('short names'))return `${Object.values(S.nicks||{}).filter(x=>String(x).trim()).length} set`;
+    if(t.startsWith("leaders' whatsapp")){const L=[...new Set(S.layouts.normal.map(x=>x.leader).filter(Boolean))];return `${L.filter(waNum).length} of ${L.length} set`}
     if(t.startsWith('leave'))return `${(S.leaves||[]).length+(S.attLeaves||[]).length} entries`;
   }catch(e){}
   return '';
@@ -3803,10 +3835,18 @@ function tidyView(){
     if(head&&head.classList.contains('foldhead'))head.insertAdjacentHTML('beforeend',btn);else if(head)head.insertAdjacentHTML('beforeend',' '+btn);else p.insertAdjacentHTML('beforebegin',btn);
   });
 }
+/* Swipe left / right on the phone: next / previous day on Today, week on Week (18 Nov 2026) */
+(()=>{let sx=0,sy=0,st=0,ok=false;
+  addEventListener('touchstart',e=>{const t=e.target;ok=isPhone()&&(tab==='day'||tab==='week')&&!sel&&!villaSel&&!modal&&e.touches.length===1&&!(t.closest&&t.closest('input,select,textarea,.tcard,.board,.morepop,#menu,#modalroot,.chip,.vchip'));
+    if(ok){sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now()}},{passive:true});
+  addEventListener('touchend',e=>{if(!ok)return;ok=false;const c=e.changedTouches[0],dx=c.clientX-sx,dy=c.clientY-sy;
+    if(Date.now()-st>700||Math.abs(dx)<80||Math.abs(dy)>Math.abs(dx)*0.6)return;
+    if(tab==='day')goDay(addDays(cur,dx<0?1:-1));else{cur=addDays(cur,dx<0?7:-7);render();scrollTo(0,0)}},{passive:true});
+})();
 /* ---------- events ---------- */
 function applyBackup(o){if(!o||!o.staff||!o.layouts)throw 0;snapUndo=null;S=migrate(o);save();toast('Backup loaded');tab='day';sel=null;render()}
 function closeAll(){sel=null;villaSel=null;menuMode=null;modal=null;delArm=null;renderModal();render()}
-function goDay(s){cur=s;tab='day';sel=null;villaSel=null;noteOpen=false;render();scrollTo(0,0)}
+function goDay(s){STEP_OPEN.clear();cur=s;tab='day';sel=null;villaSel=null;noteOpen=false;render();scrollTo(0,0)}
 document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.matches&&t.matches('details.more')&&t.open)document.querySelectorAll('details.more[open]').forEach(x=>{if(x!==t)x.open=false})},true);
 document.addEventListener('click',e=>{if(!e.isTrusted)return;const open=[...document.querySelectorAll('details.more[open]')];if(!open.length)return;
   if(open.some(dt=>dt.contains(e.target)))return;open.forEach(dt=>dt.open=false);if(e.target.closest('details.more>summary')||e.target.closest('.mbar button'))return;e.preventDefault();e.stopPropagation()},true);
@@ -3949,7 +3989,9 @@ document.addEventListener('click',e=>{
     toastBulk(n?`Built ${plural(n,'day')}`:'No days to build this week');render();return}
   if('undobulk' in d){$('toast').hidden=true;if(bulkUndo){Object.entries(bulkUndo).forEach(([k,v])=>{if(v)S.days[k]=v;else delete S.days[k]});bulkUndo=null;save();toast('Undone');render()}return}
   if('undo' in d){ensureDay(cur).teams=null;save();toast('Back to standard teams');render();return}
-  if('send' in d){if(usePhoneShare()){const det=el.closest('details');if(det)det.open=false;const D0=cur;sel=null;sharePlan([D0],`Garden Grow Team Plan ${shortDate(D0)}.pdf`,()=>{markSent(D0);render()});render();return}modal={kind:'send'};sel=null;renderModal();return}
+  if('send' in d){const det=el.closest('details');if(det)det.open=false;modal={kind:'send'};sel=null;renderModal();return}
+  if('wasend' in d){const t=effTeams(cur)[Number(d.wasend)];if(t&&openLeaderWa(t,cur)){renderModal();render()}return}
+  if('gophones' in d){modal=null;renderModal();tab='setup';setupTab='staff';FOLD_OPEN.add("staff|Leaders' WhatsApp");render();setTimeout(()=>{const x=document.querySelector('[data-phone]');if(x){x.scrollIntoView({block:'center'});x.focus()}},80);return}
   if('sendtext' in d){modal={kind:'send'};sel=null;renderModal();return}
   if('off' in d){modal={kind:'off'};sel=null;renderModal();return}
   if('fab' in d){modal={kind:'add'};renderModal();return}
@@ -3960,8 +4002,9 @@ document.addEventListener('click',e=>{
   if('pdfleaders' in d){printLeaders();return}
   if('info' in d){const box=el.closest('.infowrap,.card,.ibox,.stc')||el.parentElement;if(box){box.classList.toggle('showhelp');const fb=box.classList.contains('fold')&&box.querySelector('.foldbtn');if(fb&&box.classList.contains('showhelp')&&!box.classList.contains('open')){FOLD_OPEN.add(fb.dataset.fold);box.classList.add('open')}}return}
   if('fold' in d){const k=d.fold,card=el.closest('.fold');if(FOLD_OPEN.has(k))FOLD_OPEN.delete(k);else FOLD_OPEN.add(k);if(card){card.classList.toggle('open',FOLD_OPEN.has(k));el.setAttribute('aria-expanded',FOLD_OPEN.has(k))}return}
+  if('stepopen' in d){STEP_OPEN.add(Number(d.stepopen));render();return}
   if('phedit' in d){phEdit=!phEdit;render();if(phEdit)setTimeout(()=>{const b=document.querySelector('.phboard');if(b)b.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
-  if('copyleader' in d){const t=effTeams(cur).find(x=>x.id===d.copyleader);if(!t)return;const txt=leaderText(t,cur);
+  if('copyleader' in d){const t=effTeams(cur).find(x=>x.id===d.copyleader);if(!t)return;if(openLeaderWa(t,cur)){render();return}const txt=leaderText(t,cur);
     if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markSent(cur);render()}).catch(()=>{});return}
     markSent(cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);render();return}
   if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
@@ -3990,6 +4033,10 @@ document.addEventListener('click',e=>{
     moveTo(ctx,n,to?to.id:'nursery');if(to)learnManualMove(ctx,n,to.id);
     const nl=A?fillLeaders(ctx,[A.id]):[];
     modal=null;renderModal();toastUndo(`${dn(n)} → ${to?to.name:'nursery'}${nl.length?' · '+nl.join(', '):''}`);render();return}
+  if('qmove' in d&&modal&&modal.kind==='swap'){const n=modal.name,to=d.qmove,ctx={type:'day',date:cur};
+    if(fullTeam(cur,to,n)){modal={kind:'dropswap',team:to,incoming:n};renderModal();return}
+    keepUndo();const A=effTeams(cur).find(x=>people(x).includes(n));moveTo(ctx,n,to);learnManualMove(ctx,n,to);const nl=A?fillLeaders(ctx,[A.id]):[];
+    const T=effTeams(cur).find(x=>x.id===to);modal=null;renderModal();toastUndo(`${sn(n)} → ${T?tName(T):'team'}${nl.length?' · '+nl.join(', '):''}`);render();return}
   if('qoff' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();moveTo({type:'day',date:cur},n,'absent');modal=null;renderModal();toastUndo(`${dn(n)} is off today`);render();return}
   if('qnursery' in d&&modal&&modal.kind==='swap'){const n=modal.name;keepUndo();moveTo({type:'day',date:cur},n,'nursery');modal=null;renderModal();toastUndo(`${dn(n)} → nursery`);render();return}
   if('qmore' in d&&modal&&modal.kind==='swap'){const n=modal.name;modal=null;renderModal();sel={name:n,ctx:{type:'day',date:cur}};menuMode=null;render();return}
@@ -4081,6 +4128,7 @@ function onChange(e){
   if(t.id==='maxvillas'){S.settings.maxVillas=Math.max(1,parseInt(t.value)||7);save();toast('Saved');render();return}
   if(t.id==='fromlast'){const up=[];S.settings.fromLast=t.checked?undefined:false;if(S.settings.fromLast===undefined)delete S.settings.fromLast;save();toast(t.checked?'New days start from your last sent plan':'New days start from the normal teams');render();return}
   if(t.id==='dayoff'){S.settings.dayOff=Number(t.value);save();toast('Saved');return}
+  if(t.dataset&&t.dataset.phone!=null){S.phones=Object.assign({},S.phones||{});const v=t.value.trim();if(v)S.phones[t.dataset.phone]=v;else delete S.phones[t.dataset.phone];save();toast(v&&!waNum(t.dataset.phone)?'Saved — check the number (e.g. 050 123 4567)':'Saved');render();return}
   if(t.id==='note'){ensureDay(cur).note=t.value.trim();touchSent(cur);save();return}
   if(t.id==='rosterfile'&&t.files[0]){const name=t.files[0].name,fr=new FileReader();fr.onload=()=>{try{
       const data=JSON.parse(fr.result); if(!data||!Array.isArray(data.clients))throw 0;
