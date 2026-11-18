@@ -581,6 +581,130 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 }
 @media (min-width:900px){.dbar{grid-template-columns:1fr auto}.dbar .wstrip{grid-column:1/-1;order:3;max-width:860px;justify-self:start;width:100%}}
 @media (min-width:900px) and (max-width:1250px){.irow{grid-template-columns:repeat(6,minmax(0,1fr))}.irow>.ibox{grid-column:span 2}.irow>.offbox,.irow>.nwbox{grid-column:span 2}.dbar{grid-template-columns:1fr auto}.wstrip{grid-column:1/-1;max-width:none;order:3}}
+
+/* ---------- Front page A (phone + laptop) and team screen C (phone) · 18 Nov 2026 ---------- */
+.dayA{display:grid;gap:12px;padding-bottom:150px}
+.homeA,.dmain{display:grid;gap:12px;min-width:0;align-content:start}
+.ah{background:var(--forest);color:#fff;border-radius:18px;padding:12px 12px 14px;display:grid;gap:12px}
+.ahnav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ahbtn{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;flex:none;padding:0}
+.ahd{text-align:center;min-width:0;display:grid}
+.ahd span{font-size:.72rem;font-weight:800;letter-spacing:.08em;color:#a8d5aa}
+.ahd b{font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1.15}
+.ahstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.ahstats>*{background:rgba(255,255,255,.1);border-radius:12px;padding:6px 0;border:0;color:#fff;font:inherit;display:grid;cursor:pointer}
+.ahstats b{font-family:var(--display);font-size:1.35rem;line-height:1.2}
+.ahstats span{font-size:.75rem;color:#cfe5cf}
+.ahtoday{justify-self:center;border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:6px 14px;font-weight:700;font-size:.82rem;cursor:pointer;min-height:34px}
+.abox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-radius:16px;padding:12px 14px;background:var(--surface);box-shadow:var(--shadow);border:2px solid var(--line)}
+.abox>div{flex:1 1 160px;min-width:0;display:grid}
+.abox>div>b{font-size:1.05rem}
+.abox>div>span{font-size:.88rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.abox .abn{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;background:var(--muted);color:#fff}
+.abox .abn svg{width:18px;height:18px}
+.abox.ok{background:var(--green-soft);border-color:#9fd0a3}.abox.ok .abn{background:var(--green)}.abox.ok>div>b{color:var(--green)}
+.abox.warn{background:var(--warn-soft);border-color:#f0c978}.abox.warn .abn{background:var(--warn)}.abox.warn>div>b{color:var(--warn)}
+.abfix{flex:1 1 100%;min-height:46px;background:var(--warn)!important;border-color:var(--warn)!important;color:#fff!important;font-weight:700}
+.alab{font-size:.74rem;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:2px 0 -4px}
+.ateams{display:grid;gap:10px}
+.atc{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:4px;padding:6px 4px 6px 0;min-height:66px}
+.atc.bad{box-shadow:inset 4px 0 0 var(--warn),var(--shadow)}
+.atc.next{outline:2px solid #1fa855;outline-offset:-2px}
+.atmain{flex:1;min-width:0;border:0;background:none;text-align:left;padding:8px 6px 8px 16px;display:grid;gap:2px;cursor:pointer;color:inherit;font:inherit}
+.atmain>b{font-family:var(--display);font-size:1.15rem}
+.atmain>span{font-size:.86rem;color:var(--muted)}
+.atwa{width:48px;height:48px;border-radius:50%;border:0;background:#1fa855;color:#fff;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;padding:0}
+.atsent{border:0;background:none;color:var(--green);font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:3px;cursor:pointer;min-height:44px;flex:none;padding:0 4px;font-family:inherit}
+.atsent svg{width:16px;height:16px}
+.atchev{border:0;background:none;color:var(--faint);font-size:1.5rem;width:30px;min-height:44px;cursor:pointer;flex:none;padding:0}
+.aq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.aqb{height:76px;border-radius:14px;border:0;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--ink);font:inherit;font-size:.8rem;width:100%;padding:0 2px;text-align:center}
+.aqb b{font-size:.8rem;line-height:1.1}
+.aqd{min-width:0}.aqd>summary.aqb{list-style:none}
+.aqd[open]>summary.aqb{outline:2px solid var(--green)}
+.asend{width:100%;min-height:54px;border:0;border-radius:14px;background:#1fa855;color:#fff;font:inherit;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;padding:6px 12px;text-align:center}
+.asend.dim{opacity:.55}
+.asend.done{background:var(--green-soft);color:var(--green);border:1.5px solid #9fd0a3}
+.asend.go{background:var(--forest)}
+.asendbar{position:fixed;left:0;right:0;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:29;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px}
+.aoff{font-size:.86rem;color:var(--muted)}.aoff b{color:var(--ink)}
+.anw{display:grid;gap:6px}
+.amore{display:flex;justify-content:center;gap:18px;align-items:center}
+.amore .more summary.btn{min-height:40px}
+.dnote2{background:var(--surface);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.homeA .more .morepop,.homeA .pdfmenu .morepop{right:0}
+@media (max-width:899px){
+  .ahwrap{margin:-16px -16px 0}.ah{border-radius:0 0 22px 22px;padding:14px 16px 16px}
+  .dayA .dsk,.dayA .dbar{display:none!important}
+  .afix:not(.open){display:none}
+  .homeA .more .morepop,.homeA .pdfmenu .morepop{position:fixed;left:12px;right:12px;top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));max-height:66vh;overflow:auto}
+}
+@media (min-width:900px){
+  .dayA{grid-template-columns:330px minmax(0,1fr);align-items:start;padding-bottom:0}
+  .homeA{position:sticky;top:76px}
+  .dayA .dbar{grid-template-columns:1fr auto}
+  .aqb{height:70px}
+  .ahd b{font-size:1.2rem}
+}
+/* team screen (phone) */
+.tscr{display:grid;gap:12px;padding-bottom:150px}
+.tsh{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tsback{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;min-height:44px;padding:0 14px;font:inherit;font-weight:700;cursor:pointer}
+.tsh span{font-size:.84rem;color:var(--muted);text-align:right}
+.tstabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px}
+.tstab{min-height:44px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tstab.warn{background:var(--warn-soft);border-color:#f0c978;color:var(--warn)}
+.tstab.on{background:var(--forest);border-color:var(--forest);color:#fff}
+.tsc{background:var(--surface);border-radius:20px;padding:16px;display:grid;gap:14px;box-shadow:0 2px 8px rgba(15,58,32,.08);min-width:0}
+.tst{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tst b{font-family:var(--display);font-size:1.6rem;line-height:1.1}
+.tst span{font-size:.84rem;color:var(--muted)}
+.tsprob{background:var(--warn-soft);color:var(--warn);font-weight:700;font-size:.86rem;border-radius:10px;padding:8px 10px}
+.tscrew{display:flex;flex-wrap:wrap;gap:6px}
+.tsarea{font-size:.74rem;font-weight:800;letter-spacing:.06em;color:var(--green);padding:6px 0 2px;text-transform:uppercase}
+.tsvl{display:grid}
+.tsv{display:flex;align-items:center;gap:10px;min-height:44px;border:0;border-bottom:1px solid var(--soft);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:4px 0}
+.tsv .vno{width:28px;height:28px;border-radius:8px;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;font-style:normal;flex:none}
+.tsv span{flex:1;min-width:0;font-weight:600}
+.tsv em{font-style:normal;font-size:.72rem;font-weight:800;color:var(--orange)}
+.tsv.nw .vno{background:#b8742e;color:#fff}
+.tsv.sel{background:var(--green-soft)}
+.tsbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tsbtns .btn{width:100%;text-decoration:none}
+.tsdots{display:flex;justify-content:center;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.tsdots i{width:6px;height:6px;border-radius:3px;background:var(--line)}.tsdots i.on{width:18px;background:var(--green)}
+/* simple sheets: Who's in, Leave, New work steps */
+.swl{display:grid;gap:6px}
+.swr{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;padding:6px 12px 6px 14px;cursor:pointer;text-align:left}
+.swn{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-weight:700;min-width:0}
+.swn em{font-style:normal;font-size:.75rem;font-weight:600;color:var(--muted)}
+.swn em.o{color:var(--red)}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
+.swr.on .sw{background:var(--green)}.swr.on .sw i{left:23px}
+.swr:not(.on){background:var(--soft)}
+.swr.lv{background:var(--soft);opacity:.75}
+.swr.lv .lvtag{font-size:.75rem;font-weight:700;color:var(--warn);flex:none}
+.offtop{display:flex;gap:8px;flex-wrap:wrap}
+.lvs{display:grid;gap:8px}
+.lvh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.95rem}
+.lvh i{width:24px;height:24px;border-radius:50%;background:var(--forest);color:#fff;font-style:normal;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+.lvchips{display:flex;flex-wrap:wrap;gap:6px}
+.lvc{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.lvc.on{background:var(--forest);border-color:var(--forest);color:#fff;font-weight:700}
+.lvc.more{border-style:dashed;color:var(--green)}
+.lvsum{background:var(--green-soft);border-radius:14px;padding:12px 14px;font-size:.95rem}
+.lvsum span{color:var(--muted);font-size:.88rem}
+.jsteps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.jst{border:0;background:none;display:grid;gap:5px;text-align:left;cursor:pointer;padding:0;color:var(--muted);font:inherit;font-size:.78rem;font-weight:700}
+.jst i{height:5px;border-radius:3px;background:var(--line)}
+.jst.on{color:var(--green)}.jst.on i,.jst.done i{background:var(--green)}
+.qsz{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qszb{min-height:58px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;display:grid;align-content:center;gap:2px;cursor:pointer}
+.qszb span{font-size:.75rem;color:var(--muted)}
+.qszb.on{border-color:var(--green);background:var(--green-soft)}.qszb.on b{color:var(--green)}
+.jfoot{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;position:sticky;bottom:-20px;background:var(--surface);padding:10px 0 4px;margin-top:2px;border-top:1px solid var(--soft)}
+.jfoot .row{flex-wrap:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header.top,#tabbar,main#view,.fab,#menu,#modalroot,#overlay,.toast{display:none!important}}
 /* printable sheet (PDF) */
@@ -2733,7 +2857,7 @@ addEventListener('online',()=>{if(syncUrl())((S.updatedAt||0)>(S.syncedAt||0)?pu
 let maintOpen=false, sugOpen=false;
 let staffDraft=null, staffSavedAt=null, staffView='person', staffOpen=null, staffSkill='general';
 let cur=TODAY, tab='day', setupTab='teams', sel=null, menuMode=null, villaSel=null, delArm=null, modal=null, addOpen=null, noteOpen=false, reportMonth=TODAY.slice(0,7);
-const openTeams=new Set(), noteTeams=new Set(); let monthOpen=false, phEdit=false; const STEP_OPEN=new Set(); /* phone: ready steps the user opened again */ /* phone: the team board is shown under the steps when Edit teams / See villas is tapped */
+const openTeams=new Set(), noteTeams=new Set(); let monthOpen=false, phEdit=false, phTeam=null; /* phone: the team screen (design C) is open for this team */ const STEP_OPEN=new Set(); /* phone: ready steps the user opened again */ /* phone: the team board is shown under the steps when Edit teams / See villas is tapped */
 const isPhone=()=>matchMedia('(max-width: 899px)').matches;
 let tt;function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,2600)}
 const ICON={
@@ -2752,6 +2876,13 @@ const ICON={
   jobs:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-4-3-7-6.5-7-10a7 7 0 0 1 14 0c0 3.5-3 7-7 10z"/><path d="M12 14V8M9.5 10.5L12 8l2.5 2.5"/></svg>',
   report:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>',
   setup:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>'
+};
+const IC2={
+  wa:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z"/></svg>',
+  people:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.2 2.6 3.5 5.5"/></svg>',
+  plus:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1d5fbf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  cal:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a15c07" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  doc:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3e6e52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>'
 };
 const TABS=[['day','Today',ICON.day],['week','Week',ICON.week],['setup','Setup',ICON.setup]];
 const dayLabel=s=>s===TODAY?'Today':s===addDays(TODAY,1)?'Tomorrow':s===addDays(TODAY,-1)?'Yesterday':DNL[fromIso(s).getDay()];
@@ -2828,9 +2959,10 @@ function putVillaBack(date,id){touchSent(date);{const t0=(S.days[date]||{}).vill
 /* Small tag after a name: SUP, DRIVER, or SUP / DRIVER. */
 function roleTag(n){const sk=S.skills[n]||[],sp=sk.includes('drv_spare'),g=gradeOf(n),parts=[isSup(n)?'sup':'',['','labour','jr gardener','sr gardener'][g]||'',sp?'spare driver':has(n,'driver')?'driver':''].filter(Boolean);if(!parts.length)return '';
   const cls=isSup(n)?'':g===3?'sgr':g===2?'jgr':g===1?'lab':'drv';return `<span class="sup ${cls}">${parts.join(' / ')}${has(n,'driver')&&!sp?' 🔒':''}</span>`}
+let chipLite=false; /* team screen: only leader / driver under the names */
 function chip(name,ctx,cls=''){
   const on=sel&&sel.name===name&&sameCtx(sel.ctx,ctx);
-  return `<button class="chip ${cls} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}">${esc(sn(name))}${cls==='lead'?'<span class="lt">leader</span>':''}${roleTag(name)}${ctx.type==='day'&&leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</button>`;
+  return `<button class="chip ${cls} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}">${esc(sn(name))}${cls==='lead'?'<span class="lt">leader</span>':''}${chipLite?(has(name,'driver')&&cls!=='lead'?'<span class="lt">driver</span>':''):roleTag(name)}${ctx.type==='day'&&leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</button>`;
 }
 function jobSelect(t,ctx,cs,onlyGroup){
   const list=S.jobs.filter(x=>!onlyGroup||x.group===onlyGroup||x.id===t.job);
@@ -3059,7 +3191,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
   const okBox=iss.length?`<div class="ibox bad">${ICON.alert}<div><b>${plural(iss.length,'thing')} to check</b>${sumTxt}<span>${esc(iss[0])}</span>${sug.moves.length?`<button class="btn small primary" data-applyall>Fix all (${sug.moves.length})</button>`:''}</div></div>`
     :heavy.length?`<div class="ibox warn">${ICON.alert}<div><b>Teams ready · busy day</b>${sumTxt}<span>${heavy.map(t=>esc(tName(t))+' '+(vp.byTeam[t.id]||[]).length).join(', ')} villas — above ${maxV()}</span></div></div>`
     :`<div class="ibox ok">${ICON.ok}<div><b>All teams ready</b>${sumTxt}<span>Leaders, skills and sizes OK</span></div></div>`;
-  const ck=cur===TODAY?dayToCheck():null;
+  const fixes0=0, ck=cur===TODAY?dayToCheck():null;
   const checkBar=ck?`<div class="ibox ok checkbar">${ICON.ok}<div><b>${dayLabel(ck)} (${shortDate(ck)}) — done as planned?</b><div class="row"><button class="btn small primary" data-ckyes="${ck}">✓ Yes, all done</button><button class="btn small" data-ckopen="${ck}">Something changed</button><button class="link small" data-ckskip="${ck}">Skip</button></div></div></div>`:'';
   const resendBar=r.resend&&r.sent&&!stale&&cur>=TODAY?`<div class="ibox warn stalebar">${ICON.alert}<div><b>Teams changed after sending</b><span>Send to the leaders again.</span><div class="row"><button class="btn small primary" data-send>${ICON.send}Send to leaders</button></div></div></div>`:'';
   /* Phone (option C, 18 Nov 2026): the morning in 4 steps — who's working, teams, villas, share. The full team board opens under them. */
@@ -3086,45 +3218,107 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
       <div class="stshare2"><div class="splitb"><button class="btn" data-troster="day:all">Roster PDF</button><details class="more pdfmenu"><summary class="btn" aria-label="Roster PDF options">▾</summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details></div><div class="splitb"><button class="btn" data-pdfday>Plan PDF</button><details class="more pdfmenu"><summary class="btn" aria-label="Plan PDF options">▾</summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>${more.replace('More ▾','⋯')}</div></div></article>
     <div class="stnw"><span><b>New work</b> · ${ps.length?ps.map(p=>`<button class="link small" data-editproj="${p.id}">${esc(p.title)}</button>`).join(', '):'none today'}${upcoming.length?` · ${upcoming.length} coming up`:''}</span><button class="link small" data-newproj>Add</button></div>
   </section>`;
-  const fixes=checkBar+staleBar+resendBar+((sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'');
+  const fixCard=(sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'';
   const tm=(S.toMatch||[]).filter(n=>S.staff.includes(n)).length;
-  $('view').innerHTML=`<div class="day2">
-    <section class="card dbar">
-      <div class="datenav"><button class="iconbtn lg" data-shiftday="-1" aria-label="Previous day">${ICON.left}</button>
-        <div class="dtxt"><span class="eyebrow ${cur===TODAY?'g':''}">${dayLabel(cur)} · ${kind}</span><h2>${longDate(cur).replace(/ \d{4}$/,'')}</h2></div>
-        <button class="iconbtn lg" data-shiftday="1" aria-label="Next day">${ICON.right}</button></div>
-      ${weekStrip()}
-      <div class="dacts desk-flex"><button class="btn" data-monthopen>${monthOpen?'Hide month':'Month'}</button>${pdfMenu}${more}<button class="btn nwbtn" data-newproj>＋ New work</button>${primary}</div>
-      <div class="phone-only mrow"><button class="link" data-monthopen>${monthOpen?'Hide month':'Month view'}</button>${cur!==TODAY?'<button class="link" data-gototoday>Back to today</button>':''}</div>
-      ${cur!==TODAY?'<button class="link desk-only" data-gototoday>Back to today</button>':''}
-      ${monthOpen?`<div class="monthpop">${calendarHtml()}</div>`:''}
-      ${(r.note||noteOpen)?`<label class="field dnote"><span class="lbl">Note for the day</span><input class="textin" id="note" value="${esc(r.note||'')}" placeholder="e.g. Pick up mulch first"></label>`:''}
-    </section>
-    ${phSteps}
-    <section class="irow dk">
-      ${okBox}
-      <div class="ibox desk-blk sumbox"><div><span class="lbl">Today</span><span class="sumline"><b>${placed}</b> working · <b>${vp.total}</b> villas · <b>${teams.length}</b> teams</span><span>max ${maxV()} villas per team</span></div></div>
-      <div class="ibox offbox desk-blk"><div><span class="lbl">Off today · ${off.length}</span>${off.length?`<div class="chips sm">${off.map(n=>chip(n,ctx,'offc')).join('')}</div>${off.some(n=>leaveOn(n,cur))?`<span class="muted small">${off.filter(n=>leaveOn(n,cur)).map(n=>esc(sn(n))+' · to '+esc(shortDate(leaveOn(n,cur).to).replace(/^\S+ /,''))).join(' · ')}</span>`:''}`:'<span>Everyone is in</span>'}<span class="row"><button class="link small" data-newleave>+ Leave</button><button class="link small" data-off>Change</button></span></div></div>
-      <div class="ibox nwbox ${ps.length||upcoming.length?'':'nwempty'}"><div><span class="nwh"><span class="lbl">New work</span><button class="btn small nwadd2" data-newproj>＋ Add new work</button></span>${ps.length?ps.map(p=>{const smt=p.small?Object.entries(smallByTeam(cur,teams,vp)).find(([k,v])=>v.includes(p)):null,tn=smt?(teams.find(x=>x.id===smt[0])||{}).name:'';return `<button class="nwi" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>${p.small?`Small job · with ${esc(tn||'a maintenance team')}`:isSupply(p)?'Delivery only · driver':`Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1} · ${plural(people(p.crew).length,'person','people')}`}</span></button>`}).join(''):'<span>None today</span>'}
-        ${upcoming.length?`${upcoming.map(p=>`<button class="nwi up" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Coming up · ${rangeText(p.from,p.to)} · ${plural(Object.values(p.need||{}).length?Math.max(p.min||0,people(p.crew).length):people(p.crew).length,'person','people')}</span></button>`).join('')}`:''}<button class="link small" data-alljobs>All jobs (${S.projects.length}) →</button></div></div>
-    </section>
-    ${cur<=TODAY?attBox(cur):''}
-    ${fixes}
-    ${un.length?availableCard(ctx):''}
-    ${tm?`<div class="card tip"><p><b>${plural(tm,'name')}</b> need matching to your employee list.</p><button class="btn small" data-setup="staff" data-gostaff>Match names</button></div>`:''}
-    ${!skillsSet?'<div class="card tip"><p>Tick each person\'s skills under <b>Setup → Staff &amp; skills</b> so the app can check every team has a driver, tree cutters and so on.</p></div>':''}
-    ${!(S.clients||[]).length?'<div class="card tip"><p>Load your maintenance clients under <b>Setup → Villas</b> to see each team\'s villas.</p></div>':''}
-    <div class="phboard ${phEdit||isDayOff(cur)?'open':''}">
-    ${proj.length?`<div class="sechead"><h3>New work · ${plural(proj.length,'team')}</h3></div><div class="board">${proj.map(t=>teamCard(t,ctx,vp)).join('')}</div>`:''}
-    <div class="sechead"><h3>Maintenance · ${plural(maint.length,'team')}</h3>${cur>=TODAY?'<button class="btn small" data-addday>+ Add a team</button>':''}</div>
-    <div class="board">${maint.map(t=>teamCard(t,ctx,vp)).join('')}</div>
-    <div class="card nursery" data-drop="nursery" data-ctx='${esc(JSON.stringify(ctx))}'><div class="cardhead"><h3>Nursery / farm · ${nurseryOf(cur).length}</h3><span class="muted small">${teams.filter(t=>{const p=t.projectId&&projById(t.projectId);return !(p&&isSupply(p))}).length} of ${carsN()} cars out · ${maxTeam()} seats per car</span></div><div class="chips">${nurseryOf(cur).map(n=>chip(n,ctx)).join('')||'<span class="muted small">Nobody</span>'}</div></div>
+  /* ---------- Front page A (phone + laptop) · team screen C (phone) — 18 Nov 2026 ---------- */
+  const dOff=isDayOff(cur);
+  if(phTeam&&isPhone()&&!dOff){const tt=teams.find(x=>x.id===phTeam);if(tt){renderTeamScreen(tt,teams,vp);return}phTeam=null}
+  const sentT=sentOf(cur), withL=teams.filter(t=>t.leader), nSent=withL.filter(sentT).length, unsent=withL.filter(t=>!sentT(t)), nextT=unsent[0];
+  const head=`<div class="ah"><div class="ahnav"><button class="ahbtn" data-shiftday="-1" aria-label="Previous day">‹</button>
+      <div class="ahd"><span>${esc(dayLabel(cur).toUpperCase())}${dOff?' · DAY OFF':''}</span><b>${esc(longDate(cur).replace(',','').replace(/ \d{4}$/,''))}</b></div>
+      <button class="ahbtn" data-shiftday="1" aria-label="Next day">›</button></div>
+    ${dOff?'':`<div class="ahstats"><button data-off aria-label="Who's working"><b>${placed}</b><span>working</span></button><button data-gofix="v" aria-label="Villas"><b>${vp.total}</b><span>villas</span></button><button data-off aria-label="Who's off"><b>${off.length}</b><span>off</span></button></div>`}
+    ${cur!==TODAY?'<button class="ahtoday" data-gototoday>Back to today</button>':''}</div>`;
+  const status=dOff?`<div class="abox"><span class="abn">–</span><div><b>Weekly day off</b><span>No teams on this day</span></div></div>`
+    :!built?`<div class="abox"><span class="abn">–</span><div><b>No plan saved for this day</b><span>Past days only show what was saved</span></div></div>`
+    :iss.length?`<div class="abox warn"><span class="abn">${iss.length}</span><div><b>${plural(iss.length,'thing')} to fix</b><span>${esc(iss[0])}</span></div>${sug.moves.length?`<button class="btn abfix" data-applyall>${sug.moves.length===1?'Fix it':`Fix all (${sug.moves.length})`}</button>`:`<button class="btn abfix" data-gofix>See how to fix</button>`}</div>`
+    :heavy.length?`<div class="abox warn"><span class="abn">!</span><div><b>Busy day</b><span>${heavy.map(t=>{const n=(vp.byTeam[t.id]||[]).length;return esc(tShort(t))+(n>maxV()?` ${n} villas`:' long day')}).join(', ')} · limit ${maxV()} villas</span></div>${ideas.length?`<button class="btn abfix" data-gofix>See ideas</button>`:''}</div>`
+    :`<div class="abox ok"><span class="abn">${ICON.ok}</span><div><b>Teams ready</b><span>${withL.length?(nSent?`${nSent} of ${withL.length} leaders have their plan`:'Next: send the plan to the leaders'):'No teams yet'}</span></div></div>`;
+  const tcardA=t=>{const vl=isProj(t)?null:(vp.byTeam[t.id]||[]),n=people(t).length,ov=vl&&vl.length>maxV(),ti=vp.time&&vp.time[t.id],st=sentT(t),bad=problems(t).length,p=t.projectId&&projById(t.projectId);
+    return `<article class="atc ${bad||ov?'bad':''} ${nSent&&t===nextT?'next':''}"><button class="atmain" data-teamopen="${esc(t.id)}"><b>${esc(tShort(t))}</b><span>${p?esc(p.title)+' · ':''}${plural(n,'person','people')}${vl?` · ${ov?`<b class="warntxt">${plural(vl.length,'villa')}</b>`:plural(vl.length,'villa')}`:''}${ti&&vl&&vl.length?` · back ≈ ${clock(ti.finish)}`:''}</span></button>
+      ${t.leader?(st?`<button class="atsent" data-copyleader="${esc(t.id)}" aria-label="Send to ${esc(sn(t.leader))} again">${ICON.ok}Sent${st===true?'':' '+esc(st)}</button>`:`<button class="atwa" data-copyleader="${esc(t.id)}" aria-label="WhatsApp ${esc(sn(t.leader))}">${IC2.wa}</button>`):''}<button class="atchev" data-teamopen="${esc(t.id)}" tabindex="-1" aria-hidden="true">›</button></article>`};
+  const pdfPop=`<div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}<p class="mhead3">Team Plan PDF</p>${teamItems}</div>`;
+  const quick=`<div class="aq"><button class="aqb" data-off>${IC2.people}<b>Who's in</b></button><button class="aqb" data-newproj>${IC2.plus}<b>New work</b></button><button class="aqb" data-newleave>${IC2.cal}<b>Leave</b></button><details class="more pdfmenu aqd"><summary class="aqb">${IC2.doc}<b>PDFs</b></summary>${pdfPop}</details></div>`;
+  const sendBtn=dOff||!built?''
+    :!withL.length?''
+    :iss.length&&!nSent?`<button class="asend dim" data-send>${IC2.wa}Send to leaders · fix first</button>`
+    :!nSent?`<button class="asend" data-send>${IC2.wa}Send to leaders</button>`
+    :nextT?`<button class="asend" data-copyleader="${esc(nextT.id)}">${IC2.wa}Send to ${esc(tShort(nextT))}${unsent.length===1?' · last one':' · next'}</button>`
+    :`<button class="asend done" data-send>${ICON.ok}All sent · send again</button>`;
+  const offLine=`<p class="aoff">${off.length?`<b>Off:</b> ${off.map(n=>esc(sn(n))+(leaveOn(n,cur)?` (to ${esc(shortDate(leaveOn(n,cur).to).replace(/^\S+ /,''))})`:'')).join(', ')}`:'Everyone is in'}${nurseryOf(cur).length?` · <b>Nursery:</b> ${nurseryOf(cur).map(n=>esc(sn(n))).join(', ')}`:''}</p>`;
+  const nwLine=ps.length||upcoming.length?`<div class="anw"><span class="lbl">New work</span>${ps.map(p=>`<button class="nwi" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>${p.small?'Small job · today':`Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1}`}</span></button>`).join('')}${upcoming.map(p=>`<button class="nwi up" data-editproj="${p.id}"><b>${esc(p.title)}</b><span>Coming up · ${rangeText(p.from,p.to)}</span></button>`).join('')}<button class="link small" data-alljobs>All jobs (${S.projects.length}) →</button></div>`:'';
+  const noteField=(r.note||noteOpen)?`<label class="field dnote dnote2"><span class="lbl">Note for the day</span><input class="textin" id="note" value="${esc(r.note||'')}" placeholder="e.g. Pick up mulch first"></label>`:'';
+  $('view').innerHTML=`<div class="day2 dayA">
+    <aside class="homeA">
+      <div class="ahwrap">${head}</div>
+      ${checkBar}${staleBar}${resendBar}
+      ${status}
+      ${noteField}
+      ${dOff||!teams.length?'':`<div class="phone-only ateams"><p class="alab">Teams</p>${teams.map(tcardA).join('')}</div>`}
+      ${quick}
+      ${sendBtn?`<div class="dsk">${sendBtn}</div>`:''}
+      <div class="dsk">${offLine}</div>
+      ${nwLine?`<div class="dsk">${nwLine}</div>`:''}
+      <div class="phone-only amore"><button class="link" data-phedit>${phEdit?'Hide the team board':'Team board'}</button><button class="link" data-monthopen>${monthOpen?'Hide month':'Month'}</button>${more.replace('More ▾','⋯ More')}</div>
+      ${monthOpen?`<div class="phone-only monthpop">${calendarHtml()}</div>`:''}
+    </aside>
+    <div class="dmain">
+      <section class="card dbar">${weekStrip()}<div class="dacts desk-flex"><button class="btn" data-monthopen>${monthOpen?'Hide month':'Month'}</button>${pdfMenu}${more}</div>${monthOpen?`<div class="monthpop">${calendarHtml()}</div>`:''}</section>
+      ${cur<=TODAY?attBox(cur):''}
+      ${fixCard?`<div class="afix ${phEdit?'open':''}">${fixCard}</div>`:''}
+      ${un.length?availableCard(ctx):''}
+      ${tm?`<div class="card tip"><p><b>${plural(tm,'name')}</b> need matching to your employee list.</p><button class="btn small" data-setup="staff" data-gostaff>Match names</button></div>`:''}
+      ${!skillsSet?'<div class="card tip"><p>Tick each person\'s skills under <b>Setup → Staff &amp; skills</b> so the app can check every team has a driver, tree cutters and so on.</p></div>':''}
+      ${!(S.clients||[]).length?'<div class="card tip"><p>Load your maintenance clients under <b>Setup → Villas</b> to see each team\'s villas.</p></div>':''}
+      <div class="phboard ${phEdit||dOff?'open':''}">
+      ${proj.length?`<div class="sechead"><h3>New work · ${plural(proj.length,'team')}</h3></div><div class="board">${proj.map(t=>teamCard(t,ctx,vp)).join('')}</div>`:''}
+      <div class="sechead"><h3>Maintenance · ${plural(maint.length,'team')}</h3>${cur>=TODAY?'<button class="btn small" data-addday>+ Add a team</button>':''}</div>
+      <div class="board">${maint.map(t=>teamCard(t,ctx,vp)).join('')}</div>
+      <div class="card nursery" data-drop="nursery" data-ctx='${esc(JSON.stringify(ctx))}'><div class="cardhead"><h3>Nursery / farm · ${nurseryOf(cur).length}</h3><span class="muted small">${teams.filter(t=>{const p=t.projectId&&projById(t.projectId);return !(p&&isSupply(p))}).length} of ${carsN()} cars out · ${maxTeam()} seats per car</span></div><div class="chips">${nurseryOf(cur).map(n=>chip(n,ctx)).join('')||'<span class="muted small">Nobody</span>'}</div></div>
+      </div>
+      ${vp.skipped.length?`<div class="card"><h3>Villas not today · ${vp.skipped.length}</h3><div class="chips">${vp.skipped.map(c=>{const to=(r.villaMovedTo||{})[c.id];return `<button class="vchip" data-unskip="${esc(c.id)}">${esc(villaName(c))}${to?' → '+shortDate(to):''} · put back</button>`}).join('')}</div></div>`:''}
+      <p class="muted small desk-only">Drag names or villas between teams · click a name for more</p>
     </div>
-    ${vp.skipped.length?`<div class="card"><h3>Villas not today · ${vp.skipped.length}</h3><div class="chips">${vp.skipped.map(c=>{const to=(r.villaMovedTo||{})[c.id];return `<button class="vchip" data-unskip="${esc(c.id)}">${esc(villaName(c))}${to?' → '+shortDate(to):''} · put back</button>`}).join('')}</div></div>`:''}
-    
-    <p class="muted small desk-only">Drag names or villas between teams · click a name for more</p>
   </div>
-    <div class="mbar phone-only ${isDayOff(cur)?'':'stepsbar'}">${primary.replace('Send to leaders','Send').replace('Build teams','Build')}${pdfMenuPhone}${more.replace('More ▾','⋯')}</div>`;
+  ${sendBtn?`<div class="asendbar phone-only">${sendBtn}</div>`:''}`;
+  void phSteps;void okBox;void fixes0;void primary;void kind;void pdfMenuPhone;void nClients;void nPaused;
+}
+const tShort=t=>tName(t).replace(/^Team\s+/i,'');
+/* Has this team's leader got today's plan? sentTo keeps the time per team; a plan sent to the group counts for all. */
+function sentOf(date){const r=dayRec(date),st=r.sentTo||{},grp=r.sent&&!Object.keys(st).length;return t=>r.resend?null:(st[t.id]||(grp?(r.sentAt||true):null))}
+function markTeamSent(t,date){const r=ensureDay(date);r.sentTo=Object.assign({},r.sentTo||{},{[t.id]:clockNow()});markSent(date);save()}
+function teamOrder(date){return effTeams(date).filter(t=>t.leader||people(t).length)}
+/* Phone: one team at a time (design C) — crew, numbered villas, Route in Maps, Roster PDF, Send then the next team. */
+function renderTeamScreen(t,teams,vp){
+  const r=dayRec(cur), ctx={type:'day',date:cur}, list=teamOrder(cur), i=Math.max(0,list.indexOf(t)), nx=list[(i+1)%list.length]||t;
+  const vl=isProj(t)?null:(vp.byTeam[t.id]||[]), ti=vp.time&&vp.time[t.id], ps=problems(t), p=t.projectId&&projById(t.projectId), n=people(t).length;
+  const placed=teams.reduce((a,x)=>a+people(x).length,0), off=r.absent||[], sentT=sentOf(cur), st=sentT(t);
+  const tabs=list.map(x=>{const v=isProj(x)?null:(vp.byTeam[x.id]||[]),ov=v&&v.length>maxV(),bad=problems(x).length;return `<button class="tstab ${x===t?'on':''} ${ov||bad?'warn':''}" data-teamopen="${esc(x.id)}" aria-pressed="${x===t}">${esc(tShort(x))}${ov?' · '+v.length:''}${sentT(x)?' ✓':''}</button>`}).join('');
+  const moved=r.villaMove||{}, no=new Map((vl||[]).map((c,k)=>[c.id,k+1]));
+  const villas=vl?(vl.length?`<div class="tsvl">${villaGroups(vl).map(g=>`<div class="tsarea">${esc(g.area)}</div>${g.items.map(c=>{const nw=isNewOn(c,cur);return `<button class="tsv ${nw?'nw':''} ${villaSel===c.id?'sel':''}" data-villa="${esc(c.id)}"><i class="vno">${no.get(c.id)}</i><span>${esc(villaName(c))}${moved[c.id]?' <em>moved</em>':''}</span>${nw?'<em>NEW</em>':freqTag(c)?`<em style="color:var(--muted)">${esc(freqTag(c))}</em>`:''}</button>`}).join('')}`).join('')}</div>`:'<p class="muted small">No villas</p>'):'';
+  const rl=vl&&vl.length?routeLinks(vl):{parts:[],skipped:[]};
+  const sm=!isProj(t)?(smallByTeam(cur,teams,vp)[t.id]||[]):[];
+  const btns=vl?`<div class="tsbtns">${rl.parts.length?rl.parts.map((x,k)=>`<a class="btn" href="${esc(x.url)}" target="_blank" rel="noopener">${rl.parts.length>1?`Route ${k+1} (${x.from}–${x.to})`:'Route in Maps'}</a>`).join(''):'<button class="btn" disabled>No map pins</button>'}${vl.length?`<button class="btn" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}</div>${rl.parts.length&&rl.skipped.length?`<p class="muted small">No map pin: ${rl.skipped.map(c=>esc(villaName(c))).join(', ')}</p>`:''}`:'';
+  const unsentNext=list.slice(i+1).concat(list.slice(0,i)).find(x=>x.leader&&!sentT(x));
+  const bottom=!t.leader?`<button class="asend go" data-teamopen="${esc(nx.id)}">Next team: ${esc(tShort(nx))} →</button>`
+    :st?`<button class="asend done" ${unsentNext?`data-teamopen="${esc(unsentNext.id)}"`:'data-teamback'}>${ICON.ok}Sent${st===true?'':' '+esc(st)} · ${unsentNext?`next: ${esc(tShort(unsentNext))} →`:'all sent'}</button>`
+    :`<button class="asend" data-sendnext="${esc(t.id)}">${IC2.wa}Send to ${esc(tShort(t))}${unsentNext?' · then next team':''}</button>`;
+  $('view').innerHTML=`<div class="tscr">
+    <div class="tsh"><button class="tsback" data-teamback>‹ Today</button><span>${esc(shortDate(cur))} · ${placed} working · ${off.length} off</span></div>
+    ${list.length>1?`<div class="tstabs" role="tablist" aria-label="Teams">${tabs}</div>`:''}
+    <section class="tsc">
+      <div class="tst"><b>${esc(tName(t))}</b><span>${plural(n,'person','people')}${vl?' · '+plural(vl.length,'villa'):''}${ti&&vl&&vl.length?` · back ≈ ${clock(ti.finish)}`:''}</span></div>
+      ${ps.length?`<div class="tsprob">${ps.map(x=>esc(x.text)).join(' · ')}</div>`:''}
+      ${p?`<div class="tjob"><span class="worksline"><b>${esc(p.title)}</b> · ${esc(worksText(p))} · Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1}</span><button class="link" data-editproj="${p.id}">Edit job</button></div>`:''}
+      <div class="tscrew">${(chipLite=true,'')}${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${(chipLite=false,'')}${n>=maxTeam()?'':`<button class="addp" data-addto="${t.id}">＋ Add</button>`}</div>
+      ${sm.map(q=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(q.title)}<em>${esc(worksText(q))}</em></span><button class="link small" data-editproj="${q.id}">Edit</button></div>`).join('')}
+      ${villas}
+      ${btns}
+      ${p&&p.note?`<div class="jobnote"><b>Notes for the crew:</b> ${esc(p.note)}</div>`:''}
+    </section>
+    ${list.length>1?`<div class="tsdots" aria-hidden="true">${list.map(x=>`<i class="${x===t?'on':''}"></i>`).join('')}<span style="margin-left:6px">swipe for ${esc(tShort(nx))} →</span></div>`:''}
+  </div>
+  <div class="asendbar phone-only">${bottom}</div>`;
 }
 
 /* ---------- Week ---------- */
@@ -3632,12 +3826,14 @@ function renderModal(){
   else if(modal.kind==='dropswap')inner=dropSwapHtml();
   else if(modal.kind==='newteam')inner=newTeamHtml();
   else if(modal.kind==='off'){
-    const off=dayRec(cur).absent||[];
-    inner=`<div class="mhead"><div><b>Who's off?</b><span>${longDate(cur)}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-      <p class="muted small">Tap names to mark them off. Their team is fixed when you tap Build teams.</p>
-      <div class="offgrid">${S.staff.map(n=>`<button class="offbtn ${off.includes(n)?'on':''}" data-offn="${esc(n)}" aria-pressed="${off.includes(n)}">${esc(dn(n))}${leaveOn(n,cur)?' · on leave':''}</button>`).join('')}</div>
-      <button class="btn" data-newleave>+ Add annual leave (several days)</button>
-      <div class="mrow"><button class="btn primary" data-offbuild>Done & build teams</button><button class="btn" data-closemodal>Done</button></div>`;
+    const off=dayRec(cur).absent||[], tms=effTeams(cur), pv=prevWorkDay(cur);
+    const role=n=>tms.some(t=>t.leader===n)?'leader':has(n,'driver')?'driver':'';
+    const rest=S.staff.filter(n=>!leaveOn(n,cur)), lv=S.staff.filter(n=>leaveOn(n,cur)), inN=rest.filter(n=>!off.includes(n)).length;
+    inner=`<div class="mhead"><div><b>Who's working?</b><span>${esc(shortDate(cur))} · switch off anyone who is not</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+      <div class="offtop">${pv?`<button class="btn small" data-offsame>Same as ${pv===addDays(TODAY,-1)?'yesterday':esc(shortDate(pv))}</button>`:''}<button class="btn small" data-newleave>+ Leave (several days)</button></div>
+      <div class="swl">${rest.map(n=>{const on=!off.includes(n);return `<button class="swr ${on?'on':''}" data-offn="${esc(n)}" role="switch" aria-checked="${on}"><span class="swn">${esc(sn(n))}${role(n)?`<em>${role(n)}</em>`:''}${on?'':'<em class="o">off today</em>'}</span><span class="sw"><i></i></span></button>`}).join('')}
+      ${lv.map(n=>{const L=leaveOn(n,cur);return `<button class="swr lv" data-lvopen="${esc(n)}"><span class="swn">${esc(sn(n))}<em>${esc(String(L.type||'leave').toLowerCase())} · to ${esc(shortDate(L.to))}</em></span><span class="lvtag">on leave</span></button>`}).join('')}</div>
+      <div class="mrow"><button class="btn primary big" data-closemodal>Done · ${inN} working · ${off.length} off</button></div>`;
   }else if(modal.kind==='send'){
     const teams=effTeams(cur), vp=villaPlan(cur,teams), sentTo=dayRec(cur).sentTo||{}, withL=teams.filter(t=>t.leader), nSent=withL.filter(t=>sentTo[t.id]).length;
     inner=`<div class="mhead"><div><b>Send to leaders</b><span>${shortDate(cur)}${nSent?` · ${nSent} of ${withL.length} sent`:''}</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
@@ -3648,12 +3844,19 @@ function renderModal(){
       <div class="mrow"><button class="btn" data-copy>Copy all (group)</button><button class="btn" data-pdfday>Share PDF</button></div>`;
   }else if(modal.kind==='leave'){
     const l=modal, ex=l.id&&(S.leaves||[]).find(x=>x.id===l.id), n=daysBetween(l.from,l.to)+1;
-    inner=`<form id="leaveform" class="mform"><div class="mhead"><div><b>${ex?'Edit leave':'Add leave'}</b><span>The person is marked off on every day of the leave.</span></div><button type="button" class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-      <label class="field"><span class="lbl">Staff member</span><select class="textin" id="lv-name">${S.staff.map(s=>`<option value="${esc(s)}" ${s===l.name?'selected':''}>${esc(dn(s))}${dn(s)!==s?' — '+esc(s):''}</option>`).join('')}</select></label>
-      <label class="field"><span class="lbl">Type</span><select class="textin" id="lv-type">${LEAVE_TYPES.map(t=>`<option ${t===l.type?'selected':''}>${t}</option>`).join('')}</select></label>
-      <div class="two"><label class="field"><span class="lbl">From</span><input class="textin" type="date" id="lv-from" value="${l.from}" required></label><label class="field"><span class="lbl">Back to work on</span><input class="textin" type="date" id="lv-back" value="${addDays(l.to,1)}" required></label></div>
-      <p class="muted small">${n>0?`${plural(n,'day')} away · last day off ${shortDate(l.to)}`:'The return date must be after the start date'}</p>
-      <div class="row spread"><div>${ex?`<button type="button" class="btn small warn" data-lvdelete>${delArm==='lv:'+ex.id?'Tap again to delete':'Delete leave'}</button>`:''}</div><div class="row"><button type="button" class="btn" data-closemodal>Cancel</button><button class="btn primary">${ex?'Save':'Add leave'}</button></div></div></form>`;
+    const all=l.allNames||ex||S.staff.length<=12, names=all?S.staff:S.staff.slice(0,11).concat(l.name&&S.staff.indexOf(l.name)>10?[l.name]:[]);
+    const d1=cur, d2=addDays(cur,1), fromPick=l.fromPick||(l.from!==d1&&l.from!==d2), DUR=[[1,'1 day'],[7,'1 week'],[14,'2 weeks'],[30,'30 days']], durOn=DUR.find(x=>x[0]===n), backPick=l.backPick||!durOn;
+    const lc=(on,attr,txt,cls='')=>`<button type="button" class="lvc ${cls} ${on?'on':''}" ${attr} aria-pressed="${!!on}">${txt}</button>`;
+    inner=`<form id="leaveform" class="mform"><div class="mhead"><div><b>${ex?'Edit leave':'Add leave'}</b><span>Marked off on every day of the leave</span></div><button type="button" class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+      <input type="hidden" id="lv-name" value="${esc(l.name||'')}"><input type="hidden" id="lv-type" value="${esc(l.type)}">
+      <div class="lvs"><span class="lvh"><i>1</i>Who?</span><div class="lvchips">${names.map(x=>lc(x===l.name,`data-lvname="${esc(x)}"`,esc(sn(x)))).join('')}${all?'':lc(false,'data-lvall',`+${S.staff.length-names.length} more`,'more')}</div></div>
+      <div class="lvs"><span class="lvh"><i>2</i>Type</span><div class="lvchips">${LEAVE_TYPES.map(t=>lc(t===l.type,`data-lvtype="${esc(t)}"`,esc(t.replace(/ leave$/,'')))).join('')}</div></div>
+      <div class="lvs"><span class="lvh"><i>3</i>From</span><div class="lvchips">${lc(!fromPick&&l.from===d1,`data-lvfrom="${d1}"`,esc(dayLabel(d1)))}${lc(!fromPick&&l.from===d2,`data-lvfrom="${d2}"`,esc(dayLabel(d2)))}${lc(fromPick,'data-lvfrom="pick"','Pick date')}</div>
+        ${fromPick?`<input class="textin" type="date" id="lv-from" value="${l.from}" required aria-label="First day of leave">`:`<input type="hidden" id="lv-from" value="${l.from}">`}</div>
+      <div class="lvs"><span class="lvh"><i>4</i>How long?</span><div class="lvchips">${DUR.map(([k,t])=>lc(!backPick&&n===k,`data-lvdur="${k}"`,t)).join('')}${lc(backPick,'data-lvdur="pick"','Pick return')}</div>
+        ${backPick?`<label class="field"><span class="lbl">Back to work on</span><input class="textin" type="date" id="lv-back" value="${addDays(l.to,1)}" required></label>`:`<input type="hidden" id="lv-back" value="${addDays(l.to,1)}">`}</div>
+      <div class="lvsum">${l.name?`<b>${esc(sn(l.name))}</b> · ${esc(l.type.toLowerCase())}`:'<b>Tap who is on leave</b>'}<br><span>${n>0?`${esc(shortDate(l.from))} → back to work <b>${esc(shortDate(addDays(l.to,1)))}</b> · ${plural(n,'day')}`:'The return date must be after the start date'}</span></div>
+      <div class="row spread"><div>${ex?`<button type="button" class="btn small warn" data-lvdelete>${delArm==='lv:'+ex.id?'Tap again to delete':'Delete leave'}</button>`:''}</div><div class="row"><button type="button" class="btn" data-closemodal>Cancel</button><button class="btn primary">${ex?'Save':'Save leave'}</button></div></div></form>`;
   }else if(modal.kind==='add'){
     inner=`<div class="mhead"><div><b>Add</b></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
       <button class="mbig wide" data-off><b>Mark someone off</b><span>For ${shortDate(cur)}</span></button>
@@ -3670,12 +3873,13 @@ function openLeave(name,id){
   const ex=id&&(S.leaves||[]).find(x=>x.id===id);
   const cur0=!ex&&name&&leaveOn(name,cur);
   const L=ex||cur0;
-  modal={kind:'leave',id:L?L.id:null,name:L?L.name:(name||S.staff[0]),type:L?L.type:'Annual leave',from:L?L.from:cur,to:L?L.to:addDays(cur,29)};
+  modal={kind:'leave',id:L?L.id:null,name:L?L.name:(name||''),type:L?L.type:'Annual leave',from:L?L.from:cur,to:L?L.to:addDays(cur,29)};
   sel=null;villaSel=null;renderMenu();renderModal();
 }
 function readLeave(){if(!$('lv-name'))return;modal.name=$('lv-name').value;modal.type=$('lv-type').value;modal.from=$('lv-from').value;modal.to=addDays($('lv-back').value||modal.from,-1)}
 function saveLeave(){
   readLeave();
+  if(!modal.name){toast('Tap who is on leave');return}
   if(!modal.from||modal.to<modal.from){toast('The return date must be after the start date');return}
   S.leaves=S.leaves||[];
   let l=modal.id&&S.leaves.find(x=>x.id===modal.id);
@@ -3706,25 +3910,27 @@ function loadPreviewHtml(){
     <table class="loadtbl"><tbody>${rows.map(r=>`<tr class="${r.per>maxV()?'heavy-row':''}"><td>${shortDate(r.s)}</td><td class="n">${r.villas} villas</td><td class="n">${r.teams} teams</td><td class="n">≈${r.per} each</td></tr>`).join('')}</tbody></table>
     <span class="muted small">Lightest maintenance days in the next 3 weeks: ${light.slice(0,4).map(r=>`${shortDate(r.s)} (≈${r.per} each)`).join(', ')}${noMaint.size?`. No visits on ${[...noMaint].join(' and ')}.`:''}</span></div>`;
 }
-function workPicker(){
+function workPicker(part){
   const on=modal.need||{}, day=modal.from||cur, off=new Set(dayRec(day).absent||[]);
   const avail=sk=>S.staff.filter(n=>!off.has(n)&&(S.skills[n]||[]).includes(sk)).length;
   const picked=SKILLS.filter(s=>on[s.id]&&s.id!=='lead');
   const notPicked=SKILL_GROUPS.filter(g=>g.name!=='Maintenance').map(g=>({...g,ids:g.ids.filter(id=>id!=='lead'&&!on[id])})).filter(g=>g.ids.length);
-  return `<div class="field"><span class="lbl">1 · What work is it? <span class="muted">(tap one or more)</span></span>
+  const allK=modal.works.length&&modal.works.every(w=>(modal.sizes[w]||'M')===(modal.sizes[modal.works[0]]||'M'))?(modal.sizes[modal.works[0]]||'M'):null;
+  const P1=`<div class="field"><span class="lbl">What work? <span class="muted">(tap one or more)</span></span>
       <div class="worktiles">${WORKS.map(w=>{const on=modal.works.includes(w.id),hp=SIZE_HELP[w.id]||SIZE_HELP._,cur=modal.sizes[w.id]||'M';
-        return `<button type="button" class="wtile ${on?'on':''}" data-pmwork="${w.id}"><span class="wtick">${on?'✓':''}</span><span><b>${w.name}</b>${w.sub?`<small class="wsub">${w.sub}</small>`:''}${w.heavy?'<em>heavy</em>':''}</span></button>${on?`<div class="szinline"><span class="szwork">How big is the ${esc(w.name.toLowerCase())}?</span><div class="szcards">${['S','M','L'].map((k,i)=>`<button type="button" class="szcard ${cur===k?'on':''}" data-pmwsize="${w.id}:${k}" aria-pressed="${cur===k}"><b>${cur===k?'✓ ':''}${SZL[k]}</b><span>${esc(hp[i])}</span><span class="szn"><b>${crewFor(w.id,k)}</b> ${crewFor(w.id,k)===1?'person':'people'}</span><em>${SZLEAD[k]}</em></button>`).join('')}</div></div>`:''}`}).join('')}</div>
+        return `<button type="button" class="wtile ${on?'on':''}" data-pmwork="${w.id}"><span class="wtick">${on?'✓':''}</span><span><b>${w.name}</b>${w.sub?`<small class="wsub">${w.sub}</small>`:''}${w.heavy?'<em>heavy</em>':''}</span></button>${on&&modal.sizeEach?`<div class="szinline"><span class="szwork">How big is the ${esc(w.name.toLowerCase())}?</span><div class="szcards">${['S','M','L'].map((k,i)=>`<button type="button" class="szcard ${cur===k?'on':''}" data-pmwsize="${w.id}:${k}" aria-pressed="${cur===k}"><b>${cur===k?'✓ ':''}${SZL[k]}</b><span>${esc(hp[i])}</span><span class="szn"><b>${crewFor(w.id,k)}</b> ${crewFor(w.id,k)===1?'person':'people'}</span><em>${SZLEAD[k]}</em></button>`).join('')}</div></div>`:''}`}).join('')}</div>
       ${modal.works.length?'<span class="muted small">Every new job starts on Medium. The biggest size decides who leads; the team gets the biggest crew.</span>':''}
       ${modal.works.length&&jobHint(modal.works,modal.sizes)?`<p class="jobhint">📈 ${jobHint(modal.works,modal.sizes)}</p>`:''}</div>
-    <div class="field"><span class="lbl">2 · Team needs</span>
+    ${modal.works.length?`<div class="field"><span class="lbl">How big? <span class="muted">(quote value sets the size)</span></span><div class="qsz">${['S','M','L'].map(k=>`<button type="button" class="qszb ${!modal.sizeEach&&allK===k?'on':''}" data-pmqsize="${k}" aria-pressed="${!modal.sizeEach&&allK===k}"><b>${SZL[k]}</b><span>${k==='S'?'under 5k':k==='M'?'5k – 25k':'over 25k'}</span></button>`).join('')}</div>${modal.works.length>1||modal.sizeEach?`<button type="button" class="link small" data-pmsizeeach>${modal.sizeEach?'Same size for all':'Different size for each work'}</button>`:''}</div>`:''}`;
+  const P2=`<div class="field"><span class="lbl">Team needs</span>
       ${!modal.needOpen?`<div class="needsum ${picked.some(x=>avail(x.id)<on[x.id])?'short':''}"><span>${picked.length?picked.map(x=>`${esc(x.short||x.label)}${on[x.id]>1?' ×'+on[x.id]:''}${avail(x.id)<on[x.id]?' ⚠':''}`).join(' · '):'Nothing special'} <em>· ${modal.min} people · ${modal.needEdited?'changed by you':'set automatically'}</em>${picked.some(x=>avail(x.id)<on[x.id])?`<b class="redtxt"> Not enough: ${picked.filter(x=>avail(x.id)<on[x.id]).map(x=>esc(x.label)).join(', ')}</b>`:''}</span><button type="button" class="link" data-pmneedopen>Change</button></div>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}`:`
       ${picked.length?`<div class="needlist">${picked.map(s=>{const a=avail(s.id),c=on[s.id];return `<div class="needrow ${a<c?'short':''}"><span class="nl"><b>${s.label}</b><em>${a} available${a<c?' — not enough':''}</em></span><span class="wcnt"><button type="button" data-pmcount="${s.id}" data-delta="-1" aria-label="Fewer">−</button><b>${c}</b><button type="button" data-pmcount="${s.id}" data-delta="1" aria-label="More">+</button></span><button type="button" class="iconbtn sm" data-pmtoggle="${s.id}" aria-label="Remove ${s.label}">×</button></div>`}).join('')}</div>`:'<p class="muted small">Tap the work above and the skills it needs appear here.</p>'}
       <button type="button" class="link" data-pmaddskill>${modal.addOpen?'Hide other skills':'+ Add another skill'}</button>
       ${modal.addOpen?notPicked.map(g=>`<div class="tgroup"><span class="lbl">${g.name}</span><div class="tchips">${g.ids.map(id=>`<button type="button" class="tchip" data-pmtoggle="${id}">${SK[id]}<em>${avail(id)} available</em></button>`).join('')}</div></div>`).join(''):''}
       <div class="row"><label class="field" style="max-width:200px"><span class="lbl">Team size (at least)</span><input class="textin" type="number" min="1" max="20" id="pm-min" value="${modal.min}"></label>${modal.heavy?'<span class="typepill off" style="color:var(--red);background:var(--red-soft)">Heavy work — safety gear</span>':''}</div>
       <p class="muted small">Maintenance teams run every day as normal — you only choose what this new job needs.</p>
-      <button type="button" class="link" data-pmneedopen>Done</button>`}</div>
-    <div class="field"><span class="lbl">3 · Options (optional)</span>
+      <button type="button" class="link" data-pmneedopen>Done</button>`}</div>`;
+  const P3=`<div class="field"><span class="lbl">More options (optional)</span>
       <label class="field"><span class="lbl">Notes for the crew</span><textarea class="textin" id="pm-note" rows="2" maxlength="400" placeholder="e.g. Gate code 1234 · bring the long ladder · client wants the palms kept">${esc(modal.note||'')}</textarea></label>
       <label class="field" style="max-width:260px"><span class="lbl">Quote value (AED)</span><input class="textin" type="number" min="0" step="50" id="pm-value" value="${modal.value||''}" placeholder="e.g. 4500" inputmode="decimal"></label>
       <p class="muted small" style="margin-top:-4px">Sets the size of every work: under 5,000 Small · 5,000–25,000 Medium · above 25,000 Large. You can still change each card.</p>
@@ -3739,26 +3945,32 @@ function workPicker(){
       <button type="button" class="link" data-pmpinopen>${modal.pinOpen?'Hide staff':'+ Choose people'}</button>
       ${modal.pinOpen?`<div class="tchips">${S.staff.filter(n=>!modal.pins.includes(n)).map(n=>`<button type="button" class="tchip big" data-pmpin="${esc(n)}">${esc(n)}${(dayRec(modal.from||cur).absent||[]).includes(n)?'<em>off that day</em>':''}</button>`).join('')}</div>`:''}
     </div>`;
+  return part===1?P1:part===2?P2:part===3?P3:P1+P2+P3;
 }
 function jobForm(){
-  const p=modal.id?projById(modal.id):null, n=daysBetween(modal.from,modal.to)+1, crew=p?people(p.crew):[];
-  return `<form id="projform" class="mform"><div class="mhead"><div><b>${p?'Edit new work':'Add new work'}</b></div><button type="button" class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
-    <label class="field"><span class="lbl">Site / client and task</span><input class="textin" id="pm-title" value="${esc(modal.title)}" placeholder="e.g. Villa 23, Al Reef – new garden" required></label>
-    ${workPicker()}
-    <div class="two"><label class="field"><span class="lbl">From</span><input class="textin" type="date" id="pm-from" value="${modal.from}" required></label><label class="field"><span class="lbl">To</span><input class="textin" type="date" id="pm-to" value="${modal.to}" required></label></div>
+  const p=modal.id?projById(modal.id):null, n=daysBetween(modal.from,modal.to)+1, crew=p?people(p.crew):[], st=modal.step||1;
+  const steps=`<div class="jsteps">${['What & where','When','Who'].map((x,i)=>`<button type="button" class="jst ${st===i+1?'on':''} ${st>i+1?'done':''}" data-pmstep="${i+1}" aria-current="${st===i+1?'step':'false'}"><i></i><span>${i+1} ${x}</span></button>`).join('')}</div>`;
+  const s1=`<label class="field"><span class="lbl">Where? <span class="muted">(site / client and task)</span></span><input class="textin" id="pm-title" value="${esc(modal.title)}" placeholder="e.g. Villa 23, Al Reef – new garden" autocomplete="off"></label>${workPicker(1)}`;
+  const s2=`<input type="hidden" id="pm-title" value="${esc(modal.title)}"><div class="two"><label class="field"><span class="lbl">From</span><input class="textin" type="date" id="pm-from" value="${modal.from}" required></label><label class="field"><span class="lbl">To</span><input class="textin" type="date" id="pm-to" value="${modal.to}" required></label></div>
     <div class="row"><span class="muted small">${n>0?plural(n,'day'):'End date is before start date'}</span><button type="button" class="btn small" data-pmextend>+1 day</button></div>
-    ${loadPreviewHtml()}
+    ${loadPreviewHtml()}`;
+  const s3=`<input type="hidden" id="pm-title" value="${esc(modal.title)}">${workPicker(2)}${workPicker(3)}
     ${p?`<div class="crewbox"><b>Crew:</b> ${crew.length?`${esc(dn(p.crew.leader)||'no leader')} (leader)${p.crew.members.length?', '+dnl(p.crew.members).map(esc).join(', '):''}`:'not set yet — Build teams on the first day picks it.'}</div>`:''}
-    <div class="row spread"><div class="row">${p?`<button type="button" class="btn small warn" data-pmdelete>Delete</button>${p.done?'<button type="button" class="btn small" data-pmreopen>Reopen</button>':p.from<=TODAY?'<button type="button" class="btn small" data-pmdone>Mark done today</button>':''}`:''}</div>
-    <div class="row"><button type="button" class="btn" data-closemodal>Cancel</button><button class="btn primary">${p?'Save':'Add'}</button></div></div></form>`;
+    ${p?`<div class="row">${`<button type="button" class="btn small warn" data-pmdelete>Delete</button>${p.done?'<button type="button" class="btn small" data-pmreopen>Reopen</button>':p.from<=TODAY?'<button type="button" class="btn small" data-pmdone>Mark done today</button>':''}`}</div>`:''}`;
+  const next=st<3?`<button type="button" class="btn ${p?'':'primary'}" data-pmstep="${st+1}">Next: ${st===1?'when':'who'} →</button>`:'';
+  const save=p||st===3?`<button class="btn primary">${p?'Save':'Add new work'}</button>`:'';
+  return `<form id="projform" class="mform"><div class="mhead"><div><b>${p?'Edit new work':'Add new work'}</b>${p?`<span>${esc(p.title)}</span>`:''}</div><button type="button" class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
+    ${steps}
+    ${st===1?s1:st===2?s2:s3}
+    <div class="jfoot">${st>1?`<button type="button" class="btn" data-pmstep="${st-1}">← Back</button>`:`<button type="button" class="btn" data-closemodal>Cancel</button>`}<div class="row">${next}${save}</div></div></form>`;
 }
-function readModal(){if(!$('pm-title'))return;modal.title=$('pm-title').value;modal.from=$('pm-from').value;modal.to=$('pm-to').value;const mi=$('pm-min');if(mi)modal.min=Math.max(1,parseInt(mi.value)||1);const pv=$('pm-value');if(pv)modal.value=Math.max(0,parseFloat(pv.value)||0)||'';const pn=$('pm-note');if(pn)modal.note=pn.value}
+function readModal(){if(!modal||modal.kind!=='job')return;if($('pm-title'))modal.title=$('pm-title').value;if($('pm-from'))modal.from=$('pm-from').value;if($('pm-to'))modal.to=$('pm-to').value;const mi=$('pm-min');if(mi)modal.min=Math.max(1,parseInt(mi.value)||1);const pv=$('pm-value');if(pv)modal.value=Math.max(0,parseFloat(pv.value)||0)||'';const pn=$('pm-note');if(pn)modal.note=pn.value}
 function saveProj(){
   readModal();
-  const title=modal.title.trim(); if(!title){toast('Type the site or task');return}
-  if(!modal.from||!modal.to||modal.to<modal.from){toast('The end date must be on or after the start date');return}
+  const title=modal.title.trim(); if(!title){toast('Type the site or task');modal.step=1;renderModal();return}
+  if(!modal.from||!modal.to||modal.to<modal.from){toast('The end date must be on or after the start date');modal.step=2;renderModal();return}
   let p=modal.id?projById(modal.id):null;
-  if(!modal.works.length){toast('Tap what work it is first');return}
+  if(!modal.works.length){toast('Tap what work it is first');modal.step=1;renderModal();return}
   const type=(WORKS.find(w=>w.id===modal.works[0])||{}).job||'landscape';
   const extra={need:clone(modal.need),min:modal.min,heavy:modal.heavy,works:[...modal.works],pins:[...modal.pins],urgent:modal.urgent,size:modal.size||'M',value:modal.value||null,sizes:Object.assign({},modal.sizes),small:!!modal.small,waste:modal.works.includes('makeover')?!!modal.waste:undefined,removal:modal.works.includes('treeremoval')?modal.removal:undefined,sub:!!modal.sub,note:String(modal.note||'').trim().slice(0,400)||undefined};
   if(p&&(modal.works.join(',')!==modal.works0||JSON.stringify(p.sizes||{})!==JSON.stringify(extra.sizes)||JSON.stringify(p.need||{})!==JSON.stringify(extra.need)))p.crewOk=false;
@@ -3844,12 +4056,19 @@ function tidyView(){
     if(ok){sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now()}},{passive:true});
   addEventListener('touchend',e=>{if(!ok)return;ok=false;const c=e.changedTouches[0],dx=c.clientX-sx,dy=c.clientY-sy;
     if(Date.now()-st>700||Math.abs(dx)<80||Math.abs(dy)>Math.abs(dx)*0.6)return;
+    if(tab==='day'&&phTeam){const L=teamOrder(cur),k=L.findIndex(x=>x.id===phTeam);if(k<0||L.length<2)return;phTeam=L[(k+(dx<0?1:L.length-1))%L.length].id;villaSel=null;render();scrollTo(0,0);return}
     if(tab==='day')goDay(addDays(cur,dx<0?1:-1));else{cur=addDays(cur,dx<0?7:-7);render();scrollTo(0,0)}},{passive:true});
 })();
 /* ---------- events ---------- */
 function applyBackup(o){if(!o||!o.staff||!o.layouts)throw 0;snapUndo=null;S=migrate(o);save();toast('Backup loaded');tab='day';sel=null;render()}
 function closeAll(){sel=null;villaSel=null;menuMode=null;modal=null;delArm=null;renderModal();render()}
-function goDay(s){STEP_OPEN.clear();cur=s;tab='day';sel=null;villaSel=null;noteOpen=false;render();scrollTo(0,0)}
+/* who's off changes the day's inputs; the app rebuilds an untouched day itself */
+function toggleOff(n){const r=ensureDay(cur),wasManual=!!r.manual,dayCtx={type:'day',date:cur};
+  if(r.absent.includes(n)){r.absent=r.absent.filter(x=>x!==n);const def=defaultTeams(cur).find(t=>people(t).includes(n));r.absent.push(n);const teams=ctxTeams(dayCtx,true),back=def&&teams.find(t=>t.id===def.id);moveTo(dayCtx,n,back?back.id:'available');if(back&&def.leader===n&&!back.leader){back.members=back.members.filter(m=>m!==n);back.leader=n;save()}}
+  else moveTo(dayCtx,n,'absent');
+  if(!wasManual){r.manual=false;save()}}
+function prevWorkDay(s){for(let k=1;k<8;k++){const d=addDays(s,-k);if(!isDayOff(d))return d}return null}
+function goDay(s){STEP_OPEN.clear();phTeam=null;cur=s;tab='day';sel=null;villaSel=null;noteOpen=false;render();scrollTo(0,0)}
 document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.matches&&t.matches('details.more')&&t.open)document.querySelectorAll('details.more[open]').forEach(x=>{if(x!==t)x.open=false})},true);
 document.addEventListener('click',e=>{if(!e.isTrusted)return;const open=[...document.querySelectorAll('details.more[open]')];if(!open.length)return;
   if(open.some(dt=>dt.contains(e.target)))return;open.forEach(dt=>dt.open=false);if(e.target.closest('details.more>summary')||e.target.closest('.mbar button'))return;e.preventDefault();e.stopPropagation()},true);
@@ -3914,16 +4133,12 @@ document.addEventListener('click',e=>{
     const el=$('toast');el.innerHTML=`${esc(msg)} <button class="tundo" data-undojob>Undo</button>`;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true;jobUndo=null},8000);render();return}
   if('undojob' in d){if(jobUndo){const u=jobUndo,J=JSON.stringify,i=S.projects.findIndex(x=>x.id===u.proj.id);if(i>=0)S.projects[i]=u.proj;else S.projects.push(u.proj);
     Object.keys(u.days).forEach(k=>{if(dayKey(S.days[k])===dayKey(u.after[k])){if(u.days[k])S.days[k]=u.days[k];else delete S.days[k]}});jobUndo=null;reconcileAll(false);save();toast('Job is back');render()}return}
-  if(d.offn){const n=d.offn,r=ensureDay(cur),wasManual=!!r.manual; /* who's off changes the day's inputs; the app rebuilds an untouched day itself */
-    if(r.absent.includes(n)){r.absent=r.absent.filter(x=>x!==n);const def=defaultTeams(cur).find(t=>people(t).includes(n));r.absent.push(n);const teams=ctxTeams(dayCtx,true),back=def&&teams.find(t=>t.id===def.id);moveTo(dayCtx,n,back?back.id:'available');if(back&&def.leader===n&&!back.leader){back.members=back.members.filter(m=>m!==n);back.leader=n;save()}}
-    else moveTo(dayCtx,n,'absent');
-    if(!wasManual){r.manual=false;save()}
-    renderModal();render();return}
+  if(d.offn){toggleOff(d.offn);renderModal();render();return}
   if('offbuild' in d){modal=null;renderModal();const b=buildDay(cur);toast(`Teams built — ${plural(b.moves.length,'change')}`);render();return}
-  if(d.copyteam!=null){markSent(cur);const t=effTeams(cur)[Number(d.copyteam)];copyText(leaderText(t,cur),'Copied — paste in the leader\'s WhatsApp');modal.copied=Number(d.copyteam);renderModal();return}
+  if(d.copyteam!=null){const t=effTeams(cur)[Number(d.copyteam)];markTeamSent(t,cur);copyText(leaderText(t,cur),'Copied — paste in the leader\'s WhatsApp');modal.copied=Number(d.copyteam);renderModal();return}
   if('addmember' in d){modal=null;renderModal();tab='setup';setupTab='staff';render();const i=$('newname');if(i)i.focus();return}
   /* navigation */
-  if(d.tab){if(staffDraft&&tab==='setup'&&S.staff.some(personDirty)){toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save')}tab=d.tab;sel=null;villaSel=null;delArm=null;modal=null;renderModal();render();scrollTo(0,0);return}
+  if(d.tab){phTeam=null;if(staffDraft&&tab==='setup'&&S.staff.some(personDirty)){toast('You have unsaved staff changes — go back to Setup → Staff & skills and press Save')}tab=d.tab;sel=null;villaSel=null;delArm=null;modal=null;renderModal();render();scrollTo(0,0);return}
   if(d.setup){if('gostaff' in d)tab='setup';setupTab=d.setup;delArm=null;sel=null;render();return}
   if('gosync' in d){tab='setup';setupTab='data';sel=null;render();return}
   if(d.date){goDay(d.date);return}
@@ -3998,7 +4213,7 @@ document.addEventListener('click',e=>{
   if('sendtext' in d){modal={kind:'send'};sel=null;renderModal();return}
   if('off' in d){modal={kind:'off'};sel=null;renderModal();return}
   if('fab' in d){modal={kind:'add'};renderModal();return}
-  if('copy' in d){markSent(cur);copyText(whatsappText(),'Copied — paste into the WhatsApp group');return}
+  if('copy' in d){effTeams(cur).filter(t=>t.leader).forEach(t=>markTeamSent(t,cur));copyText(whatsappText(),'Copied — paste into the WhatsApp group');return}
   if('sharepdf' in d){$('toast').hidden=true;if(pendingShare){const p=pendingShare;pendingShare=null;sharePdf(p.blob,p.filename,p.title,p.onSent,true)}return}
   if('pdfday' in d){const viaSend=!!(modal&&modal.kind==='send');const det=el.closest('details');if(det)det.open=false;if(usePhoneShare()){const D0=cur;sharePlan([D0],`Garden Grow Team Plan ${shortDate(D0)}.pdf`,()=>{markSent(D0);render()});return}printDay(viaSend);return}
   if('pdfweek' in d){const det=el.closest('details');if(det)det.open=false;if(usePhoneShare()){[0,1,2,3,4,5,6].forEach(i=>ensureBuilt(addDays(weekStart(cur),i)));const ws=weekStart(cur),days=[0,1,2,3,4,5,6].map(i=>addDays(ws,i)).filter(s=>!isDayOff(s)&&(clientsOn(s).length||activeProjects(s).length));if(!days.length){toast('No working days with villas this week');return}sharePlan(days,`Garden Grow Week Plan ${shortDate(ws)}.pdf`);return}printWeek();return}
@@ -4006,10 +4221,32 @@ document.addEventListener('click',e=>{
   if('info' in d){const box=el.closest('.infowrap,.card,.ibox,.stc')||el.parentElement;if(box){box.classList.toggle('showhelp');const fb=box.classList.contains('fold')&&box.querySelector('.foldbtn');if(fb&&box.classList.contains('showhelp')&&!box.classList.contains('open')){FOLD_OPEN.add(fb.dataset.fold);box.classList.add('open')}}return}
   if('fold' in d){const k=d.fold,card=el.closest('.fold');if(FOLD_OPEN.has(k))FOLD_OPEN.delete(k);else FOLD_OPEN.add(k);if(card){card.classList.toggle('open',FOLD_OPEN.has(k));el.setAttribute('aria-expanded',FOLD_OPEN.has(k))}return}
   if('stepopen' in d){STEP_OPEN.add(Number(d.stepopen));render();return}
+  if(d.teamopen!=null){const id=d.teamopen;if(isPhone()){phTeam=id;sel=null;villaSel=null;render();scrollTo(0,0)}else{openTeams.add(id);render();const c=document.querySelector(`.board [data-drop="${CSS.escape(id)}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'center'})}return}
+  if('teamback' in d){phTeam=null;sel=null;villaSel=null;render();scrollTo(0,0);return}
+  if(d.sendnext){const t=effTeams(cur).find(x=>x.id===d.sendnext);if(!t)return;
+    const go=()=>{const L=teamOrder(cur),k=L.indexOf(t),sT=sentOf(cur),nx=L.slice(k+1).concat(L.slice(0,k)).find(x=>x.leader&&!sT(x));phTeam=nx?nx.id:null;render();scrollTo(0,0)};
+    if(openLeaderWa(t,cur)){go();return}
+    const txt=leaderText(t,cur);
+    if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markTeamSent(t,cur);go()}).catch(()=>{});return}
+    markTeamSent(t,cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);go();return}
+  if('gofix' in d){if(isPhone()){phEdit=true;render();setTimeout(()=>{const b=document.querySelector(d.gofix==='v'?'.phboard':'.afix')||document.querySelector('.phboard');if(b)b.scrollIntoView({behavior:'smooth',block:'start'})},60)}else{const b=document.querySelector(d.gofix==='v'?'.board':'#issues')||document.querySelector('.board');if(b)b.scrollIntoView({behavior:'smooth',block:'center'})}return}
+  if('offsame' in d){const pv=prevWorkDay(cur);if(!pv)return;const was=new Set((dayRec(pv).absent||[]).filter(n=>!leaveOn(n,pv)));let k=0;
+    S.staff.filter(n=>!leaveOn(n,cur)).forEach(n=>{const isOff=(dayRec(cur).absent||[]).includes(n);if(isOff!==was.has(n)){toggleOff(n);k++}});
+    toast(k?`${plural(k,'change')} — same as ${shortDate(pv)}`:`Already the same as ${shortDate(pv)}`);renderModal();render();return}
+  if(d.lvopen){openLeave(d.lvopen);return}
+  if(d.lvname!=null){readLeave();modal.name=d.lvname;renderModal();return}
+  if('lvall' in d){readLeave();modal.allNames=true;renderModal();return}
+  if(d.lvtype){readLeave();modal.type=d.lvtype;renderModal();return}
+  if(d.lvfrom){readLeave();const len=Math.max(0,daysBetween(modal.from,modal.to));if(d.lvfrom==='pick')modal.fromPick=true;else{modal.fromPick=false;modal.from=d.lvfrom;modal.to=addDays(modal.from,len)}renderModal();return}
+  if(d.lvdur){readLeave();if(d.lvdur==='pick')modal.backPick=true;else{modal.backPick=false;modal.to=addDays(modal.from,Number(d.lvdur)-1)}renderModal();return}
+  if(d.pmstep){readModal();const to=Number(d.pmstep);if(to>(modal.step||1)&&!modal.id){if(!String(modal.title||'').trim()){toast('Type where the work is');return}if(!modal.works.length){toast('Tap what work it is');return}}
+    modal.step=to;renderModal();const dd=document.querySelector('#modalroot .dialog');if(dd)dd.scrollTop=0;return}
+  if(d.pmqsize){readModal();const k=d.pmqsize;modal.works.forEach(w=>modal.sizes[w]=k);applySizes();if(!modal.smallSet){modal.small=modal.works.length>0&&modal.works.every(x=>SMALLABLE.has(x)&&modal.sizes[x]==='S')}renderModal();return}
+  if('pmsizeeach' in d){readModal();modal.sizeEach=!modal.sizeEach;renderModal();return}
   if('phedit' in d){phEdit=!phEdit;render();if(phEdit)setTimeout(()=>{const b=document.querySelector('.phboard');if(b)b.scrollIntoView({behavior:'smooth',block:'start'})},60);return}
   if('copyleader' in d){const t=effTeams(cur).find(x=>x.id===d.copyleader);if(!t)return;if(openLeaderWa(t,cur)){render();return}const txt=leaderText(t,cur);
-    if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markSent(cur);render()}).catch(()=>{});return}
-    markSent(cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);render();return}
+    if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markTeamSent(t,cur);render()}).catch(()=>{});return}
+    markTeamSent(t,cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);render();return}
   if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
   if('troster' in d){const det=el.closest('details');if(det)det.open=false;const [per,...k]=String(d.troster).split(':');makeTeamRoster(per,k.join(':')||'all');return}
   if('pdfroster' in d||'trfull' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const P0=trPref(),v=('trfull' in d)?(P0.phone?'phone':'std')+(P0.wc?'-with':'-without'):(d.pdfroster||'std-without'),wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
@@ -4092,7 +4329,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{_inChange=true;try{onChange(e)}finally{_inChange=false}});
 function onChange(e){
   const t=e.target, d=t.dataset;
-  if(modal&&modal.kind==='leave'){if(['lv-from','lv-back'].includes(t.id)){readLeave();renderModal()}return}
+  if(modal&&modal.kind==='leave'){if(['lv-from','lv-back'].includes(t.id)){const len=daysBetween(modal.from,modal.to),bk=$('lv-back');readLeave();if(t.id==='lv-from'&&bk&&bk.type==='hidden')modal.to=addDays(modal.from,len);renderModal()}return}
   if(false&&modal&&modal.kind==='job'&&t.id==='pm-type'){readModal();const b=jobOfId(t.value);modal.need=clone(jobNeeds(b));modal.min=b.min;modal.heavy=!!b.heavy;renderModal();return}
   if(modal&&modal.kind==='job'&&t.dataset.pmskill){readModal();const s=t.dataset.pmskill;if(t.checked)modal.need[s]=modal.need[s]||1;else delete modal.need[s];renderModal();return}
   if(modal&&modal.kind==='job'&&t.id==='pm-heavy'){readModal();if(modal.heavy){modal.need.heavy=modal.need.heavy||2}else delete modal.need.heavy;renderModal();return}
@@ -4144,7 +4381,7 @@ function onChange(e){
 }
 document.addEventListener('submit',e=>{
   e.preventDefault();
-  if(e.target.id==='projform'){saveProj();return}
+  if(e.target.id==='projform'){if(modal&&!modal.id&&(modal.step||1)<3){const b=document.querySelector('#projform [data-pmstep="'+((modal.step||1)+1)+'"]');if(b)b.click();return}saveProj();return}
   if(e.target.id==='leaveform'){saveLeave();return}
   if(e.target.dataset.matchform){const old=e.target.dataset.matchform,full=e.target.querySelector('select').value;if(!full){toast('Choose the full name first');return}matchStaff(old,full);toast(`${dn(full)} is now ${full}`);render();return}
   if(e.target.id==='renameform'&&sel){const oldN=sel.name,v=$('rn-input').value.trim();
