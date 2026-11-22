@@ -588,7 +588,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .ahd{text-align:center;min-width:0;display:grid}
 .ahd span{font-size:.72rem;font-weight:800;letter-spacing:.08em;color:#a8d5aa}
 .ahd b{font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1.15}
-.ahstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.ahstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;text-align:center}
 .ahstats>*{background:rgba(255,255,255,.1);border-radius:12px;padding:6px 0;border:0;color:#fff;font:inherit;display:grid;cursor:pointer}
 .ahstats b{font-family:var(--display);font-size:1.35rem;line-height:1.2}
 .ahstats span{font-size:.75rem;color:#cfe5cf}
@@ -3279,7 +3279,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
   const head=`<div class="ah"><div class="ahnav"><button class="ahbtn" data-shiftday="-1" aria-label="Previous day">‹</button>
       <div class="ahd"><span>${esc(dayLabel(cur).toUpperCase())}${dOff?' · DAY OFF':''}</span><b>${esc(longDate(cur).replace(',','').replace(/ \d{4}$/,''))}</b></div>
       <button class="ahbtn" data-shiftday="1" aria-label="Next day">›</button></div>
-    ${dOff?'':`<div class="ahstats"><button data-off aria-label="Who's working"><b>${placed}</b><span>working</span></button><button data-gofix="v" aria-label="Villas"><b>${vp.total}</b><span>villas</span></button><button data-off aria-label="Who's off"><b>${off.length}</b><span>off</span></button></div>`}
+    ${dOff?'':`<div class="ahstats"><button data-off aria-label="Who's working"><b>${placed}</b><span>working</span></button><button data-gofix="v" aria-label="Villas"><b>${vp.total}</b><span>villas</span></button><button data-off aria-label="Who's off"><b>${off.length}</b><span>off</span></button><button data-setup="villas" data-gostaff aria-label="Maintenance clients"><b>${nClients}</b><span>clients</span></button></div>`}
     ${cur!==TODAY?'<button class="ahtoday" data-gototoday>Back to today</button>':''}</div>`;
   const status=dOff?`<div class="abox"><span class="abn">–</span><div><b>Weekly day off</b><span>No teams on this day</span></div></div>`
     :!built?`<div class="abox"><span class="abn">–</span><div><b>No plan saved for this day</b><span>Past days only show what was saved</span></div></div>`
