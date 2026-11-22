@@ -342,7 +342,7 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .sendcard{border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
 .sendhead{display:flex;justify-content:space-between;gap:8px;background:var(--green);color:var(--surface);padding:10px 12px;font-size:.92rem}
 .sendcard.proj .sendhead{background:var(--nw-bar)}
-.sendtxt{margin:0;padding:10px 12px;font-family:var(--body);font-size:.86rem;white-space:pre-wrap;background:var(--bg);color:var(--ink)}
+.sendtxt{margin:0;padding:10px 12px;font-family:var(--body);font-size:.86rem;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);color:var(--ink)}
 .sendcard .btn{border-radius:0;border:0;border-top:1px solid var(--line)}
 .crewbox{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:.88rem}
 .loadtbl{width:100%;border-collapse:collapse;font-size:.86rem}
@@ -641,10 +641,12 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 }
 @media (min-width:900px){
   .dayA{grid-template-columns:330px minmax(0,1fr);align-items:start;padding-bottom:0}
-  .homeA{position:sticky;top:76px}
+  .homeA{position:sticky;top:76px;z-index:6} /* its popups sit above the team board */
   .dayA .dbar{grid-template-columns:1fr auto}
   .aqb{height:70px}
   .ahd b{font-size:1.2rem}
+  /* PDFs menu in the side column: opens beside it and scrolls, so the lower items are never out of reach (21 Nov 2026) */
+  .homeA .aqd .morepop{position:fixed;left:calc(max(0px, (100vw - 1480px) / 2) + 370px);right:auto;top:84px;width:340px;max-height:calc(100vh - 104px);overflow:auto}
 }
 /* team screen (phone) */
 .tscr{display:grid;gap:12px;padding-bottom:150px}
@@ -705,6 +707,9 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .qszb.on{border-color:var(--green);background:var(--green-soft)}.qszb.on b{color:var(--green)}
 .jfoot{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;position:sticky;bottom:-20px;background:var(--surface);padding:10px 0 4px;margin-top:2px;border-top:1px solid var(--soft)}
 .jfoot .row{flex-wrap:nowrap}
+/* scrolling inside a window or popup never drags the page behind it (21 Nov 2026) */
+#modalroot .dialog,.menu,.morepop{overscroll-behavior:contain}
+.mhead>div{min-width:0}.mhead b,.mhead span{overflow-wrap:anywhere}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{header.top,#tabbar,main#view,.fab,#menu,#modalroot,#overlay,.toast{display:none!important}}
 /* printable sheet (PDF) */
@@ -3218,7 +3223,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
       <div class="stshare2"><div class="splitb"><button class="btn" data-troster="day:all">Roster PDF</button><details class="more pdfmenu"><summary class="btn" aria-label="Roster PDF options">▾</summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details></div><div class="splitb"><button class="btn" data-pdfday>Plan PDF</button><details class="more pdfmenu"><summary class="btn" aria-label="Plan PDF options">▾</summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>${more.replace('More ▾','⋯')}</div></div></article>
     <div class="stnw"><span><b>New work</b> · ${ps.length?ps.map(p=>`<button class="link small" data-editproj="${p.id}">${esc(p.title)}</button>`).join(', '):'none today'}${upcoming.length?` · ${upcoming.length} coming up`:''}</span><button class="link small" data-newproj>Add</button></div>
   </section>`;
-  const fixCard=(sug.moves.length||ideas.length||(iss.length&&sug.left.length))?issuesCard():'';
+  const fixCard=(sug.moves.length||ideas.length||iss.length)?issuesCard():''; /* "See how to fix" always has the list to show */
   const tm=(S.toMatch||[]).filter(n=>S.staff.includes(n)).length;
   /* ---------- Front page A (phone + laptop) · team screen C (phone) — 18 Nov 2026 ---------- */
   const dOff=isDayOff(cur);
@@ -3298,7 +3303,7 @@ function renderTeamScreen(t,teams,vp){
   const villas=vl?(vl.length?`<div class="tsvl">${villaGroups(vl).map(g=>`<div class="tsarea">${esc(g.area)}</div>${g.items.map(c=>{const nw=isNewOn(c,cur);return `<button class="tsv ${nw?'nw':''} ${villaSel===c.id?'sel':''}" data-villa="${esc(c.id)}"><i class="vno">${no.get(c.id)}</i><span>${esc(villaName(c))}${moved[c.id]?' <em>moved</em>':''}</span>${nw?'<em>NEW</em>':freqTag(c)?`<em style="color:var(--muted)">${esc(freqTag(c))}</em>`:''}</button>`}).join('')}`).join('')}</div>`:'<p class="muted small">No villas</p>'):'';
   const rl=vl&&vl.length?routeLinks(vl):{parts:[],skipped:[]};
   const sm=!isProj(t)?(smallByTeam(cur,teams,vp)[t.id]||[]):[];
-  const btns=vl?`<div class="tsbtns">${rl.parts.length?rl.parts.map((x,k)=>`<a class="btn" href="${esc(x.url)}" target="_blank" rel="noopener">${rl.parts.length>1?`Route ${k+1} (${x.from}–${x.to})`:'Route in Maps'}</a>`).join(''):'<button class="btn" disabled>No map pins</button>'}${vl.length?`<button class="btn" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}</div>${rl.parts.length&&rl.skipped.length?`<p class="muted small">No map pin: ${rl.skipped.map(c=>esc(villaName(c))).join(', ')}</p>`:''}`:'';
+  const btns=vl&&vl.length?`<div class="tsbtns">${rl.parts.length?rl.parts.map((x,k)=>`<a class="btn" href="${esc(x.url)}" target="_blank" rel="noopener">${rl.parts.length>1?`Route ${k+1} (${x.from}–${x.to})`:'Route in Maps'}</a>`).join(''):'<button class="btn" disabled>No map pins</button>'}${vl.length?`<button class="btn" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}</div>${rl.parts.length&&rl.skipped.length?`<p class="muted small">No map pin: ${rl.skipped.map(c=>esc(villaName(c))).join(', ')}</p>`:''}`:'';
   const unsentNext=list.slice(i+1).concat(list.slice(0,i)).find(x=>x.leader&&!sentT(x));
   const bottom=!t.leader?`<button class="asend go" data-teamopen="${esc(nx.id)}">Next team: ${esc(tShort(nx))} →</button>`
     :st?`<button class="asend done" ${unsentNext?`data-teamopen="${esc(unsentNext.id)}"`:'data-teamback'}>${ICON.ok}Sent${st===true?'':' '+esc(st)} · ${unsentNext?`next: ${esc(tShort(unsentNext))} →`:'all sent'}</button>`
@@ -3706,7 +3711,11 @@ function renderSetup(){
 }
 
 /* ---------- person + villa menu (bottom sheet on phone, popover on laptop) ---------- */
+/* the "More" part of a name / villa menu stays open while you tick things in it (21 Nov 2026) */
+let MMORE_OPEN=false, MMORE_FOR='';
+document.addEventListener('toggle',e=>{const t=e.target;if(!t||!t.closest||!t.closest('#menu'))return;if(t.matches('details.mmore'))MMORE_OPEN=t.open;const m=$('menu');if(m&&!m.classList.contains('sheet'))positionMenu()},true);
 function renderMenu(){
+  {const k=(villaSel||'')+'|'+(sel&&sel.name||'');if(k!==MMORE_FOR){MMORE_FOR=k;MMORE_OPEN=false}}
   const el=$('menu'), ov=$('overlay');
   const show=html=>{el.innerHTML=html;el.hidden=false;const sheet=isPhone();el.classList.toggle('sheet',sheet);ov.hidden=!sheet&&!modal;if(!sheet)positionMenu()};
   if(villaSel&&tab==='day'){
@@ -3717,13 +3726,13 @@ function renderMenu(){
       ${villaMapLink(c)?`<a class="mi" href="${esc(villaMapLink(c))}" target="_blank" rel="noopener">Open map</a>`:''}
       ${moved?'<button class="mi" data-vauto>Back to automatic</button>':''}
       <div class="msec">This visit</div>${next?`<button class="mi" data-vnext="${next.s}">Move to ${shortDate(next.s)} (lighter day)</button>`:''}<button class="mi warn" data-vskip>Skip today</button>
-      <details class="mmore"><summary>More — needs and time</summary><div class="msec">What this villa needs</div><div class="tchips">${VTAGS.map(x=>`<button class="tchip ${vTags(c).includes(x.id)?'on':''}" data-vtag="${x.id}" data-vtagid="${esc(c.id)}">${vTags(c).includes(x.id)?'✓ ':''}${x.label}<em>${esc(SK[x.skill])}</em></button>`).join('')}</div>
+      <details class="mmore" ${MMORE_OPEN?'open':''}><summary>More — needs and time</summary><div class="msec">What this villa needs</div><div class="tchips">${VTAGS.map(x=>`<button class="tchip ${vTags(c).includes(x.id)?'on':''}" data-vtag="${x.id}" data-vtagid="${esc(c.id)}">${vTags(c).includes(x.id)?'✓ ':''}${x.label}<em>${esc(SK[x.skill])}</em></button>`).join('')}</div>
       <label class="field inline"><span class="lbl">Time here (normal crew of 4)</span><input class="textin num" type="number" min="10" max="600" step="5" data-vminid="${esc(c.id)}" value="${(S.villaMins||{})[c.id]||''}" placeholder="${MIN_BY_SIZE[sizeOf(c)]} min"></label></details>`);
   }
   if(!sel){el.hidden=true;ov.hidden=!modal;return}
   const ctx=sel.ctx, n=sel.name;
   const lvNow=leaveOn(n,ctx.type==='day'?ctx.date:TODAY);
-  const leaveHtml=`<button class="mi" data-leavefor="${esc(n)}">${lvNow?`On ${esc(lvNow.type.toLowerCase())} until ${shortDate(lvNow.to)} — edit`:'Add annual leave…'}</button>`;
+  const leaveHtml=`<button class="mi" data-leavefor="${esc(n)}">${lvNow?(lvNow.src==='att'?`On leave until ${shortDate(lvNow.to)} (Attendance app) · add other leave…`:`On ${esc(lvNow.type.toLowerCase())} until ${shortDate(lvNow.to)} — edit`):'Add annual leave…'}</button>`;
   const supHtml=`<button class="mi ${isSup(n)?'lead':''}" data-psup>${isSup(n)?'✓ Supervisor — tap to remove':'Make supervisor'}</button>`;
   const skillsHtml=`<div class="msec">Skills</div><div class="pills">${SKILLS.filter(s=>!s.grade).map(s=>`<button class="pill ${has(n,s.id)?'on':''}" data-pskill="${s.id}" aria-pressed="${has(n,s.id)}">${s.label}</button>`).join('')}</div>`;
   const memberHtml=`<div class="mrow"><button class="btn" data-menurename>Rename</button><button class="btn warn ${menuMode==='remove'?'arm':''}" data-menuremove>${menuMode==='remove'?'Tap again to remove':'Remove from staff'}</button></div>`;
@@ -3735,7 +3744,7 @@ function renderMenu(){
     <div class="msec">Move to</div><div class="mgrid">${teams.filter(t=>t!==inT).map(t=>{const np=people(t).length,free=maxTeam()-np;return `<button class="mbig ${isProj(t)?'proj':''} ${!isProj(t)&&free>0?'free':''}" data-to="${t.id}"><b>${esc(tName(t))}</b><span>${isProj(t)?plural(np,'person','people'):free>0?`${np} people · ${plural(free,'seat')} free`:`${np} people · car full`}</span></button>`}).join('')}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?`<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>${plural(nurseryOf(ctx.date).length,'person','people')} there</span></button>`:''}${ctx.type==='day'&&!isOff?`<button class="mbig offb" data-to="absent"><b>Off today</b><span>sick, absent…</span></button>`:''}${inT||isOff?'<button class="mbig" data-to="available"><b>Available</b><span>Not in a team</span></button>':''}${ctx.type==='day'&&!nurseryOf(ctx.date).includes(n)?'<button class="mbig" data-to="nursery"><b>Nursery / farm</b><span>stays to look after the plants</span></button>':''}</div>
     ${inT&&ctx.type==='day'?'<button class="mi" data-pswap>⇄ Swap with someone…</button>':''}
     ${inT&&!isLead?`<button class="mi lead" data-lead>Make leader of ${esc(inT.name)}</button>`:''}
-    <details class="mmore"><summary>More — leave, skills, rename</summary>${leaveHtml}${supHtml}${skillsHtml}${memberHtml}</details>`);
+    <details class="mmore" ${MMORE_OPEN?'open':''}><summary>More — leave, skills, rename</summary>${leaveHtml}${supHtml}${skillsHtml}${memberHtml}</details>`);
 }
 function focusRename(){const i=$('rn-input');if(i){i.focus();i.select()}}
 function positionMenu(){
@@ -3743,7 +3752,7 @@ function positionMenu(){
   if(!c||el.hidden)return;
   const r=c.getBoundingClientRect(), w=el.offsetWidth, h=el.offsetHeight, vw=document.documentElement.clientWidth;
   const left=Math.max(16,Math.min(r.left,vw-w-16));
-  let top=r.bottom+6; if(top+h>innerHeight-8&&r.top-6-h>8)top=r.top-6-h;
+  let top=r.bottom+6; if(top+h>innerHeight-8)top=r.top-6-h>8?r.top-6-h:Math.max(8,innerHeight-8-h); /* never past the bottom of the screen */
   el.style.left=(left+scrollX)+'px'; el.style.top=(top+scrollY)+'px';
 }
 addEventListener('resize',()=>{if(!$('menu').hidden)renderMenu()});
@@ -3832,7 +3841,7 @@ function renderModal(){
     inner=`<div class="mhead"><div><b>Who's working?</b><span>${esc(shortDate(cur))} · switch off anyone who is not</span></div><button class="iconbtn" data-closemodal aria-label="Close">${ICON.close}</button></div>
       <div class="offtop">${pv?`<button class="btn small" data-offsame>Same as ${pv===addDays(TODAY,-1)?'yesterday':esc(shortDate(pv))}</button>`:''}<button class="btn small" data-newleave>+ Leave (several days)</button></div>
       <div class="swl">${rest.map(n=>{const on=!off.includes(n);return `<button class="swr ${on?'on':''}" data-offn="${esc(n)}" role="switch" aria-checked="${on}"><span class="swn">${esc(sn(n))}${role(n)?`<em>${role(n)}</em>`:''}${on?'':'<em class="o">off today</em>'}</span><span class="sw"><i></i></span></button>`}).join('')}
-      ${lv.map(n=>{const L=leaveOn(n,cur);return `<button class="swr lv" data-lvopen="${esc(n)}"><span class="swn">${esc(sn(n))}<em>${esc(String(L.type||'leave').toLowerCase())} · to ${esc(shortDate(L.to))}</em></span><span class="lvtag">on leave</span></button>`}).join('')}</div>
+      ${lv.map(n=>{const L=leaveOn(n,cur);return `<button class="swr lv" ${L.src==='att'?`data-lvatt="${esc(n)}"`:`data-lvopen="${esc(n)}"`}><span class="swn">${esc(sn(n))}<em>${esc(String(L.type||'leave').toLowerCase())} · to ${esc(shortDate(L.to))}</em></span><span class="lvtag">on leave</span></button>`}).join('')}</div>
       <div class="mrow"><button class="btn primary big" data-closemodal>Done · ${inN} working · ${off.length} off</button></div>`;
   }else if(modal.kind==='send'){
     const teams=effTeams(cur), vp=villaPlan(cur,teams), sentTo=dayRec(cur).sentTo||{}, withL=teams.filter(t=>t.leader), nSent=withL.filter(t=>sentTo[t.id]).length;
@@ -3872,7 +3881,7 @@ function renderModal(){
 function openLeave(name,id){
   const ex=id&&(S.leaves||[]).find(x=>x.id===id);
   const cur0=!ex&&name&&leaveOn(name,cur);
-  const L=ex||cur0;
+  const L=ex||(cur0&&cur0.src!=='att'?cur0:null); /* a leave from the Attendance app is read only: start a new one instead */
   modal={kind:'leave',id:L?L.id:null,name:L?L.name:(name||''),type:L?L.type:'Annual leave',from:L?L.from:cur,to:L?L.to:addDays(cur,29)};
   sel=null;villaSel=null;renderMenu();renderModal();
 }
@@ -4234,6 +4243,7 @@ document.addEventListener('click',e=>{
     S.staff.filter(n=>!leaveOn(n,cur)).forEach(n=>{const isOff=(dayRec(cur).absent||[]).includes(n);if(isOff!==was.has(n)){toggleOff(n);k++}});
     toast(k?`${plural(k,'change')} — same as ${shortDate(pv)}`:`Already the same as ${shortDate(pv)}`);renderModal();render();return}
   if(d.lvopen){openLeave(d.lvopen);return}
+  if(d.lvatt){toast(`${sn(d.lvatt)}'s leave comes from the Attendance app — change it there`);return}
   if(d.lvname!=null){readLeave();modal.name=d.lvname;renderModal();return}
   if('lvall' in d){readLeave();modal.allNames=true;renderModal();return}
   if(d.lvtype){readLeave();modal.type=d.lvtype;renderModal();return}
@@ -4260,8 +4270,8 @@ document.addEventListener('click',e=>{
   if(d.addto){modal={kind:'addto',team:d.addto};sel=null;renderModal();renderMenu();return}
   if(d.pickadd){const ctx={type:'day',date:cur},nm=d.pickadd,T=effTeams(cur).find(x=>x.id===modal.team);if(T&&people(T).length>=maxTeam()){toast('Car is full — tap a name to swap');return}keepUndo();learnManualMove(ctx,nm,modal.team);const F=effTeams(cur).find(x=>people(x).includes(nm));moveTo(ctx,nm,modal.team);const nl=F?fillLeaders(ctx,[F.id]):[];toastUndo(`${dn(nm)} added to ${T?T.name:'the team'}${nl.length?' · '+nl.join(', '):''}`);const T2=effTeams(cur).find(x=>x.id===modal.team);if(!T2||people(T2).length>=maxTeam())modal=null;renderModal();render();return}
   if(d.swapfrom){modal={kind:'swap',name:d.swapfrom};renderModal();return}
-  if(d.swapwith){const a=modal.name,b=d.swapwith;keepUndo();swapPeople(a,b);modal=null;renderModal();const T=effTeams(cur).find(x=>people(x).includes(b));toastUndo(`${dn(a)} ⇄ ${dn(b)}${T&&!T.leader?' — pick a leader for '+T.name:''}`);render();return}
-  if(d.dswap&&modal&&modal.kind==='dropswap'){const a=modal.incoming,b=d.dswap;keepUndo();swapInto(a,b);modal=null;renderModal();toastUndo(`${dn(a)} ⇄ ${dn(b)}`);render();return}
+  if(d.swapwith){const a=modal.name,b=d.swapwith;keepUndo();swapPeople(a,b);modal=null;renderModal();const T=effTeams(cur).find(x=>people(x).includes(b));toastUndo(`${sn(a)} ⇄ ${sn(b)}${T&&!T.leader?' — pick a leader for '+T.name:''}`);render();return}
+  if(d.dswap&&modal&&modal.kind==='dropswap'){const a=modal.incoming,b=d.dswap;keepUndo();swapInto(a,b);modal=null;renderModal();toastUndo(`${sn(a)} ⇄ ${sn(b)}`);render();return}
   if('undolast' in d){$('toast').hidden=true;undoLast();return}
   if('goclients' in d){tab='setup';setupTab='villas';sel=null;villaSel=null;render();scrollTo(0,0);return}
   if('undosnap' in d){$('toast').hidden=true;undoSnap();return}
@@ -4388,7 +4398,7 @@ document.addEventListener('submit',e=>{
     if(!v||v===oldN){menuMode=null;renderMenu();return}
     if(S.staff.some(n=>n!==oldN&&n.toLowerCase()===v.toLowerCase())){toast(v+' is already on the list');return}
     renameStaff(oldN,v);sel=null;menuMode=null;toast(`Renamed to ${v}`);render();return}
-  if(e.target.id==='addform'){const v=$('newname').value.trim().replace(/\s+/g,' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());if(!v)return;
+  if(e.target.id==='addform'){const v=$('newname').value.trim().replace(/\s+/g,' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());if(!v){toast('Type the new person\'s name first');$('newname').focus();return}
     if(S.staff.some(n=>n.toLowerCase()===v.toLowerCase())){toast(v+' is already on the list');return}
     S.staff.push(v);save();toast(v+' added');render();const i=$('newname');if(i)i.focus()}
 });
@@ -4403,7 +4413,7 @@ document.addEventListener('drop',e=>{const z=e.target.closest('[data-drop]');if(
   else if(sameCtx(ctx,drag.ctx)&&ctx.type==='day'&&!['absent','available','nursery'].includes(z.dataset.drop)&&fullTeam(ctx.date,z.dataset.drop,drag.name)){
     const a=drag.name,onChip=e.target.closest('.chip'),b=onChip&&onChip.dataset.name,T=effTeams(ctx.date).find(x=>x.id===z.dataset.drop);
     cur=ctx.date;
-    if(b&&T&&people(T).includes(b)&&b!==a){keepUndo();swapInto(a,b);toastUndo(`${dn(a)} ⇄ ${dn(b)}`)}
+    if(b&&T&&people(T).includes(b)&&b!==a){keepUndo();swapInto(a,b);toastUndo(`${sn(a)} ⇄ ${sn(b)}`)}
     else{drag=null;sel=null;villaSel=null;modal={kind:'dropswap',team:z.dataset.drop,incoming:a};renderModal();render();return}}
   else if(sameCtx(ctx,drag.ctx)&&ctx.type==='day'&&effTeams(ctx.date).some(x=>x.id===z.dataset.drop&&people(x).includes(drag.name))){}
   else if(sameCtx(ctx,drag.ctx)){if(!['absent','available','nursery'].includes(z.dataset.drop))learnManualMove(ctx,drag.name,z.dataset.drop);moveTo(ctx,drag.name,z.dataset.drop);toast(dn(drag.name)+' moved')}
