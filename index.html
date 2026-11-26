@@ -544,6 +544,18 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 }
 @media (min-width:900px) and (prefers-color-scheme:dark){:root:not([data-theme="light"]) .apd.ppok[open]>summary::before{background:#1e2c20}:root:not([data-theme="light"]) .apd.pplo.ppok[open]>summary::before{background:var(--surface)}}
 @media (min-width:900px){:root[data-theme="dark"] .apd.ppok[open]>summary::before{background:#1e2c20}:root[data-theme="dark"] .apd.pplo.ppok[open]>summary::before{background:var(--surface)}}
+/* Both PDF windows: same width and the same height, on laptop and phone (26 Nov 2026) */
+.homeA .apd>.morepop.ppw{display:flex!important;flex-direction:column;overflow:hidden!important;height:min(560px,calc(100dvh - var(--ppt,60px) - 14px))!important;max-height:none!important}
+.ppw>.ppwh{flex:none;position:static}
+.ppw>.ppb{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start}
+.ppw .trsw2{padding:7px 12px}.ppw .trsw2 span{font-size:.74rem}
+.ppw .trfullc{padding:12px;gap:9px}.ppw .trico{display:none}.ppw .trfh b{font-size:1.05rem}
+.ppw .trfullc .trfb{min-height:44px}
+.ppw .trow2{padding:4px 4px 4px 12px}.ppw .trow2 .btn{min-height:38px}
+.ppw .trsep{margin:0}
+.ppw .ppinfo{padding:8px 12px}.trfh .ppsum{margin-top:3px;font-weight:700;color:#ffffff!important;font-size:.82rem}
+@media (max-width:899px){.homeA .apd>.morepop.ppw{width:min(420px,calc(100vw - 20px))!important}}
+@media (min-width:900px){.homeA .apd>.morepop.ppw{width:400px!important}}
 .stbars{display:grid;gap:6px}.stb{display:grid;grid-template-columns:72px 1fr 22px;align-items:center;gap:8px;font-size:.84rem;font-weight:700}
 .stb i{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}.stb i b{display:block;height:10px;border-radius:5px;background:var(--green)}.stb i b.ov{background:#c47a12}.stb em{font-style:normal;text-align:right}
 .stshare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stshare>details>summary{width:100%;justify-content:center;font-size:.84rem}
@@ -4131,12 +4143,11 @@ function rosterMenu(){
   const dt=fromIso(cur),dayB=cur===TODAY?'Today':`${DN[dt.getDay()]} ${dt.getDate()}`,when=cur===TODAY?'today':'on '+shortDate(cur);
   const cnt=t=>(vp.byTeam[t.id]||[]).length,due=tl.reduce((a,t)=>a+cnt(t),0);
   const row=(name,n,key,cls)=>`<div class="trow2${cls||''}"><div><b>${name}</b><span>${off?'Day off — week only':plural(n,'villa')+' '+when}</span></div>${off?'':`<button class="btn trd" data-troster="day:${key}"${n?'':' disabled'}>${dayB}</button>`}<button class="btn trw" data-troster="week:${key}">Week</button></div>`;
-  return `<div class="trsw2 ${P.wc?'':'off'}"><div><b class="trswb">Phone numbers: ${P.wc?'ON':'OFF'}</b><span class="trswt">${P.wc?'Client numbers + Call / WhatsApp buttons in the PDF':'No phone numbers in the PDF — map only'}</span></div><button type="button" role="switch" class="swt" aria-checked="${P.wc}" aria-label="Phone numbers" data-trwc="${P.wc?'0':'1'}"><i></i></button></div>
+  return `<div class="trsw2 ${P.wc?'':'off'}"><div><b class="trswb">Phone numbers: ${P.wc?'ON':'OFF'}</b><span class="trswt">${P.wc?'Numbers + Call / WhatsApp buttons in the PDF':'No phone numbers — map only'}</span></div><button type="button" role="switch" class="swt" aria-checked="${P.wc}" aria-label="Phone numbers" data-trwc="${P.wc?'0':'1'}"><i></i></button></div>
       <div class="trfullc"><div class="trfh"><span class="trico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>Full roster</b><span>All teams · all ${totalClients()} clients · Saturday to Thursday</span></div></div><button class="btn trfb" data-trfull>Get full roster PDF</button></div>
-      <p class="trsep">Or one team</p>
+      <p class="trsep">Or one team · week ${esc(shortDate(wk[0]))} – ${esc(shortDate(wk[5]))}</p>
       ${tl.map(t=>row(esc(tName(t)),cnt(t),esc(t.id))).join('')}
       ${tl.length?row('All teams, by team',due,'all',' all'):'<p class="muted small trnote">No teams set for this day.</p>'}
-      <p class="muted small trnote">Week = ${esc(shortDate(wk[0]))} to ${esc(shortDate(wk[5]))}</p>
 `;
 }
 function planMenu(){
@@ -4146,12 +4157,13 @@ function planMenu(){
   const gap=tm?[...Array(Math.max(0,daysBetween(TODAY,tm)-1))].map((_,i)=>addDays(TODAY,i+1)):[];
   const why=gap.length?`${gap.map(x=>DNL[tt(x).getDay()]).join(' and ')} ${gap.length>1?'are days':'is the day'} off, so this is ${DNL[tt(tm).getDay()]}'s plan`:'All teams, crew and villas';
   const row=(t,s)=>`<div class="trow2"><div><b>${t}</b>${tag(s)}</div><button class="btn trw" data-pdfday="${s}">Get PDF</button></div>`;
+  const tmSum=d=>{try{const ts=effTeams(d),n=ts.reduce((a,t)=>a+people(t).length,0),v=villaPlan(d,ts).total;return `${plural(ts.length,'team')} · ${n} working · ${plural(v,'villa')}`}catch(e){return ''}};
   let rows='';
   if(!isDayOff(TODAY))rows+=row(`Today · ${esc(shortDate(TODAY))}`,TODAY);
   if(cur!==TODAY&&cur!==tm&&!isDayOff(cur))rows+=row(`Day shown · ${esc(shortDate(cur))}`,cur);
   rows+=`<div class="trow2"><div><b>Whole week</b><span>${esc(shortDate(ws))} – ${esc(shortDate(we))} · one page per day</span></div><button class="btn trw" data-pdfweek>Get PDF</button></div>`;
   return `<div class="ppinfo"><b>A PDF of the plan you made on the day page</b><span>Nothing in your plan changes · names only, no client phone numbers</span></div>
-      ${tm?`<div class="trfullc"><div class="trfh"><div><b>Tomorrow · ${DNL[tt(tm).getDay()]} ${tt(tm).getDate()} ${MN[tt(tm).getMonth()]}</b><span>${why}</span>${tag(tm)}</div></div><button class="btn trfb" data-pdfday="${tm}">Get PDF of tomorrow's plan</button></div><p class="trsep">Or</p>`:''}
+      ${tm?`<div class="trfullc"><div class="trfh"><div><b>Tomorrow · ${DNL[tt(tm).getDay()]} ${tt(tm).getDate()} ${MN[tt(tm).getMonth()]}</b><span>${why}</span><span class="ppsum">${tmSum(tm)}</span>${tag(tm)}</div></div><button class="btn trfb" data-pdfday="${tm}">Get PDF of tomorrow's plan</button></div><p class="trsep">Or</p>`:''}
       ${rows}`;
 }
 function makeTeamRoster(per,key){
@@ -4446,7 +4458,7 @@ function placePdfWin(det){
     const b=sm.getBoundingClientRect(),p=pan.getBoundingClientRect(),hdEl=document.querySelector('header.top'),hd=hdEl?Math.max(0,hdEl.getBoundingClientRect().bottom):0;
     const st=det.style,L=Math.round(p.right+16);st.setProperty('--ppl',L+'px');st.setProperty('--ppdl',Math.round(p.right+4)+'px');st.setProperty('--pphd',Math.round(hd)+'px');
     st.setProperty('--ppt',Math.round(hd+10)+'px');
-    const h=w.offsetHeight,T=Math.round(Math.max(hd+10,Math.min(b.top-16,innerHeight-h-12)));st.setProperty('--ppt',T+'px');
+    const h=w.offsetHeight,both=[...pan.querySelectorAll('.apd>summary')].map(x=>x.getBoundingClientRect().top),bt=Math.min(...both);const T=Math.round(Math.max(hd+10,Math.min(bt-16,innerHeight-h-12)));st.setProperty('--ppt',T+'px');
     const ay=Math.round(Math.min(Math.max(b.top+b.height/2-8,T+14),T+Math.min(h,innerHeight-T-12)-30));
     st.setProperty('--ppax',(L-8)+'px');st.setProperty('--ppay',ay+'px');det.classList.toggle('pplo',ay-T>44);
   }
@@ -4641,7 +4653,7 @@ document.addEventListener('click',e=>{
   if('copyleader' in d){const t=effTeams(cur).find(x=>x.id===d.copyleader);if(!t)return;if(openLeaderWa(t,cur)){render();return}const txt=leaderText(t,cur);
     if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markTeamSent(t,cur);render()}).catch(()=>{});return}
     markTeamSent(t,cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);render();return}
-  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);if(el.classList.contains('swt')){el.setAttribute('aria-checked',String(P.wc));el.dataset.trwc=P.wc?'0':'1';const bx=el.closest('.trsw2,.trsw');if(bx){bx.classList.toggle('off',!P.wc);const tb=bx.querySelector('.trswb');if(tb)tb.textContent='Phone numbers: '+(P.wc?'ON':'OFF');const tx=bx.querySelector('.trswt');if(tx)tx.textContent=P.wc?'Client numbers + Call / WhatsApp buttons in the PDF':'No phone numbers in the PDF — map only'}return}const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
+  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);if(el.classList.contains('swt')){el.setAttribute('aria-checked',String(P.wc));el.dataset.trwc=P.wc?'0':'1';const bx=el.closest('.trsw2,.trsw');if(bx){bx.classList.toggle('off',!P.wc);const tb=bx.querySelector('.trswb');if(tb)tb.textContent='Phone numbers: '+(P.wc?'ON':'OFF');const tx=bx.querySelector('.trswt');if(tx)tx.textContent=P.wc?'Numbers + Call / WhatsApp buttons in the PDF':'No phone numbers — map only'}return}const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
   if('troster' in d){const det=el.closest('details');if(det)det.open=false;const [per,...k]=String(d.troster).split(':');makeTeamRoster(per,k.join(':')||'all');return}
   if('pdfroster' in d||'trfull' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const P0=trPref(),v=('trfull' in d)?(P0.phone?'phone':'std')+(P0.wc?'-with':'-without'):(d.pdfroster||'std-without'),wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
   if('pdfsetup' in d){printSetup();return}
