@@ -714,6 +714,58 @@ table.skills .chip{min-height:32px;padding:5px 11px}
   /* PDFs menu in the side column: opens beside it and scrolls, so the lower items are never out of reach (21 Nov 2026) */
   .homeA .aqd .morepop{position:fixed;left:calc(max(0px, (100vw - 1480px) / 2) + 370px);right:auto;top:84px;width:340px;max-height:calc(100vh - 104px);overflow:auto}
 }
+
+/* Busy 2 front page (26 Nov 2026) */
+#clientpill{display:none!important}
+.ah.ah2{background:#e2eedf;color:#21452a;border:1px solid #cfe0cb;gap:10px}
+.ah2 .ahbtn{background:#fff;border-color:#c3d8bf;color:#21452a}
+.ah2 .ahd span{color:#4f7d55}
+.ah2 .ahstats>*{background:#fff;color:#21452a}.ah2 .ahstats span{color:#4f6b53}
+.ahstats.ahs3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ah2 .ahtoday{background:#fff;color:#21452a}
+.wmini{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wm{height:52px;border-radius:10px;border:0;background:#fff;color:#21452a;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;cursor:pointer;min-width:0}
+.wm b{font-size:.74rem}.wm span{font-size:.7rem;opacity:.85}
+.wm.sel{background:#2e7d32;color:#fff}
+.wm.off:not(.sel){color:#9aa79d}
+.wm.today:not(.sel){box-shadow:inset 0 0 0 2px #9fd0a3}
+.wm.bad:not(.sel) b{color:var(--red)}
+.wl{width:20px;height:4px;border-radius:2px;display:block;background:transparent}
+.wl.light,.bxbar i.light{background:#8cc390}.wl.normal,.bxbar i.normal{background:#4f7d55}.wl.busy,.bxbar i.busy{background:#d39a3a}.wl.over,.bxbar i.over{background:#c0392b}
+.wm.sel .wl{box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.ahrow2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ahb2{min-height:40px;border-radius:10px;border:1px solid #b9d3b4;background:#fff;color:#21452a;font:inherit;font-weight:800;font-size:.84rem;cursor:pointer;width:100%}
+.amore2{display:grid}
+.busybox{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:4px}
+.bxh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.bxh>b{font-size:.95rem}
+.bxpill{font-size:.72rem;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.bxpill.light,.bxpill.normal{background:var(--green-soft);color:var(--green)}.bxpill.busy{background:var(--warn-soft);color:var(--warn)}.bxpill.over{background:var(--red-soft);color:var(--red)}.bxpill.none{background:var(--soft);color:var(--muted)}
+.bxr{display:flex;align-items:center;gap:8px;border-top:1px solid var(--soft);padding-top:6px}
+.bxm{flex:1;min-width:0;border:0;background:none;font:inherit;color:inherit;text-align:left;padding:2px 0;display:grid;gap:4px;cursor:pointer;min-height:44px}
+.bxn{display:flex;align-items:center;gap:7px;font-weight:700;font-size:.9rem}
+.bxn em{margin-left:auto;font-style:normal;font-size:.82rem;font-weight:800}
+.bxn em.light,.bxn em.normal{color:var(--green)}.bxn em.busy{color:var(--warn)}.bxn em.over{color:var(--red)}
+.bxbar{height:7px;border-radius:4px;background:var(--soft);overflow:hidden;display:block}.bxbar i{display:block;height:100%;border-radius:4px}
+.bxs{font-size:.76rem;color:var(--muted)}
+.bxr .atwa{width:42px;height:42px}
+.bxf{margin:2px 0 0;padding-top:7px;border-top:1px solid var(--soft);font-size:.74rem;color:var(--muted)}
+.apdf{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.apd{min-width:0}
+.apb{list-style:none;min-height:56px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);text-align:center;line-height:1.15;padding:4px}
+.apb::-webkit-details-marker{display:none}
+.apb b{font-size:.86rem}.apb span{font-size:.7rem;color:var(--muted)}
+.apd:first-child .apb{border-color:#b9d3b4}
+.apd[open]>.apb{outline:2px solid var(--green)}
+.aqi{font-size:1.4rem;line-height:1;color:var(--green);font-weight:800}
+.monthcard{max-width:420px}
+.tstab .tdot{display:inline-block;margin-right:6px;vertical-align:middle}
+.tscr .tcard.tv2 .tfwa{display:none}
+.tscr .tcard.tv2 .thead{cursor:default}.tscr .tcard.tv2 .chev{display:none}
+@media (max-width:899px){.ahwrap{margin:0}.ah.ah2{border-radius:18px;padding:12px}}
+@media (max-width:380px){.ah2 .ahd b{font-size:1.25rem}}
+@media (min-width:900px){.homeA{max-height:calc(100vh - 92px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px;margin-right:-2px}.homeA .apd .morepop{position:fixed;left:calc(max(0px, (100vw - 1480px) / 2) + 370px);right:auto;top:84px;width:370px;max-height:calc(100vh - 104px);overflow:auto}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ah.ah2{background:#1e2c20;color:#cfe5cf;border-color:#2f4231}:root:not([data-theme="light"]) .ah2 .ahbtn,:root:not([data-theme="light"]) .wm:not(.sel),:root:not([data-theme="light"]) .ahb2,:root:not([data-theme="light"]) .ah2 .ahstats>*,:root:not([data-theme="light"]) .ah2 .ahtoday{background:var(--surface);color:var(--ink);border-color:var(--line)}:root:not([data-theme="light"]) .ah2 .ahstats span{color:var(--muted)}}
+:root[data-theme="dark"] .ah.ah2{background:#1e2c20;color:#cfe5cf;border-color:#2f4231}:root[data-theme="dark"] .ah2 .ahbtn,:root[data-theme="dark"] .wm:not(.sel),:root[data-theme="dark"] .ahb2,:root[data-theme="dark"] .ah2 .ahstats>*,:root[data-theme="dark"] .ah2 .ahtoday{background:var(--surface);color:var(--ink);border-color:var(--line)}:root[data-theme="dark"] .ah2 .ahstats span{color:var(--muted)}
 /* team screen (phone) */
 .tscr{display:grid;gap:12px;padding-bottom:150px}
 .tsh{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -3236,10 +3288,10 @@ function splitBar(date,vp){
   const allT=effTeams(date),tn=id=>(allT.find(x=>x.id===id)||{}).name||'another team',ts=id=>{const x=allT.find(y=>y.id===id);return x?tShort(x):'another team'};
   return (vp.shared||[]).map(s=>`<div class="splitbar" title="${esc(s.why||'')}"><span><b>${esc(s.area)}</b> is split over ${Object.keys(s.counts).length} teams · ${Object.keys(s.counts).map(id=>esc(ts(id))+' '+s.counts[id]).join(' · ')}</span><button class="btn small" data-keeparea="${esc(s.area)}" data-keepto="${s.main}">Give all ${s.total} to ${esc(tn(s.main))}</button></div>`).join('');
 }
-function teamCardDay(t,ctx,vp){
+function teamCardDay(t,ctx,vp,force){
   if(vp&&!isProj(t))VN.set(t,villaNeedsOf(vp.byTeam[t.id]||[]));
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), ps=problems(t), cs=esc(JSON.stringify(ctx));
-  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id)||(phEdit&&isPhone()), mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
+  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=force||openTeams.has(t.id)||(phEdit&&isPhone()), mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
   const pct=vl?Math.min(100,Math.round(Math.max(vl.length/mx,pts/capPts())*100)):0, szc=vl?{L:vl.filter(c=>sizeOf(c)==='L').length,M:vl.filter(c=>sizeOf(c)==='M').length,S:vl.filter(c=>sizeOf(c)==='S').length}:null;
   const miss=new Set(ps.filter(x=>x.kind==='skill').map(x=>x.skill)), tm=vp&&vp.time&&vp.time[t.id];
   const detail=vl?`${plural(vl.length,'villa')} of ${mx} · ${szc.L} large, ${szc.M} medium, ${szc.S} small · workload ${pts} (${(pts/Math.max(1,n)).toFixed(1)} per person)${vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈':''}${vp.km[t.id].km} km drive`:''}${tm&&vl.length?` · ≈ ${hm(tm.total)} (work ${hm(tm.work)} + drive ${hm(tm.drive)})`:''}`:'';
@@ -3251,12 +3303,12 @@ function teamCardDay(t,ctx,vp){
   if(vl&&vl.length){
     const moved=dayRec(ctx.date).villaMove||{}, rl=routeLinks(vl), nopin=new Set(rl.parts.length?rl.skipped.map(c=>c.id):vl.filter(c=>!posOf(c)).map(c=>c.id));
     const rlink=rl.parts.map((x,i)=>`<a class="trl" href="${esc(x.url)}" target="_blank" rel="noopener">${rl.parts.length>1?`Route ${i+1} (${x.from}–${x.to})`:'Open route'} ↗</a>`).join('');
-    vbox=`<div class="tsec"><div class="tsech"><span>Villas · route order</span><span class="tsr">${rlink}</span></div><div class="tbox">${vl.map((c,i)=>{const ar=areaShort(c);return `<button class="vchip vrow ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}" title="Stop ${i+1} · ${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa"><i class="cic vno2">${i+1}</i><span class="cn">${esc(villaName(c))}${freqTag(c)?`<span class="vtag">${freqTag(c)}</span>`:''}${vTags(c).length?`<span class="vtag need">${vTags(c).map(x=>(VTAGS.find(y=>y.id===x)||{}).label).join(' · ')}</span>`:''}</span>${nopin.has(c.id)?'<span class="npin">no pin</span>':''}<span class="cr">${/^https?:/i.test(ar)?'':esc(ar)}</span></button>`}).join('')}</div></div>`;
+    vbox=`<div class="tsec"><div class="tsech"><span>Villas · ${vl.length} · route order</span><span class="tsr">${rlink}</span></div><div class="tbox">${vl.map((c,i)=>{const ar=areaShort(c);return `<button class="vchip vrow ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}" title="Stop ${i+1} · ${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa"><i class="cic vno2">${i+1}</i><span class="cn">${esc(villaName(c))}${freqTag(c)?`<span class="vtag">${freqTag(c)}</span>`:''}${vTags(c).length?`<span class="vtag need">${vTags(c).map(x=>(VTAGS.find(y=>y.id===x)||{}).label).join(' · ')}</span>`:''}</span>${nopin.has(c.id)?'<span class="npin">no pin</span>':''}<span class="cr">${/^https?:/i.test(ar)?'':esc(ar)}</span></button>`}).join('')}</div></div>`;
   }else if(vl)vbox='<p class="muted small">No villas</p>';
-  const addRow=n>=maxTeam()?`<button class="addp crowadd full" disabled>Car full</button>`:`<button class="addp crowadd" data-addto="${t.id}">＋ Add person</button>`;
+  const addRow=n>=maxTeam()?'':`<button class="addp crowadd" data-addto="${t.id}">＋ Add person</button>`;
   return `<section class="tcard tv2 ${tone} ${isProj(t)?'proj':'maint'} ${ps.length?'bad':''} ${open?'open':''}" data-drop="${t.id}" data-ctx='${cs}'>
     <button class="thead tvh" data-toggle="${t.id}" aria-expanded="${open}">
-      <span class="tl1"><i class="tdot"></i><span class="tname">${esc(tName(t))}${tNameSub(t)?`<em class="tsub">${esc(tNameSub(t))}</em>`:''}</span><span class="tpill ${over?'warn':''}">${vl?plural(vl.length,'villa'):`${n}/${maxTeam()} seats`}</span>${ICON.chev}</span>
+      <span class="tl1"><i class="tdot"></i><span class="tname">${esc(tName(t))}${tNameSub(t)?`<em class="tsub">${esc(tNameSub(t))}</em>`:''}</span>${vl?'':`<span class="tpill">${n}/${maxTeam()} seats</span>`}${ICON.chev}</span>
       ${sub?`<span class="tl3 tsubl">${sub}</span>`:''}
       <span class="tvl" title="${esc(detail)}"><span><span class="${n>maxTeam()?'redtxt':''}">Car ${n}/${maxTeam()}</span>${tm&&vl&&vl.length?` · back ≈ <b>${clock(tm.finish)}</b>`:''}${tm&&tm.over?` · <b class="warntxt">over ${dayHours()} h</b>`:''}</span>${over?`<span class="tbusy">${vl.length>mx?`${vl.length-mx} over the limit`:'Busy day'}</span>`:''}</span>
       ${vl?`<span class="tvbar"><i style="width:${pct}%"></i></span>`:''}
@@ -3316,6 +3368,13 @@ const tnOf=(id,f)=>{const t=effTeams(cur).find(x=>x.id===id);return t?tName(t):f
 const moveText=m=>m.type==='nursery'?`Send <b>${esc(dn(m.name))}</b> to the nursery / farm`:m.type==='lead'?`Make <b>${esc(dn(m.name))}</b> leader of ${esc(tnOf(m.to,m.toName))}`:`Move <b>${esc(dn(m.name))}</b> from ${esc(m.fromName)} to ${esc(tnOf(m.to,m.toName))}${m.makeLead?' as leader':''}`;
 
 /* ---------- Today / day view ---------- */
+function dayLoadOf(v,cap,heavyN){if(!v)return {k:'none',v,cap};const r=v/Math.max(1,cap);let k=r>1?'over':r>=0.95?'busy':r>=0.7?'normal':'light';if(heavyN&&(k==='light'||k==='normal'))k='busy';return {k,v,cap}}
+function dayLoad(s){if(isDayOff(s))return {k:'off',v:0,cap:0};return dayLoadOf(clientsOn(s).length,effTeams(s).filter(t=>!isProj(t)).length*maxV(),0)}
+function weekMini(curLoad){
+  const ws=weekStart(cur);
+  return `<div class="wmini" aria-label="This week">${[0,1,2,3,4,5,6].map(i=>{const s=addDays(ws,i),d=fromIso(s),off=isDayOff(s),L=s===cur&&curLoad?curLoad:dayLoad(s),nw=activeProjects(s).length,bad=s>=TODAY&&!off&&issuesFor(s).length;
+    return `<button class="wm ${s===cur?'sel':''} ${s===TODAY?'today':''} ${off?'off':''} ${bad?'bad':''}" data-date="${s}" aria-label="${longDate(s)}: ${off?'Day off':plural(L.v,'villa')}${nw?', new work':''}${bad?', needs a check':''}"><b>${DN[d.getDay()]}</b><span>${off?'off':L.v||'–'}${nw?'＋':''}</span><i class="wl ${L.k}"></i></button>`}).join('')}</div>`;
+}
 function weekStrip(){
   const ws=weekStart(cur);
   return `<div class="wstrip" aria-label="This week">${[0,1,2,3,4,5,6].map(i=>{const s=addDays(ws,i),d=fromIso(s),nw=activeProjects(s).length,v=clientsOn(s).length,off=isDayOff(s)||(!v&&!nw),bad=s>=TODAY&&!off&&issuesFor(s).length;
@@ -3334,10 +3393,11 @@ function renderDay(){
   const primary=built||cur>=TODAY?`<button class="btn primary" data-send>${ICON.send}Send to leaders</button>`:`<button class="btn primary" data-build>${ICON.build}Build teams</button>`;
   const stale=built&&cur>=TODAY&&!isDayOff(cur)&&r.sig!==daySig(cur);
   const staleBar=stale?`<div class="ibox warn stalebar">${ICON.alert}<div><b>${r.sent?'Changed after sending':'Changed since your edits'}</b><span>${r.sent?'Rebuild, then send again.':'Rebuild, or keep as it is.'}</span><div class="row"><button class="btn small primary" data-build>Rebuild teams</button><button class="btn small" data-keepday>Keep as it is</button></div></div></div>`:'';
-  const more=`<details class="more"><summary class="btn">More ▾</summary><div class="morepop">
+  const moreItems=`
       <button class="btn" data-build>Rebuild teams (start this day again)</button>
 ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</button>':''}<button class="btn" data-noteopen>Note for the day</button><button class="btn" data-newleave>+ Annual leave</button><button class="btn" data-off>Change who's off</button><button class="btn" data-alljobs>All new work jobs</button>
-    </div></details>`;
+    `;
+  const more=`<details class="more"><summary class="btn">More ▾</summary><div class="morepop">${moreItems}</div></details>`;
   const ws0=weekStart(cur);
   const teamItems=`<p class="mhead2">${cur===TODAY?"Today's teams":'Teams for this day'} — ${esc(shortDate(cur))}</p>
       <button class="btn pdfi" data-pdfday><b>Day plan (A4)</b><span>all teams, villas and jobs</span></button>
@@ -3397,21 +3457,33 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
   const sentT=sentOf(cur), withL=teams.filter(t=>t.leader), nSent=withL.filter(sentT).length, unsent=withL.filter(t=>!sentT(t)), nextT=unsent[0];
   const chg=cur>=TODAY&&!dOff?changedAfterSend(cur,teams):[];
   const resendBar2=chg.length?`<div class="ibox warn stalebar">${ICON.alert}<div><b>Changed after sending: ${chg.map(t=>esc(tShort(t))).join(', ')}</b><span>Send ${chg.length>1?'these leaders':'this leader'} the new plan — the others are fine.</span><div class="row">${chg.map(t=>`<button class="btn small primary" data-copyleader="${esc(t.id)}">${IC2.wa}Send to ${esc(tShort(t))}</button>`).join('')}</div></div></div>`:(dayRec(cur).sentSig?'':resendBar);
-  const head=`<div class="ah"><div class="ahnav"><button class="ahbtn" data-shiftday="-1" aria-label="Previous day">‹</button>
+  /* Busy 2 front page (26 Nov 2026): sage date card, week row with load bars, How busy today box */
+  const capT=maxV(), capAll=maint.length*capT, curLoad=dOff?{k:'off',v:0,cap:0}:dayLoadOf(vp.total,capAll,heavy.length);
+  const head=`<div class="ah ah2"><div class="ahnav"><button class="ahbtn" data-shiftday="-1" aria-label="Previous day">‹</button>
       <div class="ahd"><span>${esc(dayLabel(cur).toUpperCase())}${dOff?' · DAY OFF':''}</span><b>${esc(longDate(cur).replace(',','').replace(/ \d{4}$/,''))}</b></div>
       <button class="ahbtn" data-shiftday="1" aria-label="Next day">›</button></div>
-    ${dOff?'':`<div class="ahstats"><button data-off aria-label="Who's working"><b>${placed}</b><span>working</span></button><button data-gofix="v" aria-label="Villas"><b>${vp.total}</b><span>villas</span></button><button data-off aria-label="Who's off"><b>${off.length}</b><span>off</span></button><button data-setup="villas" data-gostaff aria-label="Maintenance clients"><b>${nClients}</b><span>clients</span></button></div>`}
+    ${weekMini(curLoad)}
+    <div class="ahrow2"><button class="ahb2" data-tab="week">Whole week ›</button><button class="ahb2" data-monthopen>${monthOpen?'Hide month':'Month ›'}</button></div>
+    ${dOff?'':`<div class="ahstats ahs3"><button data-off aria-label="Who's working"><b>${placed}</b><span>working</span></button><button data-off aria-label="Who's off"><b>${off.length}</b><span>off</span></button><button data-setup="villas" data-gostaff aria-label="Maintenance clients"><b>${nClients}</b><span>clients</span></button></div>`}
     ${cur!==TODAY?'<button class="ahtoday" data-gototoday>Back to today</button>':''}</div>`;
   const status=dOff?`<div class="abox"><span class="abn">–</span><div><b>Weekly day off</b><span>No teams on this day</span></div></div>`
     :!built?`<div class="abox"><span class="abn">–</span><div><b>No plan saved for this day</b><span>Past days only show what was saved</span></div></div>`
     :iss.length?`<div class="abox warn"><span class="abn">${iss.length}</span><div><b>${plural(iss.length,'thing')} to fix</b><span>${esc(iss[0])}</span></div>${sug.moves.length?`<button class="btn abfix" data-applyall>${sug.moves.length===1?'Fix it':`Fix all (${sug.moves.length})`}</button>`:`<button class="btn abfix" data-gofix>See how to fix</button>`}</div>`
-    :heavy.length?`<div class="abox warn"><span class="abn">!</span><div><b>Busy day</b><span>${heavy.map(t=>{const n=(vp.byTeam[t.id]||[]).length;return esc(tShort(t))+(n>maxV()?` ${n} villas`:' long day')}).join(', ')} · limit ${maxV()} villas</span></div>${ideas.length?`<button class="btn abfix" data-gofix>See ideas</button>`:''}</div>`
-    :`<div class="abox ok"><span class="abn">${ICON.ok}</span><div><b>Teams ready</b><span>${withL.length?(nSent?`${nSent} of ${withL.length} leaders have their plan`:'Next: send the plan to the leaders'):'No teams yet'}</span></div></div>`;
+    :'';
   const tcardA=t=>{const vl=isProj(t)?null:(vp.byTeam[t.id]||[]),n=people(t).length,ov=vl&&vl.length>maxV(),ti=vp.time&&vp.time[t.id],st=sentT(t),bad=problems(t).length,p=t.projectId&&projById(t.projectId);
     return `<article class="atc ${bad||ov?'bad':''} ${nSent&&t===nextT?'next':''}"><button class="atmain" data-teamopen="${esc(t.id)}"><b>${esc(tShort(t))}</b><span>${p?esc(p.title)+' · ':''}${plural(n,'person','people')}${vl?` · ${ov?`<b class="warntxt">${plural(vl.length,'villa')}</b>`:plural(vl.length,'villa')}`:''}${ti&&vl&&vl.length?` · back ≈ ${clock(ti.finish)}`:''}</span></button>
       ${(dayRec(cur).leaderDone||{})[t.id]?`<span class="ldtag">✓ ${((dayRec(cur).leaderDone[t.id].done)||[]).length} done${(dayRec(cur).leaderDone[t.id].notDone||[]).length?` · ${dayRec(cur).leaderDone[t.id].notDone.length} not`:''}</span>`:''}${t.leader?(st?`<button class="atsent" data-copyleader="${esc(t.id)}" aria-label="Send to ${esc(sn(t.leader))} again">${ICON.ok}Sent${st===true?'':' '+esc(st)}</button>`:`<button class="atwa" data-copyleader="${esc(t.id)}" aria-label="WhatsApp ${esc(sn(t.leader))}">${IC2.wa}</button>`):''}<button class="atchev" data-teamopen="${esc(t.id)}" tabindex="-1" aria-hidden="true">›</button></article>`};
-  const pdfPop=`<div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}<p class="mhead3">Team Plan PDF</p>${teamItems}</div>`;
-  const quick=`<div class="aq"><button class="aqb" data-off>${IC2.people}<b>Who's in</b></button><button class="aqb" data-newproj>${IC2.plus}<b>New work</b></button><button class="aqb" data-newleave>${IC2.cal}<b>Leave</b></button><details class="more pdfmenu aqd"><summary class="aqb">${IC2.doc}<b>PDFs</b></summary>${pdfPop}</details></div>`;
+  const mts0=teams.filter(t=>!isProj(t)), lastBack=Math.max(0,...mts0.map(t=>vp.time&&vp.time[t.id]&&(vp.byTeam[t.id]||[]).length?vp.time[t.id].finish:0));
+  const bxRow=t=>{const st=sentT(t),n=people(t).length,ld=(dayRec(cur).leaderDone||{})[t.id],mi=mts0.indexOf(t),tone=isProj(t)?'tonep':'tone'+((mi<0?0:mi)%6);
+    const wa=t.leader?(st?`<button class="atsent" data-copyleader="${esc(t.id)}" aria-label="Send to ${esc(sn(t.leader))} again">${ICON.ok}Sent</button>`:`<button class="atwa" data-copyleader="${esc(t.id)}" aria-label="WhatsApp ${esc(sn(t.leader))}">${IC2.wa}</button>`):'';
+    const ldt=ld?` · ✓ ${(ld.done||[]).length} done${(ld.notDone||[]).length?`, ${ld.notDone.length} not`:''}`:'';
+    if(isProj(t)){const p=t.projectId&&projById(t.projectId);return `<div class="bxr tv2 ${tone}"><button class="bxm" data-teamopen="${esc(t.id)}"><span class="bxn"><i class="tdot"></i>${esc(tShort(t))}<em class="normal">New work</em></span><span class="bxs">${p?esc(p.title)+' · ':''}${plural(n,'person','people')}${ldt} ›</span></button>${wa}</div>`}
+    const v=(vp.byTeam[t.id]||[]).length,ti=vp.time&&vp.time[t.id],k=v>capT?'over':(v>=capT||(ti&&ti.over))?'busy':v>=capT*0.7?'normal':'light',pct=Math.min(100,Math.round(100*v/Math.max(1,capT)));
+    return `<div class="bxr tv2 ${tone}"><button class="bxm" data-teamopen="${esc(t.id)}" aria-label="Open ${esc(tName(t))}"><span class="bxn"><i class="tdot"></i>${esc(tShort(t))}<em class="${k}">${v} / ${capT}</em></span><span class="bxbar"><i class="${k}" style="width:${pct}%"></i></span><span class="bxs">${plural(n,'person','people')}${ti&&v?` · back ≈ ${clock(ti.finish)}`:''}${ldt} ›</span></button>${wa}</div>`};
+  const LBL={light:'Light day',normal:'Normal day',busy:'Busy day',over:'Over the limit',none:'No villas'};
+  const busyBox=dOff||!teams.length?'':`<section class="busybox"><div class="bxh"><b>How busy ${cur===TODAY?'today':'this day'}</b>${mts0.length?`<span class="bxpill ${curLoad.k}">${LBL[curLoad.k]||''} · ${vp.total} of ${capAll}</span>`:''}</div>${[...mts0,...teams.filter(isProj)].map(bxRow).join('')}<p class="bxf">Limit ${capT} villas a team${lastBack?` · day ends ≈ ${clock(lastBack)}`:''}${ideas.length&&heavy.length?` · <button class="link small" data-gofix>See ideas</button>`:''}</p></section>`;
+  const pdf2=`<div class="apdf"><details class="more pdfmenu apd"><summary class="apb"><b>Team Roster PDF</b><span>full roster first ▾</span></summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details><details class="more pdfmenu apd"><summary class="apb"><b>Team Plan PDF</b><span>day or week ▾</span></summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>`;
+  const quick=`<div class="aq"><button class="aqb" data-off>${IC2.people}<b>Who's in</b></button><button class="aqb" data-newproj>${IC2.plus}<b>New work</b></button><button class="aqb" data-newleave>${IC2.cal}<b>Leave</b></button><details class="more aqd"><summary class="aqb"><span class="aqi" aria-hidden="true">⋯</span><b>More</b></summary><div class="morepop">${moreItems}</div></details></div>`;
   const sendBtn=dOff||!built?''
     :!withL.length?''
     :iss.length&&!nSent?`<button class="asend dim" data-send>${IC2.wa}Send to leaders · fix first</button>`
@@ -3424,20 +3496,21 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
   $('view').innerHTML=`<div class="day2 dayA">
     <aside class="homeA">
       <div class="ahwrap">${head}</div>
+      ${monthOpen?`<div class="phone-only monthpop">${calendarHtml()}</div>`:''}
+      ${offLine}
       ${checkBar}${staleBar}${resendBar2}
       ${endBox}${missBox}
       ${status}
       ${noteField}
-      ${dOff||!teams.length?'':`<div class="phone-only ateams"><p class="alab">Teams</p>${teams.map(tcardA).join('')}</div>`}
+      ${busyBox}
+      ${pdf2}
       ${quick}
       ${sendBtn?`<div class="dsk">${sendBtn}</div>`:''}
-      <div class="dsk">${offLine}</div>
       ${nwLine?`<div class="dsk">${nwLine}</div>`:''}
-      <div class="phone-only amore"><button class="link" data-phedit>${phEdit?'Hide the team board':'Team board'}</button><button class="link" data-monthopen>${monthOpen?'Hide month':'Month'}</button>${more.replace('More ▾','⋯ More')}</div>
-      ${monthOpen?`<div class="phone-only monthpop">${calendarHtml()}</div>`:''}
+      ${dOff?'':`<div class="phone-only amore2"><button class="ahb2" data-phedit>${phEdit?'Hide the team board':'Edit teams ›'}</button></div>`}
     </aside>
     <div class="dmain">
-      <section class="card dbar">${weekStrip()}<div class="dacts desk-flex"><button class="btn" data-monthopen>${monthOpen?'Hide month':'Month'}</button>${pdfMenu}${more}</div>${monthOpen?`<div class="monthpop">${calendarHtml()}</div>`:''}</section>
+      ${monthOpen?`<section class="card monthcard desk-only">${calendarHtml()}</section>`:''}
       ${cur<=TODAY?attBox(cur):''}
       ${fixCard?`<div class="afix ${phEdit?'open':''}">${fixCard}</div>`:''}
       ${un.length?availableCard(ctx):''}
@@ -3455,7 +3528,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
     </div>
   </div>
   ${sendBtn?`<div class="asendbar phone-only">${sendBtn}</div>`:''}`;
-  void phSteps;void okBox;void fixes0;void primary;void kind;void pdfMenuPhone;void nClients;void nPaused;
+  void phSteps;void okBox;void tcardA;void pdfMenu;void weekStrip;void more;void fixes0;void primary;void kind;void pdfMenuPhone;void nClients;void nPaused;
 }
 const tShort=t=>tName(t).replace(/^Team\s+/i,'');
 /* A5 (22 Nov 2026): visits this month that were skipped and not moved to another day */
@@ -3489,7 +3562,8 @@ function renderTeamScreen(t,teams,vp){
   const r=dayRec(cur), ctx={type:'day',date:cur}, list=teamOrder(cur), i=Math.max(0,list.indexOf(t)), nx=list[(i+1)%list.length]||t;
   const vl=isProj(t)?null:(vp.byTeam[t.id]||[]), ti=vp.time&&vp.time[t.id], ps=problems(t), p=t.projectId&&projById(t.projectId), n=people(t).length;
   const placed=teams.reduce((a,x)=>a+people(x).length,0), off=r.absent||[], sentT=sentOf(cur), st=sentT(t);
-  const tabs=list.map(x=>{const v=isProj(x)?null:(vp.byTeam[x.id]||[]),ov=v&&v.length>maxV(),bad=problems(x).length;return `<button class="tstab ${x===t?'on':''} ${ov||bad?'warn':''}" data-teamopen="${esc(x.id)}" aria-pressed="${x===t}">${esc(tShort(x))}${ov?' · '+v.length:''}${sentT(x)?' ✓':''}</button>`}).join('');
+  const mtsT=teams.filter(x=>!isProj(x));
+  const tabs=list.map(x=>{const v=isProj(x)?null:(vp.byTeam[x.id]||[]),ov=v&&v.length>maxV(),bad=problems(x).length,mi=mtsT.indexOf(x),tone=isProj(x)?'tonep':'tone'+((mi<0?0:mi)%6);return `<button class="tstab tv2 ${tone} ${x===t?'on':''} ${ov||bad?'warn':''}" data-teamopen="${esc(x.id)}" aria-pressed="${x===t}"><i class="tdot"></i>${esc(tShort(x))}${ov?' · '+v.length:''}${sentT(x)?' ✓':''}</button>`}).join('');
   const moved=r.villaMove||{}, no=new Map((vl||[]).map((c,k)=>[c.id,k+1]));
   const villas=vl?(vl.length?`<div class="tsvl">${villaGroups(vl).map(g=>`<div class="tsarea">${esc(g.area)}</div>${g.items.map(c=>{const nw=isNewOn(c,cur);return `<button class="tsv ${nw?'nw':''} ${villaSel===c.id?'sel':''}" data-villa="${esc(c.id)}"><i class="vno">${no.get(c.id)}</i><span>${esc(villaName(c))}${moved[c.id]?' <em>moved</em>':''}</span>${nw?'<em>NEW</em>':freqTag(c)?`<em style="color:var(--muted)">${esc(freqTag(c))}</em>`:''}</button>`}).join('')}`).join('')}</div>`:'<p class="muted small">No villas</p>'):'';
   const rl=vl&&vl.length?routeLinks(vl):{parts:[],skipped:[]};
@@ -3502,16 +3576,8 @@ function renderTeamScreen(t,teams,vp){
   $('view').innerHTML=`<div class="tscr">
     <div class="tsh"><button class="tsback" data-teamback>‹ Today</button><span>${esc(shortDate(cur))} · ${placed} working · ${off.length} off</span></div>
     ${list.length>1?`<div class="tstabs" role="tablist" aria-label="Teams">${tabs}</div>`:''}
-    <section class="tsc">
-      <div class="tst"><b>${esc(tName(t))}</b><span>${plural(n,'person','people')}${vl?' · '+plural(vl.length,'villa'):''}${ti&&vl&&vl.length?` · back ≈ ${clock(ti.finish)}`:''}</span></div>
-      ${ps.length?`<div class="tsprob">${ps.map(x=>esc(x.text)).join(' · ')}</div>`:''}
-      ${p?`<div class="tjob"><span class="worksline"><b>${esc(p.title)}</b> · ${esc(worksText(p))} · Day ${daysBetween(p.from,cur)+1} of ${daysBetween(p.from,p.to)+1}</span><button class="link" data-editproj="${p.id}">Edit job</button></div>`:''}
-      <div class="tscrew">${(chipLite=true,'')}${t.leader?chip(t.leader,ctx,'lead'):'<span class="muted small">No leader</span>'}${t.members.map(m=>chip(m,ctx)).join('')}${(chipLite=false,'')}${n>=maxTeam()?'':`<button class="addp" data-addto="${t.id}">＋ Add</button>`}</div>
-      ${sm.map(q=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(q.title)}<em>${esc(worksText(q))}</em></span><button class="link small" data-editproj="${q.id}">Edit</button></div>`).join('')}
-      ${villas}
-      ${btns}
-      ${p&&p.note?`<div class="jobnote"><b>Notes for the crew:</b> ${esc(p.note)}</div>`:''}
-    </section>
+    ${teamCardDay(t,ctx,vp,true)}
+    ${(void villas,void btns,void sm,void ps,void p,void ti,'')}
     ${list.length>1?`<div class="tsdots" aria-hidden="true">${list.map(x=>`<i class="${x===t?'on':''}"></i>`).join('')}<span style="margin-left:6px">swipe for ${esc(tShort(nx))} →</span></div>`:''}
   </div>
   <div class="asendbar phone-only">${bottom}</div>`;
@@ -4202,7 +4268,7 @@ function render(){
   if(!S.sigV91&&!S.isSeed)restampV91(); /* a field changed because you tapped something else: draw after that tap */
   const bl=$('brandlogo'); if(bl&&!bl.src)bl.src=LOGO;
   {const cp=$('clientpill');if(cp){const n=(S.clients||[]).filter(c=>c.status!=='paused').length;cp.innerHTML=n?`<b>${n}</b> maintenance clients`:''}}
-  $('topnav').innerHTML=TABS.map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${k==='day'?'Day':l}</button>`).join('');
+  $('topnav').innerHTML=`${tab!=='day'?'<button data-tab="day">‹ Today</button>':''}<button class="${tab==='setup'?'on':''}" data-tab="setup" aria-label="Setup">⚙ Setup</button>`;
   $('tabbar').innerHTML=TABS.map(([k,l,ic])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${ic}<span>${l}</span></button>`).join('');
   if(tab==='report')tab='day';
   if(tab==='jobs'){tab='day';modal={kind:'alljobs',f:'up'};setTimeout(renderModal,0)}
@@ -4254,7 +4320,7 @@ function tidyView(){
 }
 /* Swipe left / right on the phone: next / previous day on Today, week on Week (18 Nov 2026) */
 (()=>{let sx=0,sy=0,st=0,ok=false;
-  addEventListener('touchstart',e=>{const t=e.target;ok=isPhone()&&(tab==='day'||tab==='week')&&!sel&&!villaSel&&!modal&&e.touches.length===1&&!(t.closest&&t.closest('input,select,textarea,.tcard,.board,.morepop,#menu,#modalroot,.chip,.vchip'));
+  addEventListener('touchstart',e=>{const t=e.target;ok=isPhone()&&(tab==='day'||tab==='week')&&!sel&&!villaSel&&!modal&&e.touches.length===1&&!(t.closest&&t.closest(t.closest('.tscr')?'input,select,textarea,.morepop,#menu,#modalroot':'input,select,textarea,.tcard,.board,.morepop,#menu,#modalroot,.chip,.vchip'));
     if(ok){sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now()}},{passive:true});
   addEventListener('touchend',e=>{if(!ok)return;ok=false;const c=e.changedTouches[0],dx=c.clientX-sx,dy=c.clientY-sy;
     if(Date.now()-st>700||Math.abs(dx)<80||Math.abs(dy)>Math.abs(dx)*0.6)return;
