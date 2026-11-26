@@ -766,6 +766,49 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 @media (min-width:900px){.homeA{max-height:calc(100vh - 92px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px;margin-right:-2px}.homeA .apd .morepop{position:fixed;left:calc(max(0px, (100vw - 1480px) / 2) + 370px);right:auto;top:84px;width:370px;max-height:calc(100vh - 104px);overflow:auto}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ah.ah2{background:#1e2c20;color:#cfe5cf;border-color:#2f4231}:root:not([data-theme="light"]) .ah2 .ahbtn,:root:not([data-theme="light"]) .wm:not(.sel),:root:not([data-theme="light"]) .ahb2,:root:not([data-theme="light"]) .ah2 .ahstats>*,:root:not([data-theme="light"]) .ah2 .ahtoday{background:var(--surface);color:var(--ink);border-color:var(--line)}:root:not([data-theme="light"]) .ah2 .ahstats span{color:var(--muted)}}
 :root[data-theme="dark"] .ah.ah2{background:#1e2c20;color:#cfe5cf;border-color:#2f4231}:root[data-theme="dark"] .ah2 .ahbtn,:root[data-theme="dark"] .wm:not(.sel),:root[data-theme="dark"] .ahb2,:root[data-theme="dark"] .ah2 .ahstats>*,:root[data-theme="dark"] .ah2 .ahtoday{background:var(--surface);color:var(--ink);border-color:var(--line)}:root[data-theme="dark"] .ah2 .ahstats span{color:var(--muted)}
+
+/* Compact laptop layout (26 Nov 2026): narrower side panel, smaller rows */
+@media (min-width:900px){
+  .dayA{grid-template-columns:282px minmax(0,1fr);gap:14px}
+  .homeA{gap:9px;top:70px}
+  .homeA .ah.ah2{padding:9px;gap:7px;border-radius:14px}
+  .ah2 .ahbtn{width:32px;height:32px;border-radius:9px;font-size:1.15rem}
+  .ah2 .ahd span{font-size:.62rem}.ah2 .ahd b{font-size:1.02rem}
+  .wmini{gap:3px}.wm{height:40px;border-radius:8px;gap:1px}.wm b{font-size:.66rem}.wm span{font-size:.62rem}.wl{width:16px;height:3px}
+  .ahrow2{gap:5px}.ahb2{min-height:30px;font-size:.76rem;border-radius:8px}
+  .ahstats.ahs3{gap:5px}.ah2 .ahstats>*{padding:3px 0;border-radius:9px}.ah2 .ahstats b{font-size:1.05rem}.ah2 .ahstats span{font-size:.66rem}
+  .ahtoday{min-height:28px;font-size:.74rem;padding:4px 12px}
+  .homeA .aoff{font-size:.76rem;margin:0}
+  .homeA .ibox{padding:8px 10px;gap:8px;border-radius:12px}.homeA .ibox b{font-size:.84rem}.homeA .ibox span{font-size:.76rem}.homeA .ibox svg{width:16px;height:16px}
+  .homeA .ibox .btn.small{min-height:30px;padding:4px 10px;font-size:.78rem}.homeA .ibox .link.small{font-size:.76rem}
+  .homeA .abox{padding:8px 10px;gap:8px;border-width:1.5px;border-radius:12px}.homeA .abox>div>b{font-size:.86rem}.homeA .abox>div>span{font-size:.76rem}.homeA .abox .abn{width:26px;height:26px;font-size:.8rem}
+  .homeA .abox .btn{min-height:32px;font-size:.8rem;padding:4px 10px}.homeA .abfix{min-height:34px}
+  .busybox{padding:9px 10px;gap:2px;border-radius:12px}.bxh{margin-bottom:2px}.bxh>b{font-size:.84rem}.bxpill{font-size:.66rem;padding:1px 7px}
+  .bxr{padding-top:4px;gap:6px}.bxm{min-height:34px;gap:3px}.bxn{font-size:.8rem;gap:6px}.bxn em{font-size:.74rem}.bxbar{height:5px}.bxs{font-size:.68rem}
+  .bxr .atwa{width:32px;height:32px}.bxr .atwa svg{width:16px;height:16px}.bxr .atsent{min-height:32px;font-size:.72rem}
+  .bxf{font-size:.66rem;padding-top:5px}
+  .apdf{gap:6px}.apb{min-height:42px;border-radius:11px;padding:3px}.apb b{font-size:.76rem}.apb span{font-size:.62rem}
+  .aq{gap:6px}.aqb{height:50px;border-radius:11px;gap:3px}.aqb b{font-size:.7rem}.aqb svg{width:18px;height:18px}.aqi{font-size:1.1rem}
+  .homeA .asend{min-height:42px;font-size:.9rem;border-radius:11px}.homeA .asend svg{width:18px;height:18px}
+  .homeA .anw{font-size:.8rem}
+  .homeA .aqd .morepop,.homeA .apd .morepop{left:calc(max(0px, (100vw - 1480px) / 2) + 320px)!important;top:78px!important}
+  /* team cards */
+  .board{gap:10px}
+  .tv2 .tvh{padding:9px 12px 9px!important;gap:4px}
+  .tv2 .tname{font-size:1.02rem}.tv2 .tdot{width:9px;height:9px}
+  .tv2 .tvl{font-size:.76rem}.tv2 .tbusy{font-size:.66rem;padding:1px 7px}.tv2 .tvbar{height:4px}
+  .tv2 .tbody{padding:9px 10px 10px!important;gap:8px}
+  .tsec{gap:4px}.tsech{font-size:.64rem;padding:0 10px}.tsech .tsr{font-size:.68rem;gap:6px}
+  .tbox{border-radius:10px}
+  .tbox>.crow,.tbox>.vrow{min-height:30px;padding:4px 10px;gap:8px;font-size:.8rem}
+  .tbox .cic{width:14px}.tbox .cic svg{width:12px;height:12px}.tbox .vno2{font-size:.72rem}
+  .tbox .cr{font-size:.7rem}.tbox .npin{font-size:.6rem;padding:1px 5px}
+  .tbox>.crowadd{padding:6px 10px 6px 32px;font-size:.76rem}
+  .tfoot.tf2 .btn{min-height:36px!important;font-size:.8rem}
+  .tv2 .tbody>.link.small{font-size:.76rem}
+  .splitbar{padding:6px 10px;font-size:.8rem;border-radius:11px;margin-bottom:8px}.splitbar .btn.small{min-height:30px;font-size:.76rem;padding:3px 10px}
+  .sechead h3{font-size:.72rem}
+}
 /* team screen (phone) */
 .tscr{display:grid;gap:12px;padding-bottom:150px}
 .tsh{display:flex;align-items:center;justify-content:space-between;gap:10px}
