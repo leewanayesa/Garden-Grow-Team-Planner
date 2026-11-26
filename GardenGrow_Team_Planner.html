@@ -553,6 +553,23 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .ppw .ppinfo{padding:8px 12px}.trfh .ppsum{margin-top:3px;font-weight:700;color:#ffffff!important;font-size:.82rem}
 @media (max-width:899px){.homeA .apd>.morepop.ppw{width:min(420px,calc(100vw - 20px))!important}}
 @media (min-width:900px){.homeA .apd>.morepop.ppw{width:400px!important}}
+/* Laptop: PDF windows use the same small sizes as the compact side panel (26 Nov 2026) */
+@media (min-width:900px){
+  .homeA .apd>.morepop.ppw{width:330px!important;height:min(var(--pph,454px),calc(100vh - var(--ppt,84px) - 12px))!important;border-radius:14px}
+  .ppwh{padding:8px 10px;gap:8px}.ppwh b{font-size:.95rem}.ppwh span{font-size:.68rem}
+  .ppi{width:28px;height:28px;border-radius:8px}.ppi svg{width:15px;height:15px}
+  .ppx{width:30px;height:30px;border-radius:8px;font-size:.8rem}
+  .ppw>.ppb{padding:9px 10px 10px;gap:7px}
+  .ppw .ppinfo{padding:6px 10px;border-radius:10px;border-width:1px}.ppw .ppinfo b{font-size:.78rem}.ppw .ppinfo span{font-size:.68rem}
+  .ppw .trsw2{padding:6px 10px;border-radius:10px;border-width:1px}.ppw .trsw2 b{font-size:.8rem}.ppw .trsw2 span{font-size:.68rem}
+  .ppw .swt{width:40px;height:23px}.ppw .swt i{width:17px;height:17px}.ppw .swt[aria-checked="true"] i{left:20px}
+  .ppw .trfullc{padding:9px 10px;gap:7px;border-radius:11px}.ppw .trfh b{font-size:.88rem}.ppw .trfh span{font-size:.68rem}
+  .ppw .trfh .ppsum{font-size:.7rem}.ppw .pptag{font-size:.62rem;padding:1px 7px}
+  .trpop.ppw .trfullc .trfb{min-height:34px;font-size:.8rem;border-radius:9px}
+  .ppw .trsep{font-size:.6rem}
+  .ppw .trow2{padding:3px 3px 3px 10px;border-radius:10px;gap:5px}.ppw .trow2 b{font-size:.8rem}.ppw .trow2 span{font-size:.68rem}
+  .trpop.ppw .trow2 .btn{min-height:28px;padding:0 9px;font-size:.72rem;border-radius:8px}
+}
 .stbars{display:grid;gap:6px}.stb{display:grid;grid-template-columns:72px 1fr 22px;align-items:center;gap:8px;font-size:.84rem;font-weight:700}
 .stb i{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}.stb i b{display:block;height:10px;border-radius:5px;background:var(--green)}.stb i b.ov{background:#c47a12}.stb em{font-style:normal;text-align:right}
 .stshare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stshare>details>summary{width:100%;justify-content:center;font-size:.84rem}
