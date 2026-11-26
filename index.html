@@ -3329,7 +3329,8 @@ function crewRow(name,ctx,lead){
 }
 function splitBar(date,vp){
   const allT=effTeams(date),tn=id=>(allT.find(x=>x.id===id)||{}).name||'another team',ts=id=>{const x=allT.find(y=>y.id===id);return x?tShort(x):'another team'};
-  return (vp.shared||[]).map(s=>`<div class="splitbar" title="${esc(s.why||'')}"><span><b>${esc(s.area)}</b> is split over ${Object.keys(s.counts).length} teams · ${Object.keys(s.counts).map(id=>esc(ts(id))+' '+s.counts[id]).join(' · ')}</span><button class="btn small" data-keeparea="${esc(s.area)}" data-keepto="${s.main}">Give all ${s.total} to ${esc(tn(s.main))}</button></div>`).join('');
+  /* only when the whole area fits with one team (26 Nov 2026) — a split that is needed is not shown */
+  return (vp.shared||[]).filter(s=>((vp.byTeam[s.main]||[]).length-(s.counts[s.main]||0)+s.total)<=maxV()).map(s=>`<div class="splitbar" title="${esc(s.why||'')}"><span><b>${esc(s.area)}</b> is split over ${Object.keys(s.counts).length} teams · ${Object.keys(s.counts).map(id=>esc(ts(id))+' '+s.counts[id]).join(' · ')}</span><button class="btn small" data-keeparea="${esc(s.area)}" data-keepto="${s.main}">Give all ${s.total} to ${esc(tn(s.main))}</button></div>`).join('');
 }
 function teamCardDay(t,ctx,vp,force){
   if(vp&&!isProj(t))VN.set(t,villaNeedsOf(vp.byTeam[t.id]||[]));
