@@ -525,6 +525,17 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .stshare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stshare>details>summary{width:100%;justify-content:center;font-size:.84rem}
 .steps .pdfmenu .morepop,.steps .more .morepop{position:fixed;left:12px;right:12px;top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));max-height:70vh;overflow:auto}
 .stnw{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border-radius:14px;padding:10px 14px;font-size:.88rem}
+.morepop.trpop{min-width:min(370px,calc(100vw - 24px));gap:8px;padding:12px;max-height:min(80vh,760px);overflow:auto}
+.trfullc{background:var(--forest);color:#fff;border-radius:14px;padding:14px;display:grid;gap:10px}
+.trfh{display:flex;align-items:center;gap:12px}.trfh>div{display:grid;min-width:0}.trfh b{font-family:var(--display);font-size:1.15rem}.trfh span{font-size:.8rem;color:#cfe5cf}
+.trico{width:38px;height:46px;border-radius:8px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex:none}
+.trpop .trfullc .trfb{background:#1fa855;color:#fff;border:0;min-height:48px;font-weight:800;font-size:1rem;justify-content:center;width:100%}
+.trsep{display:flex;align-items:center;gap:10px;margin:2px 0;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.trsep::before,.trsep::after{content:"";flex:1;height:1px;background:var(--line)}
+.trow2{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 12px}.trow2>div{flex:1;display:grid;min-width:0}.trow2 b{font-size:.95rem}.trow2 span{font-size:.78rem;color:var(--muted)}
+.trow2.all{background:var(--bg);border-color:transparent}
+.trpop .trow2 .btn{min-height:40px;padding:0 12px;font-weight:800;font-size:.86rem;flex:none;width:auto;justify-content:center}.trow2 .trd{background:var(--soft);border-color:#9fd0a3;color:var(--green)}.trow2 .trd:disabled{opacity:.45}
+.trsw{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border-radius:12px;padding:8px 12px}.trsw>div{display:grid}.trsw b{font-size:.95rem}.trsw span{font-size:.78rem;color:var(--muted)}
+.swt{width:52px;height:30px;border-radius:999px;border:0;background:var(--faint);position:relative;flex:none;padding:0;cursor:pointer}.swt i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}.swt[aria-checked="true"]{background:#1fa855}.swt[aria-checked="true"] i{left:25px}
 .trpop .seg{justify-self:stretch;display:flex}.trpop .seg button{flex:1;padding:8px 10px;min-height:38px;font-size:.86rem}
 .trrow{display:flex;flex-wrap:wrap;gap:6px}.trchip{font-weight:700}.trn{display:inline-block;min-width:1.5em;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--line);font-size:.75rem;text-align:center}.trnote{margin:2px 4px}.pdfi span{font-size:.78rem;font-weight:500;color:var(--muted)}
 .more summary{list-style:none;cursor:pointer} .more summary::-webkit-details-marker{display:none}
@@ -3833,7 +3844,7 @@ addEventListener('resize',()=>{if(!$('menu').hidden)renderMenu()});
 
 /* ---------- sheets / dialogs ---------- */
 /* ── Team Roster PDF (Maintenance App design): one section per team and day, only the villas due that date ── */
-const trPref=()=>{let p={};try{p=JSON.parse(localStorage.getItem('gg_tr_prefs')||'{}')||{}}catch(e){}return {phone:p.phone!=null?!!p.phone:isPhone(),wc:p.wc!=null?!!p.wc:true}};
+const trPref=()=>{let p={};try{p=JSON.parse(localStorage.getItem('gg_tr_prefs')||'{}')||{}}catch(e){}return {phone:isPhone(),wc:p.wc!=null?!!p.wc:true}};
 const trSave=p=>{try{localStorage.setItem('gg_tr_prefs',JSON.stringify(p))}catch(e){}};
 /* the work week: Saturday to Thursday (a Friday shows the coming week) */
 function rosterWeek(s){const d=fromIso(s),g=d.getDay();d.setDate(d.getDate()+(g===5?1:-((g+1)%7)));const sat=iso(d);return [0,1,2,3,4,5].map(i=>addDays(sat,i))}
@@ -3856,20 +3867,17 @@ function rosterSections(dates,key){
   return out;
 }
 function rosterMenu(){
-  const P=trPref(),teams=isDayOff(cur)?[]:effTeams(cur).filter(t=>!isProj(t)),vp=teams.length?villaPlan(cur,effTeams(cur)):{byTeam:{}},wk=rosterWeek(cur);
-  const due=teams.reduce((a,t)=>a+(vp.byTeam[t.id]||[]).length,0);
-  const chip=(per,t,n)=>`<button class="btn small trchip" data-troster="${per}:${esc(t.id)}">${esc(tName(t))}${n!=null?` <span class="trn">${n}</span>`:''}</button>`;
-  return `<p class="mhead2">Page</p>
-      <div class="seg trseg"><button type="button" data-trfmt="phone" class="${P.phone?'on':''}">Phone</button><button type="button" data-trfmt="std" class="${P.phone?'':'on'}">Standard</button></div>
-      <div class="seg trseg"><button type="button" data-trwc="1" class="${P.wc?'on':''}">With contacts</button><button type="button" data-trwc="0" class="${P.wc?'':'on'}">Without</button></div>
-      <p class="mhead2">This day — ${esc(shortDate(cur))}</p>
-      ${isDayOff(cur)?'<p class="muted small trnote">Weekly day off — no villas.</p>':`<div class="trrow">${teams.filter(t=>(vp.byTeam[t.id]||[]).length).map(t=>chip('day',t,(vp.byTeam[t.id]||[]).length)).join('')}</div>
-      <button class="btn pdfi" data-troster="day:all"><b>All teams</b><span>one section per team · ${plural(due,'villa')} due</span></button>`}
-      <p class="mhead2">This week — ${esc(shortDate(wk[0]))} to ${esc(shortDate(wk[5]))}</p>
-      ${teams.length?`<div class="trrow">${teams.map(t=>chip('week',t,null)).join('')}</div>`:''}
-      <button class="btn pdfi" data-troster="week:all"><b>All teams</b><span>each team's days, Saturday to Thursday</span></button>
-      <p class="mhead2">Whole roster</p>
-      <button class="btn pdfi" data-trfull><b>Every client, by weekday</b><span>the full list, like the Maintenance App</span></button>`;
+  /* Full roster on top (approved design D, 26 Nov 2026), then one row per team, then the phone-numbers switch */
+  const P=trPref(),off=isDayOff(cur),wk=rosterWeek(cur),tl=(off?effTeams(wk[0]):effTeams(cur)).filter(t=>!isProj(t)),vp=!off&&tl.length?villaPlan(cur,effTeams(cur)):{byTeam:{}};
+  const dt=fromIso(cur),dayB=cur===TODAY?'Today':`${DN[dt.getDay()]} ${dt.getDate()}`,when=cur===TODAY?'today':'on '+shortDate(cur);
+  const cnt=t=>(vp.byTeam[t.id]||[]).length,due=tl.reduce((a,t)=>a+cnt(t),0);
+  const row=(name,n,key,cls)=>`<div class="trow2${cls||''}"><div><b>${name}</b><span>${off?'Day off — week only':plural(n,'villa')+' '+when}</span></div>${off?'':`<button class="btn trd" data-troster="day:${key}"${n?'':' disabled'}>${dayB}</button>`}<button class="btn trw" data-troster="week:${key}">Week</button></div>`;
+  return `<div class="trfullc"><div class="trfh"><span class="trico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>Full roster</b><span>All teams · all ${totalClients()} clients · Saturday to Thursday</span></div></div><button class="btn trfb" data-trfull>Make full roster PDF</button></div>
+      <p class="trsep">Or one team</p>
+      ${tl.map(t=>row(esc(tName(t)),cnt(t),esc(t.id))).join('')}
+      ${tl.length?row('All teams, by team',due,'all',' all'):'<p class="muted small trnote">No teams set for this day.</p>'}
+      <p class="muted small trnote">Week = ${esc(shortDate(wk[0]))} to ${esc(shortDate(wk[5]))}</p>
+      <div class="trsw"><div><b>Phone numbers</b><span class="trswt">${P.wc?'On — client phone numbers in the PDF':'Off — no phone numbers in the PDF'}</span></div><button type="button" role="switch" class="swt" aria-checked="${P.wc}" aria-label="Phone numbers" data-trwc="${P.wc?'0':'1'}"><i></i></button></div>`;
 }
 function makeTeamRoster(per,key){
   if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}
@@ -4341,7 +4349,7 @@ document.addEventListener('click',e=>{
   if('copyleader' in d){const t=effTeams(cur).find(x=>x.id===d.copyleader);if(!t)return;if(openLeaderWa(t,cur)){render();return}const txt=leaderText(t,cur);
     if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markTeamSent(t,cur);render()}).catch(()=>{});return}
     markTeamSent(t,cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);render();return}
-  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
+  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);if(el.classList.contains('swt')){el.setAttribute('aria-checked',String(P.wc));el.dataset.trwc=P.wc?'0':'1';const tx=el.parentNode.querySelector('.trswt');if(tx)tx.textContent=P.wc?'On — client phone numbers in the PDF':'Off — no phone numbers in the PDF';return}const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
   if('troster' in d){const det=el.closest('details');if(det)det.open=false;const [per,...k]=String(d.troster).split(':');makeTeamRoster(per,k.join(':')||'all');return}
   if('pdfroster' in d||'trfull' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const P0=trPref(),v=('trfull' in d)?(P0.phone?'phone':'std')+(P0.wc?'-with':'-without'):(d.pdfroster||'std-without'),wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
   if('pdfsetup' in d){printSetup();return}
