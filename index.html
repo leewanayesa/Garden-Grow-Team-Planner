@@ -533,6 +533,17 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .pptag{justify-self:start;margin-top:4px;font-style:normal;font-size:.72rem;font-weight:800;border-radius:999px;padding:2px 9px}.pptag.no{background:#fbeed4;color:#7a4a00}.pptag.ok{background:#e6f2e5;color:#1d4d2a}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ppw{border:1px solid #3a5240!important}:root:not([data-theme="light"]) .ppwh{background:#1e2c20;border-color:#2f4231}:root:not([data-theme="light"]) .ppwh b{color:var(--ink)}:root:not([data-theme="light"]) .ppwh span{color:var(--muted)}:root:not([data-theme="light"]) .ppx{background:var(--surface);color:var(--ink);border-color:var(--line)}:root:not([data-theme="light"]) .ppi{background:var(--surface);color:var(--ink);border-color:var(--ink)}}
 :root[data-theme="dark"] .ppw{border:1px solid #3a5240!important}:root[data-theme="dark"] .ppwh{background:#1e2c20;border-color:#2f4231}:root[data-theme="dark"] .ppwh b{color:var(--ink)}:root[data-theme="dark"] .ppwh span{color:var(--muted)}:root[data-theme="dark"] .ppx{background:var(--surface);color:var(--ink);border-color:var(--line)}:root[data-theme="dark"] .ppi{background:var(--surface);color:var(--ink);border-color:var(--ink)}
+/* Laptop: the PDF window opens right next to the button you clicked, with a small arrow (option 1, 26 Nov 2026) */
+.apd[open]>.ppw{visibility:hidden}.apd.ppok[open]>.ppw{visibility:visible}
+@media (min-width:900px){
+  .apd[open]>summary::after{left:var(--ppdl,0px);top:var(--pphd,0px);background:rgba(15,30,20,.30)}
+  .apd[open]>.apb{outline:3px solid #1fa855!important;outline-offset:2px}
+  .homeA .apd>.morepop.ppw{left:var(--ppl,340px)!important;top:var(--ppt,84px)!important;transform:none;width:400px!important;max-height:calc(100vh - var(--ppt,84px) - 12px)!important;border-radius:16px}
+  .apd.ppok[open]>summary::before{content:"";position:fixed;left:var(--ppax);top:var(--ppay);width:16px;height:16px;background:#e2eedf;transform:rotate(45deg);z-index:41;box-shadow:-2px 2px 3px rgba(0,0,0,.08);pointer-events:none}
+  .apd.pplo.ppok[open]>summary::before{background:var(--surface)}
+}
+@media (min-width:900px) and (prefers-color-scheme:dark){:root:not([data-theme="light"]) .apd.ppok[open]>summary::before{background:#1e2c20}:root:not([data-theme="light"]) .apd.pplo.ppok[open]>summary::before{background:var(--surface)}}
+@media (min-width:900px){:root[data-theme="dark"] .apd.ppok[open]>summary::before{background:#1e2c20}:root[data-theme="dark"] .apd.pplo.ppok[open]>summary::before{background:var(--surface)}}
 .stbars{display:grid;gap:6px}.stb{display:grid;grid-template-columns:72px 1fr 22px;align-items:center;gap:8px;font-size:.84rem;font-weight:700}
 .stb i{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}.stb i b{display:block;height:10px;border-radius:5px;background:var(--green)}.stb i b.ov{background:#c47a12}.stb em{font-style:normal;text-align:right}
 .stshare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stshare>details>summary{width:100%;justify-content:center;font-size:.84rem}
@@ -4427,6 +4438,23 @@ function toggleOff(n){const r=ensureDay(cur),wasManual=!!r.manual,dayCtx={type:'
   else moveTo(dayCtx,n,'absent');
   if(!wasManual){r.manual=false;save()}}
 function prevWorkDay(s){for(let k=1;k<8;k++){const d=addDays(s,-k);if(!isDayOff(d))return d}return null}
+function placePdfWin(det){
+  /* laptop: put the PDF window beside the side panel, level with the button that was clicked; phone: keep it at the top */
+  if(!det)return;if(!det.open){det.classList.remove('ppok','pplo');return}
+  const sm=det.querySelector(':scope>summary'),w=det.querySelector('.ppw'),pan=det.closest('.homeA');
+  if(sm&&w&&pan&&innerWidth>=900){
+    const b=sm.getBoundingClientRect(),p=pan.getBoundingClientRect(),hdEl=document.querySelector('header.top'),hd=hdEl?Math.max(0,hdEl.getBoundingClientRect().bottom):0;
+    const st=det.style,L=Math.round(p.right+16);st.setProperty('--ppl',L+'px');st.setProperty('--ppdl',Math.round(p.right+4)+'px');st.setProperty('--pphd',Math.round(hd)+'px');
+    st.setProperty('--ppt',Math.round(hd+10)+'px');
+    const h=w.offsetHeight,T=Math.round(Math.max(hd+10,Math.min(b.top-16,innerHeight-h-12)));st.setProperty('--ppt',T+'px');
+    const ay=Math.round(Math.min(Math.max(b.top+b.height/2-8,T+14),T+Math.min(h,innerHeight-T-12)-30));
+    st.setProperty('--ppax',(L-8)+'px');st.setProperty('--ppay',ay+'px');det.classList.toggle('pplo',ay-T>44);
+  }
+  det.classList.add('ppok');
+}
+document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.matches&&t.matches('details.apd'))placePdfWin(t)},true);
+addEventListener('resize',()=>document.querySelectorAll('details.apd[open]').forEach(placePdfWin));
+document.addEventListener('scroll',e=>{if(e.target&&e.target.closest&&e.target.closest('.ppw'))return;document.querySelectorAll('details.apd[open]').forEach(placePdfWin)},true);
 function goDay(s){STEP_OPEN.clear();phTeam=null;cur=s;tab='day';sel=null;villaSel=null;noteOpen=false;render();scrollTo(0,0)}
 document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.matches&&t.matches('details.more')&&t.open)document.querySelectorAll('details.more[open]').forEach(x=>{if(x!==t)x.open=false})},true);
 document.addEventListener('click',e=>{if(!e.isTrusted)return;const open=[...document.querySelectorAll('details.more[open]')];if(!open.length)return;
