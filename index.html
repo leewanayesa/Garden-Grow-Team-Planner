@@ -536,6 +536,59 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .trpop .trow2 .btn{min-height:40px;padding:0 12px;font-weight:800;font-size:.86rem;flex:none;width:auto;justify-content:center}.trow2 .trd{background:var(--soft);border-color:#9fd0a3;color:var(--green)}.trow2 .trd:disabled{opacity:.45}
 .trsw{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border-radius:12px;padding:8px 12px}.trsw>div{display:grid}.trsw b{font-size:.95rem}.trsw span{font-size:.78rem;color:var(--muted)}
 .swt{width:52px;height:30px;border-radius:999px;border:0;background:var(--faint);position:relative;flex:none;padding:0;cursor:pointer}.swt i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}.swt[aria-checked="true"]{background:#1fa855}.swt[aria-checked="true"] i{left:25px}
+
+/* day team card v2 (A2 · Fix 1) */
+.tv2.tone0{--tt:#e2eedf;--ti:#21452a;--td:#4f7d55;--tl:#cfe0cb}
+.tv2.tone1{--tt:#e1e9f2;--ti:#223c58;--td:#55779c;--tl:#cbd8e6}
+.tv2.tone2{--tt:#f2e8d6;--ti:#4f3713;--td:#9a7438;--tl:#e4d5b9}
+.tv2.tone3{--tt:#dcefec;--ti:#1d4943;--td:#3f8378;--tl:#c4e0db}
+.tv2.tone4{--tt:#f3e3e3;--ti:#5a2a2a;--td:#a0605e;--tl:#e6cccc}
+.tv2.tone5{--tt:#ebecd8;--ti:#45461c;--td:#7d7f3c;--tl:#d9dbbd}
+.tv2.tonep{--tt:#ebe6f3;--ti:#3e2f63;--td:#6b5a9a;--tl:#d9d1e8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tv2.tone0{--tt:#1e2c20;--ti:#cfe5cf;--td:#86bb8c;--tl:#2f4231}:root:not([data-theme="light"]) .tv2.tone1{--tt:#1b2533;--ti:#cfdcec;--td:#8fb0d6;--tl:#2c3a4c}:root:not([data-theme="light"]) .tv2.tone2{--tt:#2d2618;--ti:#ecdcbc;--td:#cfa560;--tl:#463a24}:root:not([data-theme="light"]) .tv2.tone3{--tt:#172b28;--ti:#cae8e2;--td:#7cc2b5;--tl:#26413c}:root:not([data-theme="light"]) .tv2.tone4{--tt:#2e1f1f;--ti:#efd2d2;--td:#d48f8c;--tl:#4a3131}:root:not([data-theme="light"]) .tv2.tone5{--tt:#26271a;--ti:#e2e3c4;--td:#b6b86e;--tl:#3c3d27}:root:not([data-theme="light"]) .tv2.tonep{--tt:#221d2e;--ti:#ddd4f0;--td:#a796d6;--tl:#383049}}
+:root[data-theme="dark"] .tv2.tone0{--tt:#1e2c20;--ti:#cfe5cf;--td:#86bb8c;--tl:#2f4231}:root[data-theme="dark"] .tv2.tone1{--tt:#1b2533;--ti:#cfdcec;--td:#8fb0d6;--tl:#2c3a4c}:root[data-theme="dark"] .tv2.tone2{--tt:#2d2618;--ti:#ecdcbc;--td:#cfa560;--tl:#463a24}:root[data-theme="dark"] .tv2.tone3{--tt:#172b28;--ti:#cae8e2;--td:#7cc2b5;--tl:#26413c}:root[data-theme="dark"] .tv2.tone4{--tt:#2e1f1f;--ti:#efd2d2;--td:#d48f8c;--tl:#4a3131}:root[data-theme="dark"] .tv2.tone5{--tt:#26271a;--ti:#e2e3c4;--td:#b6b86e;--tl:#3c3d27}:root[data-theme="dark"] .tv2.tonep{--tt:#221d2e;--ti:#ddd4f0;--td:#a796d6;--tl:#383049}
+.tcard.tv2{border-left:0;border:1px solid var(--tl);box-shadow:var(--shadow)}
+.tcard.tv2.bad{box-shadow:0 0 0 2px var(--red)}
+.tv2 .tvh{background:var(--tt);color:var(--ti);gap:6px;padding:13px 14px 12px!important}
+.tv2 .tdot{width:11px;height:11px;border-radius:50%;background:var(--td);flex:none}
+.tv2 .tname{font-family:var(--display);font-size:1.18rem;color:var(--ti)}
+.tv2 .tpill{font-weight:800;font-size:.84rem;background:var(--surface);color:var(--ti);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.tv2 .tpill.warn{color:var(--warn)}
+.tv2 .tvl{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--ti)}.tv2 .tvl>span:first-child{flex:1;min-width:0}
+.tv2 .tbusy{font-size:.74rem;font-weight:800;color:var(--warn);background:var(--surface);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.tv2 .tvbar{display:block;height:6px;border-radius:3px;background:color-mix(in srgb,var(--surface) 70%,transparent);overflow:hidden}.tv2 .tvbar i{display:block;height:100%;border-radius:3px;background:var(--td)}
+.tv2 .tsubl,.tv2 .smtag{color:var(--ti);opacity:.85;display:block!important}
+.tv2 .tprob{margin-top:2px}
+.tv2 .tbody{padding-top:12px;gap:12px}
+.tsec{display:grid;gap:6px}
+.tsech{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 12px;font-size:.72rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tsech .tsr{text-transform:none;letter-spacing:0;font-size:.76rem;font-weight:700;color:var(--green);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.tticks .no{color:var(--red)}
+.trl{color:var(--green);text-decoration:none;white-space:nowrap}.trl:hover{text-decoration:underline}
+.tbox{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid}
+.tbox>.crow,.tbox>.vrow{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:7px 12px;border:0;border-bottom:1px solid var(--soft);border-radius:0;background:var(--surface);color:var(--ink);text-align:left;font:inherit;font-size:.9rem;cursor:pointer}
+.tbox>.crow:hover,.tbox>.vrow:hover{background:var(--soft)}
+.tbox>.crow.lead{background:color-mix(in srgb,var(--soft) 60%,var(--surface));color:var(--ink);font-weight:700;border-color:var(--soft)}
+.tbox>.crow.sel,.tbox>.vrow.sel{background:var(--ink);color:var(--surface)}
+.tbox>.crow.sel .cr,.tbox>.vrow.sel .cr,.tbox>.crow.sel .cic,.tbox>.vrow.sel .cic{color:inherit}
+.tbox>.vrow.moved{box-shadow:inset 3px 0 0 var(--orange-bar)}
+.tbox .cic{width:18px;flex:none;display:flex;justify-content:center;font-style:normal;color:var(--faint)}
+.tbox .vno2{font-size:.82rem;font-weight:500;color:var(--faint)}
+.tbox .cn{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:inherit}
+.tbox .vrow .cn{font-weight:500}
+.tbox .cr{font-size:.78rem;color:var(--muted);text-align:right;white-space:nowrap;font-weight:500}
+.tbox .lv{margin-left:6px;font-size:.62rem;font-weight:800;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 4px}
+.tbox .npin{font-size:.68rem;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:2px 6px;white-space:nowrap}
+.tbox .vtag{margin-left:6px}
+.tbox>.crowadd{border:0;border-radius:0;background:var(--surface);color:var(--green);padding:9px 12px 9px 40px;text-align:left;font-size:.86rem}
+.tbox>.crowadd.full{color:var(--muted)}
+.tbox>:last-child{border-bottom:0}
+.crownone{padding:8px 12px;margin:0;border-bottom:1px solid var(--soft)}
+.tfoot.tf2{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;border-top:0;padding-top:0}
+.tfoot.tf2 .btn{justify-content:center;font-weight:800;min-height:48px;white-space:normal;line-height:1.15;text-align:center;padding-inline:8px}
+@media (min-width:900px){.board:has(>.tv2){align-items:stretch}.tcard.tv2{display:flex;flex-direction:column}.tcard.tv2 .tbody{flex:1;display:flex;flex-direction:column}.tv2 .tbody>.link,.tv2 .tbody>.pillbtn{align-self:flex-start}.tv2 .tfoot.tf2{margin-top:auto}}
+.tfoot.tf2 .tfwa{background:#1fa855;color:#fff;border-color:#1fa855}
+.splitbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:14px;padding:9px 12px;margin-bottom:10px;font-size:.88rem}
 .trpop .seg{justify-self:stretch;display:flex}.trpop .seg button{flex:1;padding:8px 10px;min-height:38px;font-size:.86rem}
 .trrow{display:flex;flex-wrap:wrap;gap:6px}.trchip{font-weight:700}.trn{display:inline-block;min-width:1.5em;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--line);font-size:.75rem;text-align:center}.trnote{margin:2px 4px}.pdfi span{font-size:.78rem;font-weight:500;color:var(--muted)}
 .more summary{list-style:none;cursor:pointer} .more summary::-webkit-details-marker{display:none}
@@ -3136,6 +3189,7 @@ function skillHint(k,t,date,teams){
   return `<div class="skhint">${esc(SK[k])}: ${hs.slice(0,3).map(n=>`<span><b>${esc(dn(n))}</b> (${esc(where(n))}) <button class="link small" data-pullname="${esc(n)}" data-pullto="${t.id}">Move here</button></span>`).join(' ')}</div>`;
 }
 function teamCard(t,ctx,vp){
+  if(ctx.type==='day')return teamCardDay(t,ctx,vp);
   if(vp&&!isProj(t))VN.set(t,villaNeedsOf(vp.byTeam[t.id]||[]));
   const p=t.projectId&&projById(t.projectId), j=jobOf(t), ps=problems(t), cs=esc(JSON.stringify(ctx));
   const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id)||(phEdit&&ctx.type==='day'&&isPhone()), /* phone: Edit teams opens every team */ mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
@@ -3166,6 +3220,59 @@ function teamCard(t,ctx,vp){
       ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):(p.note?`<div class="jobnote"><b>Notes for the crew:</b> ${esc(p.note)}</div>`:'')}
       ${ctx.type==='day'&&t.leader?`<div class="tfoot">${vl&&vl.length?`<button class="btn small" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}<button class="btn small wabtn" data-copyleader="${esc(t.id)}">${waNum(t.leader)?'WhatsApp':'Copy for WhatsApp'}</button></div>`:''}
       ${ctx.type==='day'?(p?`<button class="link small rmteam" data-rmjobteam="${p.id}">✕ Remove team</button>`:`<button class="link small rmteam" data-rmteam="${t.id}">✕ Remove team</button>`):''}
+    </div>
+  </section>`;
+}
+/* Day team card (design A2 · Fix 1, 26 Nov 2026): soft team colour header, CREW box and VILLAS box with the same left column. */
+function roleText(n,lead){const sk=S.skills[n]||[],sp=sk.includes('drv_spare'),g=gradeOf(n);
+  return [lead?'Leader':'',isSup(n)?'Sup':'',['','Labour','Jr gardener','Sr gardener'][g]||'',sp?'Spare driver':has(n,'driver')?'Driver':''].filter(Boolean).join(' · ')}
+const IC_STAR='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
+const IC_PERSON='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
+function crewRow(name,ctx,lead){
+  const on=sel&&sel.name===name&&sameCtx(sel.ctx,ctx);
+  return `<button class="chip crow ${lead?'lead':''} ${on?'sel':''}" draggable="true" data-name="${esc(name)}" data-ctx='${esc(JSON.stringify(ctx))}' title="${esc(name)}"><i class="cic">${lead?IC_STAR:IC_PERSON}</i><span class="cn">${esc(sn(name))}${leaveOn(name,ctx.date)?'<span class="lv">leave</span>':''}</span><span class="cr">${esc(roleText(name,lead))}</span></button>`;
+}
+function splitBar(date,vp){
+  const allT=effTeams(date),tn=id=>(allT.find(x=>x.id===id)||{}).name||'another team',ts=id=>{const x=allT.find(y=>y.id===id);return x?tShort(x):'another team'};
+  return (vp.shared||[]).map(s=>`<div class="splitbar" title="${esc(s.why||'')}"><span><b>${esc(s.area)}</b> is split over ${Object.keys(s.counts).length} teams · ${Object.keys(s.counts).map(id=>esc(ts(id))+' '+s.counts[id]).join(' · ')}</span><button class="btn small" data-keeparea="${esc(s.area)}" data-keepto="${s.main}">Give all ${s.total} to ${esc(tn(s.main))}</button></div>`).join('');
+}
+function teamCardDay(t,ctx,vp){
+  if(vp&&!isProj(t))VN.set(t,villaNeedsOf(vp.byTeam[t.id]||[]));
+  const p=t.projectId&&projById(t.projectId), j=jobOf(t), ps=problems(t), cs=esc(JSON.stringify(ctx));
+  const vl=vp&&!isProj(t)?(vp.byTeam[t.id]||[]):null, n=people(t).length, open=openTeams.has(t.id)||(phEdit&&isPhone()), mx=maxV(), pts=vl?ptsSum(vl):0, over=vl&&(vl.length>mx||pts>capPts());
+  const pct=vl?Math.min(100,Math.round(Math.max(vl.length/mx,pts/capPts())*100)):0, szc=vl?{L:vl.filter(c=>sizeOf(c)==='L').length,M:vl.filter(c=>sizeOf(c)==='M').length,S:vl.filter(c=>sizeOf(c)==='S').length}:null;
+  const miss=new Set(ps.filter(x=>x.kind==='skill').map(x=>x.skill)), tm=vp&&vp.time&&vp.time[t.id];
+  const detail=vl?`${plural(vl.length,'villa')} of ${mx} · ${szc.L} large, ${szc.M} medium, ${szc.S} small · workload ${pts} (${(pts/Math.max(1,n)).toFixed(1)} per person)${vp.km&&vp.km[t.id]&&vp.km[t.id].km?` · ${vp.km[t.id].approx?'≈':''}${vp.km[t.id].km} km drive`:''}${tm&&vl.length?` · ≈ ${hm(tm.total)} (work ${hm(tm.work)} + drive ${hm(tm.drive)})`:''}`:'';
+  const ticks=[...new Set([...Object.keys(jobNeeds(j)),...Object.keys(VN.get(t)||{})])].filter(k=>k!=='lead'&&active(k)).map(k=>`<span class="${miss.has(k)?'no':''}">${esc((SKILLS.find(s=>s.id===k)||{}).short||k)} ${miss.has(k)?'✗':'✓'}</span>`).join('');
+  const sub=p?`${SIZE_NAME[p.size||'M']} · crew ${n} of ${crewWant(t)} · Day ${daysBetween(p.from,ctx.date)+1} of ${daysBetween(p.from,p.to)+1}${j.heavy?' · heavy work':''}${needsTruck(p)?' · truck':''}${needsSub(p)?' · <b class="warntxt">machinery / subcontractor</b>':''}${t.leader&&supLevel(t.leader)<(SIZE_WANT[p.size||'M']||2)?` · <b class="warntxt">needs a ${SUP_NAME[SIZE_WANT[p.size||'M']].toLowerCase()}</b>`:''}`:'';
+  const noteShown=t.desc||noteTeams.has(t.id), allT=effTeams(ctx.date), sm=!isProj(t)?(smallByTeam(ctx.date,allT,vp)[t.id]||[]):[], mts=allT.filter(x=>!isProj(x));
+  const mi=mts.indexOf(t), tone=isProj(t)?'tonep':'tone'+((mi<0?0:mi)%6);
+  let vbox='';
+  if(vl&&vl.length){
+    const moved=dayRec(ctx.date).villaMove||{}, rl=routeLinks(vl), nopin=new Set(rl.parts.length?rl.skipped.map(c=>c.id):vl.filter(c=>!posOf(c)).map(c=>c.id));
+    const rlink=rl.parts.map((x,i)=>`<a class="trl" href="${esc(x.url)}" target="_blank" rel="noopener">${rl.parts.length>1?`Route ${i+1} (${x.from}–${x.to})`:'Open route'} ↗</a>`).join('');
+    vbox=`<div class="tsec"><div class="tsech"><span>Villas · route order</span><span class="tsr">${rlink}</span></div><div class="tbox">${vl.map((c,i)=>{const ar=areaShort(c);return `<button class="vchip vrow ${moved[c.id]?'moved':''} ${villaSel===c.id?'sel':''}" draggable="true" data-villa="${esc(c.id)}" title="Stop ${i+1} · ${{S:'Small',M:'Medium',L:'Large'}[sizeOf(c)]} villa"><i class="cic vno2">${i+1}</i><span class="cn">${esc(villaName(c))}${freqTag(c)?`<span class="vtag">${freqTag(c)}</span>`:''}${vTags(c).length?`<span class="vtag need">${vTags(c).map(x=>(VTAGS.find(y=>y.id===x)||{}).label).join(' · ')}</span>`:''}</span>${nopin.has(c.id)?'<span class="npin">no pin</span>':''}<span class="cr">${/^https?:/i.test(ar)?'':esc(ar)}</span></button>`}).join('')}</div></div>`;
+  }else if(vl)vbox='<p class="muted small">No villas</p>';
+  const addRow=n>=maxTeam()?`<button class="addp crowadd full" disabled>Car full</button>`:`<button class="addp crowadd" data-addto="${t.id}">＋ Add person</button>`;
+  return `<section class="tcard tv2 ${tone} ${isProj(t)?'proj':'maint'} ${ps.length?'bad':''} ${open?'open':''}" data-drop="${t.id}" data-ctx='${cs}'>
+    <button class="thead tvh" data-toggle="${t.id}" aria-expanded="${open}">
+      <span class="tl1"><i class="tdot"></i><span class="tname">${esc(tName(t))}${tNameSub(t)?`<em class="tsub">${esc(tNameSub(t))}</em>`:''}</span><span class="tpill ${over?'warn':''}">${vl?plural(vl.length,'villa'):`${n}/${maxTeam()} seats`}</span>${ICON.chev}</span>
+      ${sub?`<span class="tl3 tsubl">${sub}</span>`:''}
+      <span class="tvl" title="${esc(detail)}"><span><span class="${n>maxTeam()?'redtxt':''}">Car ${n}/${maxTeam()}</span>${tm&&vl&&vl.length?` · back ≈ <b>${clock(tm.finish)}</b>`:''}${tm&&tm.over?` · <b class="warntxt">over ${dayHours()} h</b>`:''}</span>${over?`<span class="tbusy">${vl.length>mx?`${vl.length-mx} over the limit`:'Busy day'}</span>`:''}</span>
+      ${vl?`<span class="tvbar"><i style="width:${pct}%"></i></span>`:''}
+      ${sm.length?`<span class="tl3 smtag">＋ ${plural(sm.length,'small job')}: ${sm.map(p=>esc(p.title)).join(', ')}</span>`:''}
+      ${ps.length?`<span class="tprob">${ICON.alert}${ps.map(x=>esc(x.text)).join(' · ')}</span>`:''}
+    </button>
+    <div class="tbody">
+      ${p?`<div class="tjob"><span class="worksline">${esc(worksText(p))}</span><button class="link" data-editproj="${p.id}">Edit job</button>${!crewMatches(p,t,ctx.date)&&n?`<button class="pillbtn" data-savecrew="${p.id}">Use this crew every day</button>`:''}</div>`:''}
+      ${[...miss].map(k=>skillHint(k,t,ctx.date,allT)).join('')}
+      ${sm.map(p=>`<div class="smj"><span><b>＋ Small job:</b> ${esc(p.title)}<em>${esc(worksText(p))}${jobFlags(p).filter(f=>f!=='small job').length?' · '+jobFlags(p).filter(f=>f!=='small job').join(' · '):''}</em></span><span class="row"><select class="textin sm" data-smallteam="${p.id}" aria-label="Team doing ${esc(p.title)}">${mts.map(x=>`<option value="${x.id}" ${x.id===t.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><button class="link small" data-editproj="${p.id}">Edit</button></span></div>`).join('')}
+      ${n>maxTeam()?`<p class="taphint over">Too many people (${n}/${maxTeam()}) — tap a name to remove</p>`:''}
+      <div class="tsec"><div class="tsech"><span>Crew</span><span class="tsr tticks">${ticks}</span></div><div class="tbox">${t.leader?crewRow(t.leader,ctx,true):'<p class="muted small crownone">No leader</p>'}${t.members.map(m=>crewRow(m,ctx,false)).join('')}${addRow}</div></div>
+      ${vbox}
+      ${!p?(noteShown?`<input class="desc" id="ds-day-${t.id}" data-desc="${t.id}" data-ctx='${cs}' value="${esc(t.desc||'')}" placeholder="Note for this team today" aria-label="Note for ${esc(t.name)}">`:`<button class="link small" data-noteteam="${t.id}">+ Note for this team</button>`):(p.note?`<div class="jobnote"><b>Notes for the crew:</b> ${esc(p.note)}</div>`:'')}
+      ${t.leader?`<div class="tfoot tf2">${vl&&vl.length?`<button class="btn" data-troster="day:${esc(t.id)}">Roster PDF</button>`:''}<button class="btn tfwa" data-copyleader="${esc(t.id)}">${waNum(t.leader)?'WhatsApp':'Copy for WhatsApp'}</button></div>`:''}
+      ${p?`<button class="link small rmteam" data-rmjobteam="${p.id}">✕ Remove team</button>`:`<button class="link small rmteam" data-rmteam="${t.id}">✕ Remove team</button>`}
     </div>
   </section>`;
 }
@@ -3340,7 +3447,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
       <div class="phboard ${phEdit||dOff?'open':''}">
       ${proj.length?`<div class="sechead"><h3>New work · ${plural(proj.length,'team')}</h3></div><div class="board">${proj.map(t=>teamCard(t,ctx,vp)).join('')}</div>`:''}
       <div class="sechead"><h3>Maintenance · ${plural(maint.length,'team')}</h3>${cur>=TODAY?'<button class="btn small" data-addday>+ Add a team</button>':''}</div>
-      <div class="board">${maint.map(t=>teamCard(t,ctx,vp)).join('')}</div>
+      ${splitBar(cur,vp)}<div class="board">${maint.map(t=>teamCard(t,ctx,vp)).join('')}</div>
       <div class="card nursery" data-drop="nursery" data-ctx='${esc(JSON.stringify(ctx))}'><div class="cardhead"><h3>Nursery / farm · ${nurseryOf(cur).length}</h3><span class="muted small">${teams.filter(t=>{const p=t.projectId&&projById(t.projectId);return !(p&&isSupply(p))}).length} of ${carsN()} cars out · ${maxTeam()} seats per car</span></div><div class="chips">${nurseryOf(cur).map(n=>chip(n,ctx)).join('')||'<span class="muted small">Nobody</span>'}</div></div>
       </div>
       ${vp.skipped.length?`<div class="card"><h3>Villas not today · ${vp.skipped.length}</h3><div class="chips">${vp.skipped.map(c=>{const to=(r.villaMovedTo||{})[c.id];return `<button class="vchip" data-unskip="${esc(c.id)}">${esc(villaName(c))}${to?' → '+shortDate(to):''} · put back</button>`}).join('')}</div></div>`:''}
