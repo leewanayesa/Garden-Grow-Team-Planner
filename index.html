@@ -809,6 +809,23 @@ table.skills .chip{min-height:32px;padding:5px 11px}
   .splitbar{padding:6px 10px;font-size:.8rem;border-radius:11px;margin-bottom:8px}.splitbar .btn.small{min-height:30px;font-size:.76rem;padding:3px 10px}
   .sechead h3{font-size:.72rem}
 }
+
+/* Phone-number switch on top of the Roster menu + bold PDF buttons under the date card (26 Nov 2026) */
+.trsw2{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--green-soft);border:1.5px solid #9fd0a3;border-radius:12px;padding:9px 12px}
+.trsw2>div{display:grid;min-width:0}.trsw2 b{font-size:.95rem;color:var(--green)}.trsw2 span{font-size:.76rem;color:var(--muted)}
+.trsw2.off{background:var(--warn-soft);border-color:#f0c978}.trsw2.off b{color:var(--warn)}
+.apb.apr,.apb.apl{flex-direction:row;justify-content:flex-start;gap:9px;padding:6px 12px;text-align:left}
+.apb.apr{background:#0f3a20;color:#fff;border-color:#0f3a20}.apb.apr .apt>span{color:#cfe5cf}
+.apb.apl{background:var(--surface);color:var(--forest);border:1.5px solid var(--forest)}
+.apt{display:grid;line-height:1.15;min-width:0}.apt b{font-size:.92rem}.apt>span{font-size:.7rem;color:var(--muted)}
+.apb.apr svg,.apb.apl svg{flex:none}
+.apd .apb.apr{border-color:#0f3a20}
+.apd .apb.apr .apt b{color:#fff!important}.apd .apb.apl .apt b{color:#0f3a20!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .apd .apb.apl .apt b{color:var(--ink)!important}}
+:root[data-theme="dark"] .apd .apb.apl .apt b{color:var(--ink)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .apb.apl{color:var(--ink);border-color:var(--green)}}
+:root[data-theme="dark"] .apb.apl{color:var(--ink);border-color:var(--green)}
+@media (min-width:900px){.apb.apr,.apb.apl{min-height:46px;padding:5px 10px;gap:7px}.apt b{font-size:.82rem}.apt>span{font-size:.64rem}.apb.apr svg,.apb.apl svg{width:16px;height:16px}}
 /* team screen (phone) */
 .tscr{display:grid;gap:12px;padding-bottom:150px}
 .tsh{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -3526,7 +3543,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
     return `<div class="bxr tv2 ${tone}"><button class="bxm" data-teamopen="${esc(t.id)}" aria-label="Open ${esc(tName(t))}"><span class="bxn"><i class="tdot"></i>${esc(tShort(t))}<em class="${k}">${v} / ${capT}</em></span><span class="bxbar"><i class="${k}" style="width:${pct}%"></i></span><span class="bxs">${plural(n,'person','people')}${ti&&v?` · back ≈ ${clock(ti.finish)}`:''}${ldt} ›</span></button>${wa}</div>`};
   const LBL={light:'Light day',normal:'Normal day',busy:'Busy day',over:'Over the limit',none:'No villas'};
   const busyBox=dOff||!teams.length?'':`<section class="busybox"><div class="bxh"><b>How busy ${cur===TODAY?'today':'this day'}</b>${mts0.length?`<span class="bxpill ${curLoad.k}">${LBL[curLoad.k]||''} · ${vp.total} of ${capAll}</span>`:''}</div>${[...mts0,...teams.filter(isProj)].map(bxRow).join('')}<p class="bxf">Limit ${capT} villas a team${lastBack?` · day ends ≈ ${clock(lastBack)}`:''}${ideas.length&&heavy.length?` · <button class="link small" data-gofix>See ideas</button>`:''}</p></section>`;
-  const pdf2=`<div class="apdf"><details class="more pdfmenu apd"><summary class="apb"><b>Team Roster PDF</b><span>full roster first ▾</span></summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details><details class="more pdfmenu apd"><summary class="apb"><b>Team Plan PDF</b><span>day or week ▾</span></summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>`;
+  const pdf2=`<div class="apdf"><details class="more pdfmenu apd"><summary class="apb apr"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="apt"><b>Roster PDF</b><span>full roster first ▾</span></span></summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details><details class="more pdfmenu apd"><summary class="apb apl"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="apt"><b>Plan PDF</b><span>day or week ▾</span></span></summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>`;
   const quick=`<div class="aq"><button class="aqb" data-off>${IC2.people}<b>Who's in</b></button><button class="aqb" data-newproj>${IC2.plus}<b>New work</b></button><button class="aqb" data-newleave>${IC2.cal}<b>Leave</b></button><details class="more aqd"><summary class="aqb"><span class="aqi" aria-hidden="true">⋯</span><b>More</b></summary><div class="morepop">${moreItems}</div></details></div>`;
   const sendBtn=dOff||!built?''
     :!withL.length?''
@@ -3540,6 +3557,7 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
   $('view').innerHTML=`<div class="day2 dayA">
     <aside class="homeA">
       <div class="ahwrap">${head}</div>
+      ${pdf2}
       ${monthOpen?`<div class="phone-only monthpop">${calendarHtml()}</div>`:''}
       ${offLine}
       ${checkBar}${staleBar}${resendBar2}
@@ -3547,7 +3565,6 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
       ${status}
       ${noteField}
       ${busyBox}
-      ${pdf2}
       ${quick}
       ${sendBtn?`<div class="dsk">${sendBtn}</div>`:''}
       ${nwLine?`<div class="dsk">${nwLine}</div>`:''}
@@ -4089,12 +4106,13 @@ function rosterMenu(){
   const dt=fromIso(cur),dayB=cur===TODAY?'Today':`${DN[dt.getDay()]} ${dt.getDate()}`,when=cur===TODAY?'today':'on '+shortDate(cur);
   const cnt=t=>(vp.byTeam[t.id]||[]).length,due=tl.reduce((a,t)=>a+cnt(t),0);
   const row=(name,n,key,cls)=>`<div class="trow2${cls||''}"><div><b>${name}</b><span>${off?'Day off — week only':plural(n,'villa')+' '+when}</span></div>${off?'':`<button class="btn trd" data-troster="day:${key}"${n?'':' disabled'}>${dayB}</button>`}<button class="btn trw" data-troster="week:${key}">Week</button></div>`;
-  return `<div class="trfullc"><div class="trfh"><span class="trico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>Full roster</b><span>All teams · all ${totalClients()} clients · Saturday to Thursday</span></div></div><button class="btn trfb" data-trfull>Make full roster PDF</button></div>
+  return `<div class="trsw2 ${P.wc?'':'off'}"><div><b class="trswb">Phone numbers: ${P.wc?'ON':'OFF'}</b><span class="trswt">${P.wc?'Client numbers + Call / WhatsApp buttons in the PDF':'No phone numbers in the PDF — map only'}</span></div><button type="button" role="switch" class="swt" aria-checked="${P.wc}" aria-label="Phone numbers" data-trwc="${P.wc?'0':'1'}"><i></i></button></div>
+      <div class="trfullc"><div class="trfh"><span class="trico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>Full roster</b><span>All teams · all ${totalClients()} clients · Saturday to Thursday</span></div></div><button class="btn trfb" data-trfull>Make full roster PDF</button></div>
       <p class="trsep">Or one team</p>
       ${tl.map(t=>row(esc(tName(t)),cnt(t),esc(t.id))).join('')}
       ${tl.length?row('All teams, by team',due,'all',' all'):'<p class="muted small trnote">No teams set for this day.</p>'}
       <p class="muted small trnote">Week = ${esc(shortDate(wk[0]))} to ${esc(shortDate(wk[5]))}</p>
-      <div class="trsw"><div><b>Phone numbers</b><span class="trswt">${P.wc?'On — client phone numbers in the PDF':'Off — no phone numbers in the PDF'}</span></div><button type="button" role="switch" class="swt" aria-checked="${P.wc}" aria-label="Phone numbers" data-trwc="${P.wc?'0':'1'}"><i></i></button></div>`;
+`;
 }
 function makeTeamRoster(per,key){
   if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}
@@ -4566,7 +4584,7 @@ document.addEventListener('click',e=>{
   if('copyleader' in d){const t=effTeams(cur).find(x=>x.id===d.copyleader);if(!t)return;if(openLeaderWa(t,cur)){render();return}const txt=leaderText(t,cur);
     if(usePhoneShare()&&navigator.share){navigator.share({text:txt}).then(()=>{markTeamSent(t,cur);render()}).catch(()=>{});return}
     markTeamSent(t,cur);copyText(txt,`Copied — paste it in ${sn(t.leader)||'the leader'}'s WhatsApp`);render();return}
-  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);if(el.classList.contains('swt')){el.setAttribute('aria-checked',String(P.wc));el.dataset.trwc=P.wc?'0':'1';const tx=el.parentNode.querySelector('.trswt');if(tx)tx.textContent=P.wc?'On — client phone numbers in the PDF':'Off — no phone numbers in the PDF';return}const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
+  if('trfmt' in d||'trwc' in d){const P=trPref();if('trfmt' in d)P.phone=d.trfmt==='phone';else P.wc=d.trwc==='1';trSave(P);if(el.classList.contains('swt')){el.setAttribute('aria-checked',String(P.wc));el.dataset.trwc=P.wc?'0':'1';const bx=el.closest('.trsw2,.trsw');if(bx){bx.classList.toggle('off',!P.wc);const tb=bx.querySelector('.trswb');if(tb)tb.textContent='Phone numbers: '+(P.wc?'ON':'OFF');const tx=bx.querySelector('.trswt');if(tx)tx.textContent=P.wc?'Client numbers + Call / WhatsApp buttons in the PDF':'No phone numbers in the PDF — map only'}return}const sg=el.closest('.seg');if(sg)sg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));return}
   if('troster' in d){const det=el.closest('details');if(det)det.open=false;const [per,...k]=String(d.troster).split(':');makeTeamRoster(per,k.join(':')||'all');return}
   if('pdfroster' in d||'trfull' in d){const det=el.closest('details');if(det)det.open=false;if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}if(typeof RosterPDF==='undefined'||!window.jspdf){toast('PDF helper not loaded');return}const P0=trPref(),v=('trfull' in d)?(P0.phone?'phone':'std')+(P0.wc?'-with':'-without'):(d.pdfroster||'std-without'),wc=v.endsWith('-with');if(wc&&!(S.clients||[]).some(c=>c.phone||c.whatsapp))toast('Phone numbers have not come from the Maintenance App yet — the PDF shows MAP only');else toast('Making the roster PDF…');RosterPDF.make(S.clients,v.startsWith('phone'),wc).catch(err=>toast('PDF problem: '+(err&&err.message||err)));return}
   if('pdfsetup' in d){printSetup();return}
