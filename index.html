@@ -520,6 +520,19 @@ table.skills .chip{min-height:32px;padding:5px 11px}
 .stn.ok{background:var(--green);color:#fff}.stn.ok svg{width:16px;height:16px}.stn.warn{background:var(--warn-soft);color:var(--warn)}
 .sth{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.sth>b{font-size:1rem}
 .stt{display:grid;gap:1px;font-size:.88rem}.stt span{color:var(--muted)}
+/* Roster PDF + Plan PDF windows: framed, page behind dimmed (Style A, 26 Nov 2026) */
+.apd[open]>summary::after{content:"";position:fixed;inset:0;background:rgba(15,30,20,.45);z-index:39;cursor:default}
+.homeA:has(.apd[open]){z-index:35}
+.homeA .apd>.morepop.ppw{position:fixed!important;left:50%!important;right:auto!important;top:max(60px,calc(env(safe-area-inset-top,0px) + 12px))!important;bottom:auto!important;transform:translateX(-50%);width:min(420px,calc(100vw - 20px))!important;min-width:0!important;max-height:calc(100dvh - 80px)!important;overflow:auto;z-index:40;padding:0!important;gap:0!important;border:0;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.ppwh{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:12px 14px;background:#e2eedf;border-bottom:1px solid #cfe0cb}
+.ppwh>div{flex:1;display:grid;min-width:0;line-height:1.2}.ppwh b{font-family:var(--display);font-size:1.14rem;color:#0f3a20}.ppwh span{font-size:.76rem;color:#4f6b53}
+.ppi{width:34px;height:34px;border-radius:10px;background:#fff;border:1.5px solid #0f3a20;color:#0f3a20;display:flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box}.ppi.dk{background:#0f3a20;color:#fff}
+.ppx{width:38px;height:38px;border-radius:10px;border:1px solid #c3d8bf;background:#fff;color:#1d2a20;font-size:.95rem;cursor:pointer;flex:none;font-family:inherit}
+.ppb{display:grid;gap:10px;padding:12px 14px 14px}
+.ppinfo{display:grid;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px}.ppinfo b{font-size:.92rem}.ppinfo span{font-size:.76rem;color:var(--muted)}
+.pptag{justify-self:start;margin-top:4px;font-style:normal;font-size:.72rem;font-weight:800;border-radius:999px;padding:2px 9px}.pptag.no{background:#fbeed4;color:#7a4a00}.pptag.ok{background:#e6f2e5;color:#1d4d2a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ppw{border:1px solid #3a5240!important}:root:not([data-theme="light"]) .ppwh{background:#1e2c20;border-color:#2f4231}:root:not([data-theme="light"]) .ppwh b{color:var(--ink)}:root:not([data-theme="light"]) .ppwh span{color:var(--muted)}:root:not([data-theme="light"]) .ppx{background:var(--surface);color:var(--ink);border-color:var(--line)}:root:not([data-theme="light"]) .ppi{background:var(--surface);color:var(--ink);border-color:var(--ink)}}
+:root[data-theme="dark"] .ppw{border:1px solid #3a5240!important}:root[data-theme="dark"] .ppwh{background:#1e2c20;border-color:#2f4231}:root[data-theme="dark"] .ppwh b{color:var(--ink)}:root[data-theme="dark"] .ppwh span{color:var(--muted)}:root[data-theme="dark"] .ppx{background:var(--surface);color:var(--ink);border-color:var(--line)}:root[data-theme="dark"] .ppi{background:var(--surface);color:var(--ink);border-color:var(--ink)}
 .stbars{display:grid;gap:6px}.stb{display:grid;grid-template-columns:72px 1fr 22px;align-items:center;gap:8px;font-size:.84rem;font-weight:700}
 .stb i{height:10px;border-radius:5px;background:var(--soft);overflow:hidden}.stb i b{display:block;height:10px;border-radius:5px;background:var(--green)}.stb i b.ov{background:#c47a12}.stb em{font-style:normal;text-align:right}
 .stshare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stshare>details>summary{width:100%;justify-content:center;font-size:.84rem}
@@ -2641,7 +2654,7 @@ function phonesCard(){
 }
 function markSent(date,tid){if(isDayOff(date))return;const r=ensureDay(date);if(!r.teams)return;try{const vp=villaPlan(date,r.teams),m={};Object.entries(vp.byTeam).forEach(([tid,L])=>L.forEach(c=>m[c.id]=tid));r.vsnap=m;
     r.sentSig=Object.assign({},r.sentSig||{});r.vlist=Object.assign({},r.vlist||{});r.teams.filter(t=>!tid||t.id===tid).forEach(t=>{r.sentSig[t.id]=teamSig(t,date);r.vlist[t.id]=(vp.byTeam[t.id]||[]).map(c=>c.id)})}catch(_){}r.sent=true;r.editedAt=Date.now();delete r.resend;r.sig=r.sig||daySig(date);const n=new Date();r.sentAt=pad(n.getHours())+':'+pad(n.getMinutes());save()}
-function printDay(markIt){if(markIt)markSent(cur);setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=pdfDayPage(cur);doPrint(`Garden Grow Daily Team Plan ${cur}`)}
+function printDay(markIt,date){const D=date||cur;if(markIt)markSent(D);setPageSize('size:A4;margin:10mm');$('printsheet').innerHTML=pdfDayPage(D);doPrint(`Garden Grow Daily Team Plan ${D}`)}
 function printWeek(){
   [0,1,2,3,4,5,6].forEach(i=>ensureBuilt(addDays(weekStart(cur),i)));
   const ws=weekStart(cur), days=[0,1,2,3,4,5,6].map(i=>addDays(ws,i)).filter(s=>!isDayOff(s)&&(clientsOn(s).length||activeProjects(s).length));
@@ -3543,7 +3556,8 @@ ${usePhoneShare()?'<button class="btn" data-sendtext>Send as text message</butto
     return `<div class="bxr tv2 ${tone}"><button class="bxm" data-teamopen="${esc(t.id)}" aria-label="Open ${esc(tName(t))}"><span class="bxn"><i class="tdot"></i>${esc(tShort(t))}<em class="${k}">${v} / ${capT}</em></span><span class="bxbar"><i class="${k}" style="width:${pct}%"></i></span><span class="bxs">${plural(n,'person','people')}${ti&&v?` · back ≈ ${clock(ti.finish)}`:''}${ldt} ›</span></button>${wa}</div>`};
   const LBL={light:'Light day',normal:'Normal day',busy:'Busy day',over:'Over the limit',none:'No villas'};
   const busyBox=dOff||!teams.length?'':`<section class="busybox"><div class="bxh"><b>How busy ${cur===TODAY?'today':'this day'}</b>${mts0.length?`<span class="bxpill ${curLoad.k}">${LBL[curLoad.k]||''} · ${vp.total} of ${capAll}</span>`:''}</div>${[...mts0,...teams.filter(isProj)].map(bxRow).join('')}<p class="bxf">Limit ${capT} villas a team${lastBack?` · day ends ≈ ${clock(lastBack)}`:''}${ideas.length&&heavy.length?` · <button class="link small" data-gofix>See ideas</button>`:''}</p></section>`;
-  const pdf2=`<div class="apdf"><details class="more pdfmenu apd"><summary class="apb apr"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="apt"><b>Roster PDF</b><span>full roster first ▾</span></span></summary><div class="morepop trpop"><p class="mhead3">Team Roster PDF</p>${trItems}</div></details><details class="more pdfmenu apd"><summary class="apb apl"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="apt"><b>Plan PDF</b><span>day or week ▾</span></span></summary><div class="morepop"><p class="mhead3">Team Plan PDF</p>${teamItems}</div></details></div>`;
+  const ppHead=(t,sub,dk)=>`<div class="ppwh"><span class="ppi${dk?' dk':''}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>${t}</b><span>${sub}</span></div><button type="button" class="ppx" aria-label="Close">✕</button></div>`;
+  const pdf2=`<div class="apdf"><details class="more pdfmenu apd"><summary class="apb apr"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="apt"><b>Roster PDF</b><span>full roster first ▾</span></span></summary><div class="morepop trpop ppw" role="dialog" aria-label="Roster PDF">${ppHead('Roster PDF','Villas and route for each day',1)}<div class="ppb">${trItems}</div></div></details><details class="more pdfmenu apd"><summary class="apb apl"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span class="apt"><b>Plan PDF</b><span>tomorrow first ▾</span></span></summary><div class="morepop trpop ppw" role="dialog" aria-label="Plan PDF">${ppHead('Plan PDF','Who works in which team')}<div class="ppb">${planMenu()}</div></div></details></div>`;
   const quick=`<div class="aq"><button class="aqb" data-off>${IC2.people}<b>Who's in</b></button><button class="aqb" data-newproj>${IC2.plus}<b>New work</b></button><button class="aqb" data-newleave>${IC2.cal}<b>Leave</b></button><details class="more aqd"><summary class="aqb"><span class="aqi" aria-hidden="true">⋯</span><b>More</b></summary><div class="morepop">${moreItems}</div></details></div>`;
   const sendBtn=dOff||!built?''
     :!withL.length?''
@@ -4107,12 +4121,27 @@ function rosterMenu(){
   const cnt=t=>(vp.byTeam[t.id]||[]).length,due=tl.reduce((a,t)=>a+cnt(t),0);
   const row=(name,n,key,cls)=>`<div class="trow2${cls||''}"><div><b>${name}</b><span>${off?'Day off — week only':plural(n,'villa')+' '+when}</span></div>${off?'':`<button class="btn trd" data-troster="day:${key}"${n?'':' disabled'}>${dayB}</button>`}<button class="btn trw" data-troster="week:${key}">Week</button></div>`;
   return `<div class="trsw2 ${P.wc?'':'off'}"><div><b class="trswb">Phone numbers: ${P.wc?'ON':'OFF'}</b><span class="trswt">${P.wc?'Client numbers + Call / WhatsApp buttons in the PDF':'No phone numbers in the PDF — map only'}</span></div><button type="button" role="switch" class="swt" aria-checked="${P.wc}" aria-label="Phone numbers" data-trwc="${P.wc?'0':'1'}"><i></i></button></div>
-      <div class="trfullc"><div class="trfh"><span class="trico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>Full roster</b><span>All teams · all ${totalClients()} clients · Saturday to Thursday</span></div></div><button class="btn trfb" data-trfull>Make full roster PDF</button></div>
+      <div class="trfullc"><div class="trfh"><span class="trico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><div><b>Full roster</b><span>All teams · all ${totalClients()} clients · Saturday to Thursday</span></div></div><button class="btn trfb" data-trfull>Get full roster PDF</button></div>
       <p class="trsep">Or one team</p>
       ${tl.map(t=>row(esc(tName(t)),cnt(t),esc(t.id))).join('')}
       ${tl.length?row('All teams, by team',due,'all',' all'):'<p class="muted small trnote">No teams set for this day.</p>'}
       <p class="muted small trnote">Week = ${esc(shortDate(wk[0]))} to ${esc(shortDate(wk[5]))}</p>
 `;
+}
+function planMenu(){
+  /* Plan PDF window (approved Style A, 26 Nov 2026): tomorrow first, then today / the day shown / the week. It only prints the plan already on the day page. */
+  const tm=nextWorkDay(addDays(TODAY,1)), ws=weekStart(cur), we=addDays(ws,6), tt=s=>fromIso(s);
+  const tag=s=>S.days[s]&&S.days[s].teams?'<em class="pptag ok">✓ You set this day</em>':'<em class="pptag no">Not set yet — it will show the usual teams</em>';
+  const gap=tm?[...Array(Math.max(0,daysBetween(TODAY,tm)-1))].map((_,i)=>addDays(TODAY,i+1)):[];
+  const why=gap.length?`${gap.map(x=>DNL[tt(x).getDay()]).join(' and ')} ${gap.length>1?'are days':'is the day'} off, so this is ${DNL[tt(tm).getDay()]}'s plan`:'All teams, crew and villas';
+  const row=(t,s)=>`<div class="trow2"><div><b>${t}</b>${tag(s)}</div><button class="btn trw" data-pdfday="${s}">Get PDF</button></div>`;
+  let rows='';
+  if(!isDayOff(TODAY))rows+=row(`Today · ${esc(shortDate(TODAY))}`,TODAY);
+  if(cur!==TODAY&&cur!==tm&&!isDayOff(cur))rows+=row(`Day shown · ${esc(shortDate(cur))}`,cur);
+  rows+=`<div class="trow2"><div><b>Whole week</b><span>${esc(shortDate(ws))} – ${esc(shortDate(we))} · one page per day</span></div><button class="btn trw" data-pdfweek>Get PDF</button></div>`;
+  return `<div class="ppinfo"><b>A PDF of the plan you made on the day page</b><span>Nothing in your plan changes · names only, no client phone numbers</span></div>
+      ${tm?`<div class="trfullc"><div class="trfh"><div><b>Tomorrow · ${DNL[tt(tm).getDay()]} ${tt(tm).getDate()} ${MN[tt(tm).getMonth()]}</b><span>${why}</span>${tag(tm)}</div></div><button class="btn trfb" data-pdfday="${tm}">Get PDF of tomorrow's plan</button></div><p class="trsep">Or</p>`:''}
+      ${rows}`;
 }
 function makeTeamRoster(per,key){
   if(!(S.clients||[]).length){toast('No villas yet — they come from the roster app');return}
@@ -4547,7 +4576,7 @@ document.addEventListener('click',e=>{
   if('fab' in d){modal={kind:'add'};renderModal();return}
   if('copy' in d){effTeams(cur).filter(t=>t.leader).forEach(t=>markTeamSent(t,cur));copyText(whatsappText(),'Copied — paste into the WhatsApp group');return}
   if('sharepdf' in d){$('toast').hidden=true;if(pendingShare){const p=pendingShare;pendingShare=null;sharePdf(p.blob,p.filename,p.title,p.onSent,true)}return}
-  if('pdfday' in d){const viaSend=!!(modal&&modal.kind==='send');const det=el.closest('details');if(det)det.open=false;if(usePhoneShare()){const D0=cur;sharePlan([D0],`Garden Grow Team Plan ${shortDate(D0)}.pdf`,()=>{markSent(D0);render()});return}printDay(viaSend);return}
+  if('pdfday' in d){const viaSend=!!(modal&&modal.kind==='send');const det=el.closest('details');if(det)det.open=false;const D0=/^\d{4}-\d{2}-\d{2}$/.test(d.pdfday||'')?d.pdfday:cur;if(usePhoneShare()){sharePlan([D0],`Garden Grow Team Plan ${shortDate(D0)}.pdf`,()=>{markSent(D0);render()});return}printDay(viaSend,D0);return}
   if('pdfweek' in d){const det=el.closest('details');if(det)det.open=false;if(usePhoneShare()){[0,1,2,3,4,5,6].forEach(i=>ensureBuilt(addDays(weekStart(cur),i)));const ws=weekStart(cur),days=[0,1,2,3,4,5,6].map(i=>addDays(ws,i)).filter(s=>!isDayOff(s)&&(clientsOn(s).length||activeProjects(s).length));if(!days.length){toast('No working days with villas this week');return}sharePlan(days,`Garden Grow Week Plan ${shortDate(ws)}.pdf`);return}printWeek();return}
   if('pdfleaders' in d){printLeaders();return}
   if('info' in d){const box=el.closest('.infowrap,.card,.ibox,.stc')||el.parentElement;if(box){box.classList.toggle('showhelp');const fb=box.classList.contains('fold')&&box.querySelector('.foldbtn');if(fb&&box.classList.contains('showhelp')&&!box.classList.contains('open')){FOLD_OPEN.add(fb.dataset.fold);box.classList.add('open')}}return}
